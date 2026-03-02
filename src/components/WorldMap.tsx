@@ -2,6 +2,7 @@ import { useEffect, useState, Suspense, lazy } from 'react'
 import { MapContainer, TileLayer, CircleMarker, Tooltip, GeoJSON, useMap } from 'react-leaflet'
 import type { Layer } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { DayNightOverlay } from './DayNightOverlay'
 import { useStore } from '../store/useStore'
 import { MAP_MARKERS } from '../services/mapData'
 import { PIPELINE_MARKERS, GCC_MARKERS, CYBER_MARKERS, FINANCIAL_MARKERS } from '../data/staticMapLayers'
@@ -220,6 +221,8 @@ export function WorldMap() {
                 }}
               />
             )}
+
+            {activeLayers.has('daynight') && <DayNightOverlay />}
 
             {combinedMarkers.map((marker) => (
               <CircleMarker

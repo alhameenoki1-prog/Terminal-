@@ -115,3 +115,42 @@ button:focus-visible {
 
 a { text-decoration: none; }
 a:hover { text-decoration: none; }
+
+/* ── Mobile layout ──────────────────────────────────────────────────────────── */
+.mobile-layout {
+  display: grid;
+  grid-template-rows: 40px 1fr 32px 56px;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.mobile-content {
+  overflow: hidden;
+  position: relative;
+}
+
+.mobile-nav {
+  display: flex;
+  align-items: stretch;
+}
+
+.mobile-nav > button {
+  flex: 1;
+}
+
+/* ── Resizable panel handle ─────────────────────────────────────────────────── */
+[data-panel-resize-handle-id] {
+  background: #1F2937;
+  transition: background 0.15s;
+}
+[data-panel-resize-handle-id]:hover,
+[data-panel-resize-handle-id][data-resize-handle-active] {
+  background: rgba(245,158,11,0.5);
+}
+
+/* ── Scrollbar hide utility ─────────────────────────────────────────────────── */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar { display: none; }

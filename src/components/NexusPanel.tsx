@@ -8,12 +8,14 @@ import { YieldCurvePanel } from './YieldCurvePanel'
 import { PreTradeChecklist } from './PreTradeChecklist'
 import { EdgePlaybook } from './EdgePlaybook'
 import { DailyLogPanel } from './DailyLogPanel'
+import { OptionsPanel } from './OptionsPanel'
 
 const NEXUS_TABS: { key: string; label: string; icon: string }[] = [
   { key: 'regime',    label: 'Regime',    icon: '⚡' },
   { key: 'mc',        label: 'Monte Carlo', icon: '🎲' },
   { key: 'vol',       label: 'Volatility', icon: '📊' },
   { key: 'futures',   label: 'Futures',   icon: '📦' },
+  { key: 'options',   label: 'Options',   icon: '🎰' },
   { key: 'yields',    label: 'Yields',    icon: '📈' },
   { key: 'transmit',  label: 'Transmit',  icon: '🔗' },
   { key: 'checklist', label: 'Checklist', icon: '✅' },
@@ -51,6 +53,7 @@ export function NexusPanel() {
         {nexusSubTab === 'mc'        && <MonteCarloPanel />}
         {nexusSubTab === 'vol'       && <VolatilityPanel />}
         {nexusSubTab === 'futures'   && <FuturesFlowPanel />}
+        {nexusSubTab === 'options'   && <OptionsPanel />}
         {nexusSubTab === 'yields'    && <YieldCurvePanel />}
         {nexusSubTab === 'transmit'  && <TransmissionMap />}
         {nexusSubTab === 'checklist' && <PreTradeChecklist />}

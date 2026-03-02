@@ -10,7 +10,10 @@ import { NexusPanel }   from './components/NexusPanel'
 import { ChatPanel }    from './components/ChatPanel'
 import { AlertsPanel }  from './components/AlertsPanel'
 import { SettingsPanel } from './components/SettingsPanel'
+import { MobileLayout } from './components/MobileLayout'
 import { useStore }     from './store/useStore'
+import { useBreakpoint } from './hooks/useBreakpoint'
+import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels'
 
 const RIGHT_TABS: { key: ReturnType<typeof useStore.getState>['rightPanelTab']; label: string; icon: string }[] = [
   { key: 'news',    label: 'News',    icon: '📰' },
@@ -25,6 +28,9 @@ export default function App() {
   const setRightPanelTab = useStore((s) => s.setRightPanelTab)
   const alertRules       = useStore((s) => s.alertRules)
   const triggeredCount   = alertRules.filter((r) => r.triggered).length
+  const breakpoint       = useBreakpoint()
+
+  if (breakpoint === 'mobile') return <MobileLayout />
 
   return (
     <div className="app-grid font-sans text-terminal-text select-none">
@@ -40,14 +46,21 @@ export default function App() {
         <Watchlist />
       </aside>
 
-      {/* Col 2: Chart + Map stacked */}
-      <main className="h-full flex flex-col overflow-hidden">
-        <div className="chart-pane">
-          <TradingChart />
-        </div>
-        <div className="map-pane">
-          <WorldMap />
-        </div>
+      {/* Col 2: Chart + Map — resizable split */}
+      <main className="h-full overflow-hidden">
+        <PanelGroup orientation="vertical">
+          <Panel defaultSize={60} minSize={25}>
+            <div className="h-full overflow-hidden">
+              <TradingChart />
+            </div>
+          </Panel>
+          <PanelResizeHandle className="h-1 bg-terminal-border hover:bg-terminal-accent/60 cursor-row-resize transition-colors flex-shrink-0" />
+          <Panel defaultSize={40} minSize={20}>
+            <div className="h-full overflow-hidden">
+              <WorldMap />
+            </div>
+          </Panel>
+        </PanelGroup>
       </main>
 
       {/* Col 3: Right panel with tabs */}
@@ -78,13 +91,20 @@ export default function App() {
         {/* Tab content */}
         <div className="flex-1 overflow-hidden">
           {rightPanelTab === 'news'    && (
-            <div className="h-full flex flex-col overflow-hidden">
-              <div className="news-pane">
-                <NewsFeed />
-              </div>
-              <div className="rates-pane overflow-hidden">
-                <RatesPanel />
-              </div>
+            <div className="h-full overflow-hidden">
+              <PanelGroup orientation="vertical">
+                <Panel defaultSize={55} minSize={30}>
+                  <div className="h-full overflow-hidden">
+                    <NewsFeed />
+                  </div>
+                </Panel>
+                <PanelResizeHandle className="h-1 bg-terminal-border hover:bg-terminal-accent/60 cursor-row-resize transition-colors" />
+                <Panel defaultSize={45} minSize={25}>
+                  <div className="h-full overflow-hidden">
+                    <RatesPanel />
+                  </div>
+                </Panel>
+              </PanelGroup>
             </div>
           )}
           {rightPanelTab === 'country' && <CountryPanel />}

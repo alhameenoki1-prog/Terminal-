@@ -12,6 +12,8 @@ export const CENTRAL_BANK_RATES: CentralBankRate[] = [
     lastChange:   '2024-12-18',
     nextMeeting:  '2026-03-19',
     trend:        'cutting',
+    stance:       'NEUTRAL',
+    impliedCuts:  2,
   },
   {
     bank:         'European Central Bank',
@@ -22,6 +24,8 @@ export const CENTRAL_BANK_RATES: CentralBankRate[] = [
     lastChange:   '2025-01-30',
     nextMeeting:  '2026-03-06',
     trend:        'cutting',
+    stance:       'DOVE',
+    impliedCuts:  3,
   },
   {
     bank:         'Bank of England',
@@ -32,6 +36,8 @@ export const CENTRAL_BANK_RATES: CentralBankRate[] = [
     lastChange:   '2025-02-06',
     nextMeeting:  '2026-03-20',
     trend:        'cutting',
+    stance:       'NEUTRAL',
+    impliedCuts:  2,
   },
   {
     bank:         'Bank of Japan',
@@ -42,9 +48,11 @@ export const CENTRAL_BANK_RATES: CentralBankRate[] = [
     lastChange:   '2025-01-24',
     nextMeeting:  '2026-03-18',
     trend:        'hiking',
+    stance:       'HAWK',
+    impliedCuts:  -1,
   },
   {
-    bank:         'People\'s Bank of China',
+    bank:         "People's Bank of China",
     country:      'China',
     countryCode:  'CN',
     rate:         3.10,
@@ -52,6 +60,8 @@ export const CENTRAL_BANK_RATES: CentralBankRate[] = [
     lastChange:   '2024-10-21',
     nextMeeting:  '2026-04-15',
     trend:        'cutting',
+    stance:       'DOVE',
+    impliedCuts:  4,
   },
   {
     bank:         'Reserve Bank of Australia',
@@ -62,6 +72,8 @@ export const CENTRAL_BANK_RATES: CentralBankRate[] = [
     lastChange:   '2025-02-18',
     nextMeeting:  '2026-04-01',
     trend:        'cutting',
+    stance:       'NEUTRAL',
+    impliedCuts:  2,
   },
   {
     bank:         'Bank of Canada',
@@ -72,6 +84,8 @@ export const CENTRAL_BANK_RATES: CentralBankRate[] = [
     lastChange:   '2025-01-29',
     nextMeeting:  '2026-03-12',
     trend:        'cutting',
+    stance:       'DOVE',
+    impliedCuts:  3,
   },
   {
     bank:         'Swiss National Bank',
@@ -82,6 +96,8 @@ export const CENTRAL_BANK_RATES: CentralBankRate[] = [
     lastChange:   '2024-12-12',
     nextMeeting:  '2026-03-20',
     trend:        'cutting',
+    stance:       'DOVE',
+    impliedCuts:  1,
   },
 ]
 
