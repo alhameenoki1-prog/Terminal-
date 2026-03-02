@@ -4,6 +4,7 @@ import { useStore } from '../store/useStore'
 import { fetchKlines, wsKlineUrl } from '../services/binanceService'
 import { useWebSocket } from '../hooks/useWebSocket'
 import { fmt, pctClass, pctSign } from '../utils/format'
+import type { ChartConfig } from '../types'
 
 const INTERVALS: { label: string; value: string }[] = [
   { label: '1m',  value: '1m'  },
@@ -260,5 +261,4 @@ function OhlcLabel({ label, value, color = 'text-terminal-dim' }: { label: strin
   )
 }
 
-// Re-export the type for use in TradingChart
-import type { ChartConfig } from '../types'
+
