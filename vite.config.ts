@@ -11,12 +11,19 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/yahoo/, ''),
       },
-      // Proxy Binance REST (Binance already allows CORS, but proxy as fallback)
       '/api/binance': {
         target: 'https://api.binance.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/binance/, ''),
       },
+      '/api/fred': {
+        target: 'https://fred.stlouisfed.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/fred/, ''),
+      },
     },
+  },
+  worker: {
+    format: 'es',
   },
 })

@@ -47,6 +47,51 @@ const FEEDS: { url: string; source: string; category: NewsCategory }[] = [
     source:   'CoinDesk',
     category: 'crypto',
   },
+  {
+    url:      'https://feeds.bbci.co.uk/news/business/rss.xml',
+    source:   'BBC Business',
+    category: 'macro',
+  },
+  {
+    url:      'https://rss.nytimes.com/services/xml/rss/nyt/Business.xml',
+    source:   'NY Times Business',
+    category: 'markets',
+  },
+  {
+    url:      'https://www.aljazeera.com/xml/rss/all.xml',
+    source:   'Al Jazeera',
+    category: 'geopolitical',
+  },
+  {
+    url:      'https://oilprice.com/rss/main',
+    source:   'OilPrice',
+    category: 'commodities',
+  },
+  {
+    url:      'https://feeds.ft.com/rss/home/us',
+    source:   'Financial Times',
+    category: 'macro',
+  },
+  {
+    url:      'https://asia.nikkei.com/rss/feed/nar',
+    source:   'Nikkei Asia',
+    category: 'markets',
+  },
+  {
+    url:      'https://www.investing.com/rss/news.rss',
+    source:   'Investing.com',
+    category: 'markets',
+  },
+  {
+    url:      'https://www.zerohedge.com/fullrss2.xml',
+    source:   'ZeroHedge',
+    category: 'macro',
+  },
+  {
+    url:      'https://decrypt.co/feed',
+    source:   'Decrypt',
+    category: 'crypto',
+  },
 ]
 
 async function fetchFeed(

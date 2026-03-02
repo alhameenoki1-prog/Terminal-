@@ -29,7 +29,7 @@ const INTERVALS: { label: string; value: string }[] = [
 
 export function TradingChart() {
   const containerRef     = useRef<HTMLDivElement>(null)
-  const { symbol, interval, type } = useStore((s) => s.chartConfig)
+  const { symbol, tvSymbol, interval, type } = useStore((s) => s.chartConfig)
   const setChartInterval = useStore((s) => s.setChartInterval)
   const setChartType     = useStore((s) => s.setChartType)
   const ticker           = useStore((s) => s.tickers[symbol])
@@ -41,24 +41,27 @@ export function TradingChart() {
     containerRef.current.innerHTML =
       `<div id="${containerId}" style="height:100%;width:100%;"></div>`
 
+    // Use tvSymbol if available, otherwise fall back to BINANCE: prefix for crypto
+    const chartSymbol = tvSymbol ?? `BINANCE:${symbol}`
+
     const initWidget = () => {
       if (!window.TradingView) return
       new window.TradingView.widget({
-        container_id:       containerId,
-        symbol:             `BINANCE:${symbol}`,
-        interval:           TV_INTERVAL[interval] ?? '15',
-        timezone:           'Etc/UTC',
-        theme:              'dark',
-        style:              TV_STYLE[type] ?? '1',
-        locale:             'en',
-        enable_publishing:  false,
-        allow_symbol_change: false,
-        save_image:         false,
-        height:             '100%',
-        width:              '100%',
-        hide_top_toolbar:   false,
-        hide_side_toolbar:  false,
-        backgroundColor:    '#050A14',
+        container_id:        containerId,
+        symbol:              chartSymbol,
+        interval:            TV_INTERVAL[interval] ?? '15',
+        timezone:            'Etc/UTC',
+        theme:               'dark',
+        style:               TV_STYLE[type] ?? '1',
+        locale:              'en',
+        enable_publishing:   false,
+        allow_symbol_change: true,
+        save_image:          false,
+        height:              '100%',
+        width:               '100%',
+        hide_top_toolbar:    false,
+        hide_side_toolbar:   false,
+        backgroundColor:     '#050A14',
       })
     }
 
@@ -80,18 +83,20 @@ export function TradingChart() {
     return () => {
       if (containerRef.current) containerRef.current.innerHTML = ''
     }
-  }, [symbol, interval, type])
+  }, [symbol, tvSymbol, interval, type])
 
   const priceColor = ticker ? pctClass(ticker.changePct24h) : 'text-terminal-text'
+  // Display label: strip USDT for crypto, show last segment for others
+  const displayLabel = symbol.endsWith('USDT') ? `${symbol.replace('USDT', '')}/USDT` : symbol
 
   return (
     <div className="flex flex-col h-full bg-terminal-bg">
-      {/* ── Toolbar ────────────────────────────────────────────────────── */}
+      {/* ── Toolbar ──────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-terminal-border bg-terminal-surface flex-shrink-0">
         {/* Left: symbol + price */}
         <div className="flex items-center gap-4">
           <span className="font-mono text-sm font-bold text-terminal-accent">
-            {symbol.replace('USDT', '')}/USDT
+            {displayLabel}
           </span>
           {ticker && (
             <>
@@ -132,7 +137,7 @@ export function TradingChart() {
         </div>
       </div>
 
-      {/* ── TradingView widget ─────────────────────────────────────────── */}
+      {/* ── TradingView widget ────────────────────────────────────── */}
       <div ref={containerRef} className="flex-1 w-full" />
     </div>
   )
