@@ -9,6 +9,7 @@ import { PreTradeChecklist } from './PreTradeChecklist'
 import { EdgePlaybook } from './EdgePlaybook'
 import { DailyLogPanel } from './DailyLogPanel'
 import { OptionsPanel } from './OptionsPanel'
+import { ResearchFeedPanel } from './ResearchFeedPanel'
 
 const NEXUS_TABS: { key: string; label: string; icon: string }[] = [
   { key: 'regime',    label: 'Regime',    icon: '⚡' },
@@ -18,6 +19,7 @@ const NEXUS_TABS: { key: string; label: string; icon: string }[] = [
   { key: 'options',   label: 'Options',   icon: '🎰' },
   { key: 'yields',    label: 'Yields',    icon: '📈' },
   { key: 'transmit',  label: 'Transmit',  icon: '🔗' },
+  { key: 'research',  label: 'Research',  icon: '🔬' },
   { key: 'checklist', label: 'Checklist', icon: '✅' },
   { key: 'edge',      label: 'Edge',      icon: '🎯' },
   { key: 'log',       label: 'Daily Log', icon: '📋' },
@@ -56,6 +58,7 @@ export function NexusPanel() {
         {nexusSubTab === 'options'   && <OptionsPanel />}
         {nexusSubTab === 'yields'    && <YieldCurvePanel />}
         {nexusSubTab === 'transmit'  && <TransmissionMap />}
+        {nexusSubTab === 'research'  && <ResearchFeedPanel />}
         {nexusSubTab === 'checklist' && <PreTradeChecklist />}
         {nexusSubTab === 'edge'      && <EdgePlaybook />}
         {nexusSubTab === 'log'       && <DailyLogPanel />}

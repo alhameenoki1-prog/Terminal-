@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
 import { sendTelegramAlert, formatAlertMessage } from '../services/telegramService'
+import { sendEmailDigest, digestIntervalMs } from '../services/emailService'
 import type { AlertRule, AlertType } from '../types'
 
 const ALERT_TYPE_LABELS: Record<AlertType, string> = {
@@ -30,6 +31,8 @@ export function AlertsPanel() {
   const tickers       = useStore((s) => s.tickers)
   const settings      = useStore((s) => s.settings)
   const regime        = useStore((s) => s.regime)
+
+  const news          = useStore((s) => s.news)
 
   const [showForm, setShowForm]   = useState(false)
   const [draft, setDraft]         = useState<Partial<AlertRule>>(newRule())
@@ -90,6 +93,29 @@ export function AlertsPanel() {
     const id = setInterval(evaluate, 60_000)
     return () => clearInterval(id)
   }, [rules, tickers, regime, settings, updateRule])
+
+  // ── Email digest scheduler ─────────────────────────────────────────────────
+  useEffect(() => {
+    const intervalMs = digestIntervalMs(settings.digestFrequency)
+    if (intervalMs === 0) return
+
+    const sendDigest = async () => {
+      const snapshot = Object.entries(tickers).slice(0, 12).map(([sym, t]) => ({
+        label: sym,
+        price: t.price.toLocaleString(undefined, { maximumFractionDigits: 4 }),
+        change: `${t.changePct24h >= 0 ? '+' : ''}${t.changePct24h.toFixed(2)}%`,
+      }))
+      await sendEmailDigest(settings, {
+        regime,
+        marketSnapshot: snapshot,
+        headlines: settings.digestIncludeHeadlines ? news.slice(0, 8).map((n) => n.title) : [],
+        triggeredAlerts: rules.filter((r) => r.triggered).map((r) => `${r.label}: triggered at ${r.triggeredAt ?? 'unknown'}`),
+      })
+    }
+
+    const id = setInterval(sendDigest, intervalMs)
+    return () => clearInterval(id)
+  }, [settings, tickers, regime, rules, news])
 
   const save = () => {
     addRule({
