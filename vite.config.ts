@@ -17,7 +17,7 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api\/binance/, ''),
       },
       '/api/fred': {
-        target: 'https://fred.stlouisfed.org',
+        target: 'https://api.stlouisfed.org',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/fred/, ''),
       },

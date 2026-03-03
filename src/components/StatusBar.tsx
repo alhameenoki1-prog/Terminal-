@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
 import { fmt } from '../utils/format'
 import { REGIME_COLOR, REGIME_LABEL } from '../services/regimeService'
@@ -31,6 +32,12 @@ export function StatusBar() {
   const alertRules   = useStore((s) => s.alertRules)
   const session      = getMarketSession()
   const triggered    = alertRules.filter((r) => r.triggered).length
+
+  const [utcClock, setUtcClock] = useState(() => new Date().toUTCString().slice(0, 25))
+  useEffect(() => {
+    const id = setInterval(() => setUtcClock(new Date().toUTCString().slice(0, 25)), 1000)
+    return () => clearInterval(id)
+  }, [])
 
   return (
     <div className="h-full flex items-center justify-between px-3 bg-terminal-surface border-t border-terminal-border">
@@ -68,7 +75,7 @@ export function StatusBar() {
           </span>
         </div>
         <span className="font-mono text-2xs text-terminal-faint">
-          {new Date().toUTCString().slice(0, 25)} UTC
+          {utcClock} UTC
         </span>
       </div>
     </div>

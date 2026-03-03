@@ -38,7 +38,7 @@ export function ChatPanel() {
 
     const usdjpy = tickers['USDJPY=X']
     const jp10y = tickers['^JN10Y']
-    const jp10yTrend = jp10y?.changePct24h ?? 0 > 0 ? 'RISING' : 'FALLING'
+    const jp10yTrend = (jp10y?.changePct24h ?? 0) > 0 ? 'RISING' : 'FALLING'
 
     return `
 LIVE MARKET CONTEXT:

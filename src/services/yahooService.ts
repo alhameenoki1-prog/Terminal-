@@ -69,10 +69,10 @@ export const GLOBAL_YAHOO_SYMBOLS = [
   // Forex majors
   'EURUSD=X', 'USDJPY=X', 'GBPUSD=X', 'AUDUSD=X', 'USDCHF=X', 'USDCAD=X', 'NZDUSD=X',
   'USDCNH=X', 'USDKRW=X', 'USDINR=X',
-  // US Yields
-  '^TNX', '^FVX', '^IRX', '^TYX',
+  // US Yields + Japan 10Y
+  '^TNX', '^FVX', '^IRX', '^TYX', '^JN10Y',
   // Commodities
   'GC=F', 'SI=F', 'CL=F', 'NG=F', 'HG=F',
   // Futures (CME)
-  'ES=F', 'NQ=F', 'ZN=F', 'GC=F',
+  'ES=F', 'NQ=F', 'ZN=F',
 ]

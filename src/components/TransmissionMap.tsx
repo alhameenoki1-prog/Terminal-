@@ -32,12 +32,11 @@ function chgColor(chg: number): string {
 
 export function TransmissionMap() {
   const tickers = useStore((s) => s.tickers)
-  const yieldCurve = useStore((s) => s.yieldCurve)
 
   function getVal(symbol: string): { price: number; change: number } | null {
     if (symbol === '_computed') {
       const us10y = tickers['^TNX']?.price
-      const jp10y = yieldCurve.find((y) => y.tenor === 'JP10Y')?.rate
+      const jp10y = tickers['^JN10Y']?.price
       if (us10y && jp10y) {
         return { price: (us10y - jp10y) * 100, change: 0 }
       }
