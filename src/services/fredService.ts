@@ -37,6 +37,9 @@ export const FRED_SERIES: { id: string; label: string; unit: string }[] = [
   { id: 'GOLDAMGBD228NLBM', label: 'Gold (PM Fix)', unit: '$'   },
   { id: 'MORTGAGE30US',    label: '30Y Mortgage',  unit: '%'   },
   { id: 'M2SL',            label: 'M2 Money Supply',unit: '$T' },
+  { id: 'VXTYN',          label: 'MOVE Index (VXTYN)', unit: '' },
+  { id: 'DFEDTARL',       label: 'Fed Funds Lower', unit: '%' },
+  { id: 'DFEDTARU',       label: 'Fed Funds Upper', unit: '%' },
 ]
 
 async function fetchLatest(seriesId: string, apiKey: string): Promise<{ latest: number | null; prev: number | null; lastUpdated: string }> {

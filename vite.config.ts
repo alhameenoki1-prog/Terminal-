@@ -21,6 +21,25 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/fred/, ''),
       },
+      // Stooq.com — free sovereign yield data (JP 2Y, DE 10Y, UK 10Y, etc.)
+      '/api/stooq': {
+        target: 'https://stooq.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/stooq/, ''),
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; NEXUS/5.0)' },
+      },
+      // CFTC public Socrata API — free COT positioning data, no key required
+      '/api/cftc': {
+        target: 'https://publicreporting.cftc.gov',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/cftc/, ''),
+      },
+      // CBOE CDN — daily put/call ratio JSON, no key required
+      '/api/cboe': {
+        target: 'https://cdn.cboe.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/cboe/, ''),
+      },
     },
   },
   worker: {

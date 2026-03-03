@@ -2,6 +2,50 @@ import { useState } from 'react'
 import { useStore } from '../store/useStore'
 import type { ResearchItem, ResearchType } from '../types'
 
+// ── NEXUS Section 4.4 — Weighted quality scoring algorithm ───────────────────
+// Source Credibility  25% (tier-based: T1=5, T2=4, T3=3, T4=2, T5=1)
+// Data Quality        25% (type-based: model/risk-framework=5, macro=4, trade-idea=3, general=1)
+// Recency & Relevance 20% (time since added: <6h=5, <24h=4, <7d=3, <30d=2, older=1)
+// Methodology Rigor   15% (type-based: model=5, risk-framework=4, macro=3, trade-idea=2, general=1)
+// Actionability       15% (type-based: trade-idea=5, macro=4, model=3, risk-framework=2, general=1)
+
+function computeAutoScore(item: Pick<ResearchItem, 'tier' | 'type' | 'addedAt'>): number {
+  // Source Credibility (25%)
+  const credibilityMap: Record<number, number> = { 1: 5, 2: 4, 3: 3, 4: 2, 5: 1 }
+  const credibility = credibilityMap[item.tier] ?? 3
+
+  // Data Quality (25%)
+  const dataQualityMap: Record<ResearchType, number> = {
+    'model': 5, 'risk-framework': 5, 'macro-forecast': 4, 'trade-idea': 3, 'general': 1,
+  }
+  const dataQuality = dataQualityMap[item.type] ?? 3
+
+  // Recency (20%) — based on time since addedAt
+  const ageHours = (Date.now() - new Date(item.addedAt).getTime()) / (1000 * 60 * 60)
+  const recency = ageHours < 6 ? 5 : ageHours < 24 ? 4 : ageHours < 168 ? 3 : ageHours < 720 ? 2 : 1
+
+  // Methodology Rigor (15%)
+  const rigorMap: Record<ResearchType, number> = {
+    'model': 5, 'risk-framework': 4, 'macro-forecast': 3, 'trade-idea': 2, 'general': 1,
+  }
+  const rigor = rigorMap[item.type] ?? 3
+
+  // Actionability (15%)
+  const actionMap: Record<ResearchType, number> = {
+    'trade-idea': 5, 'macro-forecast': 4, 'model': 3, 'risk-framework': 2, 'general': 1,
+  }
+  const action = actionMap[item.type] ?? 3
+
+  const raw =
+    (credibility * 25 + dataQuality * 25 + recency * 20 + rigor * 15 + action * 15) /
+    (5 * 100) * 100
+
+  return Math.round(raw * 10) / 10
+}
+
+// Auto-flag threshold: score ≥ 4.0 (out of 5 component scale) = ≥ 80 out of 100
+const AUTO_FLAG_THRESHOLD = 80
+
 const TYPE_LABELS: Record<ResearchType, { label: string; color: string }> = {
   'macro-forecast': { label: 'Macro',      color: 'text-blue-400' },
   'trade-idea':     { label: 'Trade Idea', color: 'text-terminal-accent' },
@@ -206,9 +250,17 @@ export function ResearchFeedPanel() {
                     <span className={`font-mono text-2xs ${TYPE_LABELS[item.type].color}`}>
                       {TYPE_LABELS[item.type].label}
                     </span>
-                    <span className="font-mono text-2xs text-terminal-faint">
-                      Q:{item.qualityScore}
-                    </span>
+                    {/* Show both auto-computed score and manual override */}
+                    {(() => {
+                      const auto = computeAutoScore(item)
+                      const isHighQ = auto >= AUTO_FLAG_THRESHOLD
+                      return (
+                        <span className={`font-mono text-2xs ${isHighQ ? 'text-terminal-accent' : 'text-terminal-faint'}`}
+                          title={`Auto: ${auto} | Manual: ${item.qualityScore}`}>
+                          {isHighQ ? '★' : ''} Q:{auto}
+                        </span>
+                      )
+                    })()}
                   </div>
                 </div>
                 {item.source && (

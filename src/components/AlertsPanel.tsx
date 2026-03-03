@@ -76,6 +76,88 @@ export function AlertsPanel() {
           localStorage.setItem('nexus-prev-regime', regime.regime)
         }
 
+        // ── 5 previously unimplemented alert types ──────────────────────
+
+        // pct_change: fires when asset moves by threshold % in 24h
+        if (rule.type === 'pct_change' && rule.asset && rule.threshold != null) {
+          const t = tickers[rule.asset]
+          if (t) {
+            const absChg = Math.abs(t.changePct24h)
+            if (absChg >= rule.threshold) {
+              fired = true
+              detail = `${rule.asset} moved ${t.changePct24h > 0 ? '+' : ''}${t.changePct24h.toFixed(2)}% in 24h (threshold ±${rule.threshold}%)`
+            }
+          }
+        }
+
+        // instability_jump: fires when VIX jumps by threshold % intraday
+        if (rule.type === 'instability_jump') {
+          const vix = tickers['^VIX']
+          const threshold = rule.threshold ?? 15 // default 15% VIX spike
+          if (vix && Math.abs(vix.changePct24h) >= threshold) {
+            fired = true
+            detail = `VIX ${vix.changePct24h > 0 ? 'spiked' : 'crashed'} ${vix.changePct24h > 0 ? '+' : ''}${vix.changePct24h.toFixed(1)}% — instability event (threshold ±${threshold}%)`
+          }
+        }
+
+        // vol_spread_extreme: fires when any vol spread z-score exceeds ±threshold (default 2.0)
+        if (rule.type === 'vol_spread_extreme') {
+          const threshold = rule.threshold ?? 2.0
+          // Check localStorage for latest vol spread data written by VolatilityPanel
+          const storedSpreads = localStorage.getItem('nexus-vol-spreads')
+          if (storedSpreads) {
+            try {
+              const spreads: { label: string; zScore: number }[] = JSON.parse(storedSpreads)
+              const extreme = spreads.find((s) => Math.abs(s.zScore) >= threshold)
+              if (extreme) {
+                fired = true
+                detail = `Vol spread extreme: ${extreme.label} z-score ${extreme.zScore > 0 ? '+' : ''}${extreme.zScore.toFixed(2)}σ (threshold ±${threshold}σ)`
+              }
+            } catch { /* ignore parse errors */ }
+          }
+        }
+
+        // rate_divergence: fires when US 10Y moves by threshold bps without USDJPY moving
+        if (rule.type === 'rate_divergence') {
+          const us10y    = tickers['^TNX']
+          const usdjpy   = tickers['USDJPY=X']
+          const bpsThreshold = rule.threshold ?? 10 // default 10bp
+          if (us10y && usdjpy) {
+            // 10Y % change × 100 ≈ yield change in bps (rough approximation)
+            const yieldChgBps  = Math.abs(us10y.changePct24h * (us10y.price / 100) * 100)
+            const fxChangePct  = Math.abs(usdjpy.changePct24h)
+            // Rate moved significantly but FX didn't respond (divergence)
+            if (yieldChgBps >= bpsThreshold && fxChangePct < 0.2) {
+              fired = true
+              detail = `Rate divergence: US10Y changed ~${yieldChgBps.toFixed(0)}bp but USDJPY only moved ${fxChangePct.toFixed(2)}% — positioning block or intervention risk`
+            }
+          }
+        }
+
+        // yield_curve_signal: fires when 2s10s spread crosses zero (inversion) or un-inverts
+        if (rule.type === 'yield_curve_signal') {
+          const us3m  = tickers['^IRX']?.price   // 3M proxy for short end
+          const us10y = tickers['^TNX']?.price
+          if (us3m && us10y) {
+            const spread    = us10y - us3m
+            const prevKey   = 'nexus-prev-yield-spread'
+            const prevSpread = parseFloat(localStorage.getItem(prevKey) ?? 'NaN')
+            if (!isNaN(prevSpread)) {
+              // Inversion event: spread crosses from positive to negative
+              if (prevSpread >= 0 && spread < 0) {
+                fired = true
+                detail = `Yield curve INVERTED: 3M/10Y spread crossed to ${(spread * 100).toFixed(0)}bp`
+              }
+              // Un-inversion event: spread crosses from negative to positive
+              if (prevSpread < 0 && spread >= 0) {
+                fired = true
+                detail = `Yield curve UN-INVERTED: 3M/10Y spread recovered to ${(spread * 100).toFixed(0)}bp`
+              }
+            }
+            localStorage.setItem(prevKey, String(spread))
+          }
+        }
+
         if (fired) {
           updateRule(rule.id, { triggered: true, triggeredAt: new Date().toISOString(), lastTriggeredAt: new Date().toISOString() })
           if (rule.telegram && settings.telegramBotToken && settings.telegramChatId) {
