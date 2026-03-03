@@ -4,20 +4,25 @@ interface UseWebSocketOptions {
   onMessage: (data: unknown) => void
   onOpen?: () => void
   onClose?: () => void
-  reconnectDelay?: number
+  baseDelay?: number     // initial reconnect delay in ms (default 1000)
+  maxDelay?: number      // max reconnect delay in ms (default 30000)
 }
 
 export function useWebSocket(url: string, options: UseWebSocketOptions) {
   const ws = useRef<WebSocket | null>(null)
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const shouldReconnect = useRef(true)
-  const { onMessage, onOpen, onClose, reconnectDelay = 3000 } = options
+  const retryCount = useRef(0)
+  const { onMessage, onOpen, onClose, baseDelay = 1000, maxDelay = 30000 } = options
 
   const connect = useCallback(() => {
     try {
       ws.current = new WebSocket(url)
 
-      ws.current.onopen = () => onOpen?.()
+      ws.current.onopen = () => {
+        retryCount.current = 0
+        onOpen?.()
+      }
 
       ws.current.onmessage = (e) => {
         try {
@@ -31,7 +36,9 @@ export function useWebSocket(url: string, options: UseWebSocketOptions) {
       ws.current.onclose = () => {
         onClose?.()
         if (shouldReconnect.current) {
-          reconnectTimer.current = setTimeout(connect, reconnectDelay)
+          const delay = Math.min(baseDelay * Math.pow(2, retryCount.current), maxDelay)
+          retryCount.current++
+          reconnectTimer.current = setTimeout(connect, delay)
         }
       }
 
@@ -40,13 +47,16 @@ export function useWebSocket(url: string, options: UseWebSocketOptions) {
       }
     } catch {
       if (shouldReconnect.current) {
-        reconnectTimer.current = setTimeout(connect, reconnectDelay)
+        const delay = Math.min(baseDelay * Math.pow(2, retryCount.current), maxDelay)
+        retryCount.current++
+        reconnectTimer.current = setTimeout(connect, delay)
       }
     }
-  }, [url, onMessage, onOpen, onClose, reconnectDelay])
+  }, [url, onMessage, onOpen, onClose, baseDelay, maxDelay])
 
   useEffect(() => {
     shouldReconnect.current = true
+    retryCount.current = 0
     connect()
     return () => {
       shouldReconnect.current = false

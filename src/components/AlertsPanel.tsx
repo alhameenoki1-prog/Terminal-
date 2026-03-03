@@ -34,9 +34,10 @@ export function AlertsPanel() {
 
   const news          = useStore((s) => s.news)
 
-  const [showForm, setShowForm]   = useState(false)
-  const [draft, setDraft]         = useState<Partial<AlertRule>>(newRule())
-  const [testResult, setTestResult] = useState<string | null>(null)
+  const [showForm, setShowForm]       = useState(false)
+  const [draft, setDraft]             = useState<Partial<AlertRule>>(newRule())
+  const [testResult, setTestResult]   = useState<string | null>(null)
+  const [formError, setFormError]     = useState<string | null>(null)
 
   // Alert evaluation engine — runs every 60s
   useEffect(() => {
@@ -200,10 +201,28 @@ export function AlertsPanel() {
   }, [settings, tickers, regime, rules, news])
 
   const save = () => {
+    const type = draft.type ?? 'price_above'
+    const needsAsset = ['price_above', 'price_below', 'pct_change'].includes(type)
+    const needsPositiveThreshold = ['price_above', 'price_below', 'pct_change'].includes(type)
+
+    if (needsAsset && !draft.asset?.trim()) {
+      setFormError('Asset symbol is required for this alert type.')
+      return
+    }
+    if (needsPositiveThreshold && (draft.threshold == null || draft.threshold <= 0)) {
+      setFormError('Threshold must be greater than 0.')
+      return
+    }
+    if (type === 'pct_change' && draft.threshold != null && draft.threshold > 100) {
+      setFormError('% Change threshold cannot exceed 100%.')
+      return
+    }
+
+    setFormError(null)
     addRule({
       id:             Date.now().toString(),
-      type:           draft.type ?? 'price_above',
-      label:          draft.label || `${draft.type} alert`,
+      type,
+      label:          draft.label || `${type} alert`,
       asset:          draft.asset,
       threshold:      draft.threshold,
       active:         true,
@@ -312,9 +331,14 @@ export function AlertsPanel() {
             />
             Send Telegram notification
           </label>
+          {formError && (
+            <div className="font-mono text-2xs text-terminal-down bg-terminal-down/10 border border-terminal-down/30 rounded px-2 py-1">
+              {formError}
+            </div>
+          )}
           <div className="flex gap-2">
             <button onClick={save} className="flex-1 py-1 font-mono text-xs bg-terminal-accent text-terminal-bg rounded">Save</button>
-            <button onClick={() => setShowForm(false)} className="px-3 py-1 font-mono text-xs border border-terminal-border text-terminal-faint rounded">Cancel</button>
+            <button onClick={() => { setShowForm(false); setFormError(null) }} className="px-3 py-1 font-mono text-xs border border-terminal-border text-terminal-faint rounded">Cancel</button>
           </div>
         </div>
       )}

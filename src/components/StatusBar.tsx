@@ -9,11 +9,14 @@ function getMarketSession(): string {
   const utcMin  = now.getUTCMinutes()
   const utcTime = utcHour * 60 + utcMin
 
-  if (utcTime >= 870 && utcTime < 1260) return 'NYSE OPEN'
-  if (utcTime >= 810 && utcTime < 870)  return 'NYSE PRE'
-  if (utcTime >= 1260 && utcTime < 1440) return 'NYSE AFTER'
-  if (utcTime >= 480 && utcTime < 990)  return 'LSE OPEN'
-  if (utcTime >= 0 && utcTime < 360)    return 'TSE OPEN'
+  // NYSE: pre 13:30, open 14:30–21:00, after 21:00–22:00
+  if (utcTime >= 870 && utcTime < 1260)  return 'NYSE OPEN'   // 14:30–21:00
+  if (utcTime >= 810 && utcTime < 870)   return 'NYSE PRE'    // 13:30–14:30
+  if (utcTime >= 1260 && utcTime < 1320) return 'NYSE AFTER'  // 21:00–22:00
+  // LSE: 08:00–16:30 UTC
+  if (utcTime >= 480 && utcTime < 990)   return 'LSE OPEN'    // 08:00–16:30
+  // TSE: 00:00–06:00 UTC
+  if (utcTime < 360)                     return 'TSE OPEN'    // 00:00–06:00
 
   return 'CLOSED'
 }

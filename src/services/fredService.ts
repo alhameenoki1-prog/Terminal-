@@ -43,11 +43,18 @@ export const FRED_SERIES: { id: string; label: string; unit: string }[] = [
 ]
 
 async function fetchLatest(seriesId: string, apiKey: string): Promise<{ latest: number | null; prev: number | null; lastUpdated: string }> {
-  const base = apiKey
-    ? `/api/fred/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json&sort_order=desc&limit=2`
-    : `/api/fred/fred/series/observations?series_id=${seriesId}&api_key=abcdefghijklmnop1234567890123456&file_type=json&sort_order=desc&limit=2`
+  if (!apiKey) return { latest: null, prev: null, lastUpdated: '' }
 
-  const res = await fetch(base, { signal: AbortSignal.timeout(8000) })
+  const base = `/api/fred/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json&sort_order=desc&limit=2`
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 8000)
+  let res: Response
+  try {
+    res = await fetch(base, { signal: controller.signal })
+  } finally {
+    clearTimeout(timeout)
+  }
   if (!res.ok) return { latest: null, prev: null, lastUpdated: '' }
 
   const json = await res.json()
