@@ -3,6 +3,8 @@ import { RegimePanel } from './RegimePanel'
 import { TransmissionMap } from './TransmissionMap'
 import { MonteCarloPanel } from './MonteCarloPanel'
 import { VolatilityPanel } from './VolatilityPanel'
+import { EconomicCalendar } from './EconomicCalendar'
+import { PortfolioPanel } from './PortfolioPanel'
 import { FuturesFlowPanel } from './FuturesFlowPanel'
 import { YieldCurvePanel } from './YieldCurvePanel'
 import { PreTradeChecklist } from './PreTradeChecklist'
@@ -13,6 +15,8 @@ import { ResearchFeedPanel } from './ResearchFeedPanel'
 
 const NEXUS_TABS: { key: string; label: string; icon: string }[] = [
   { key: 'regime',    label: 'Regime',    icon: '⚡' },
+  { key: 'portfolio', label: 'Portfolio', icon: '💼' },
+  { key: 'calendar',  label: 'Calendar',  icon: '📅' },
   { key: 'mc',        label: 'Monte Carlo', icon: '🎲' },
   { key: 'vol',       label: 'Volatility', icon: '📊' },
   { key: 'futures',   label: 'Futures',   icon: '📦' },
@@ -52,6 +56,8 @@ export function NexusPanel() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto scrollbar-thin">
         {nexusSubTab === 'regime'    && <RegimePanel />}
+        {nexusSubTab === 'portfolio' && <PortfolioPanel />}
+        {nexusSubTab === 'calendar'  && <EconomicCalendar />}
         {nexusSubTab === 'mc'        && <MonteCarloPanel />}
         {nexusSubTab === 'vol'       && <VolatilityPanel />}
         {nexusSubTab === 'futures'   && <FuturesFlowPanel />}

@@ -56,6 +56,17 @@ export function SettingsPanel() {
       </section>
 
       <section>
+        <div className="font-mono text-2xs text-terminal-faint mb-2 border-b border-terminal-border/50 pb-1">FRED Economic Data</div>
+        <div className="flex flex-col gap-2">
+          {field('fredApiKey', 'FRED API Key', 'password', 'abcdefghijklmnop1234567890123456')}
+          <div className="font-mono text-2xs text-terminal-faint/60 leading-relaxed">
+            Free key at <span className="text-terminal-accent">fred.stlouisfed.org/docs/api/api_key.html</span>
+            <br />Provides live CPI, PCE, GDP, unemployment, yields & more.
+          </div>
+        </div>
+      </section>
+
+      <section>
         <div className="font-mono text-2xs text-terminal-faint mb-2 border-b border-terminal-border/50 pb-1">Telegram Alerts</div>
         <div className="flex flex-col gap-2">
           {field('telegramBotToken', 'Bot Token', 'password', '123456789:AABBcc...')}

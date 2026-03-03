@@ -360,4 +360,45 @@ export interface AppSettings {
   digestIncludeAI: boolean
   digestIncludeHeadlines: boolean
   digestIncludeSnapshot: boolean
+  fredApiKey: string
+}
+
+// ─── Economic Calendar ────────────────────────────────────────────────────────
+
+export type EventImpact = 'high' | 'medium' | 'low'
+export type EventCategory = 'central-bank' | 'inflation' | 'employment' | 'growth' | 'trade' | 'custom'
+
+export interface EconomicEvent {
+  id: string
+  date: string          // ISO date YYYY-MM-DD
+  time?: string         // HH:MM UTC
+  country: string
+  flag: string
+  title: string
+  category: EventCategory
+  impact: EventImpact
+  forecast?: string
+  previous?: string
+  actual?: string
+  custom?: boolean      // user-added
+}
+
+// ─── Portfolio ────────────────────────────────────────────────────────────────
+
+export type TradeDirection = 'LONG' | 'SHORT'
+
+export interface Position {
+  id: string
+  symbol: string          // Yahoo Finance symbol for live price
+  displayName: string
+  direction: TradeDirection
+  entryPrice: number
+  size: number            // contracts / units / lots
+  stopLoss?: number
+  takeProfit?: number
+  note?: string
+  openedAt: string        // ISO
+  closedAt?: string
+  closePrice?: number
+  tags?: string[]
 }

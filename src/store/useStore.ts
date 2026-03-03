@@ -17,7 +17,10 @@ import type {
   DailyLog,
   EarthquakeEvent,
   YieldPoint,
+  Position,
 } from '../types'
+import type { FredSeries } from '../services/fredService'
+type FredData = FredSeries[]
 
 const DEFAULT_WATCHLIST: WatchlistItem[] = [
   { symbol: 'BTCUSDT',  tvSymbol: 'BINANCE:BTCUSDT',  name: 'Bitcoin',    type: 'crypto',    category: 'crypto'      },
@@ -57,6 +60,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   digestIncludeAI: true,
   digestIncludeHeadlines: true,
   digestIncludeSnapshot: true,
+  fredApiKey: '',
 }
 
 const DEFAULT_REGIME: RegimeScores = {
@@ -138,6 +142,17 @@ interface TerminalStore {
 
   dailyLogs: Record<string, DailyLog>
   saveDailyLog: (log: DailyLog) => void
+
+  // Portfolio positions
+  positions: Position[]
+  addPosition: (p: Position) => void
+  removePosition: (id: string) => void
+  closePosition: (id: string, closePrice: number) => void
+  updatePosition: (id: string, patch: Partial<Position>) => void
+
+  // FRED live economic data
+  fredData: FredData
+  setFredData: (data: FredData) => void
 
   rightPanelTab: 'news' | 'country' | 'nexus' | 'chat' | 'alerts'
   setRightPanelTab: (tab: TerminalStore['rightPanelTab']) => void
@@ -253,6 +268,27 @@ export const useStore = create<TerminalStore>()(
       saveDailyLog: (log) =>
         set((s) => ({ dailyLogs: { ...s.dailyLogs, [log.date]: log } })),
 
+      // Portfolio
+      positions: [],
+      addPosition: (p) =>
+        set((s) => ({ positions: [p, ...s.positions] })),
+      removePosition: (id) =>
+        set((s) => ({ positions: s.positions.filter((p) => p.id !== id) })),
+      closePosition: (id, closePrice) =>
+        set((s) => ({
+          positions: s.positions.map((p) =>
+            p.id === id ? { ...p, closedAt: new Date().toISOString(), closePrice } : p
+          ),
+        })),
+      updatePosition: (id, patch) =>
+        set((s) => ({
+          positions: s.positions.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+        })),
+
+      // FRED
+      fredData: [],
+      setFredData: (data) => set({ fredData: data }),
+
       rightPanelTab: 'news',
       setRightPanelTab: (tab) => set({ rightPanelTab: tab }),
       nexusSubTab: 'regime',
@@ -261,7 +297,7 @@ export const useStore = create<TerminalStore>()(
       setShowGlobe: (v) => set({ showGlobe: v }),
     }),
     {
-      name: 'nexus-terminal-v5',
+      name: 'nexus-terminal-v6',
       partialize: (s) => ({
         settings: s.settings,
         alertRules: s.alertRules,
@@ -269,6 +305,7 @@ export const useStore = create<TerminalStore>()(
         edgeScenarios: s.edgeScenarios,
         researchItems: s.researchItems,
         dailyLogs: s.dailyLogs,
+        positions: s.positions,
         activeWatchlistCategory: s.activeWatchlistCategory,
         nexusSubTab: s.nexusSubTab,
         chartConfig: s.chartConfig,

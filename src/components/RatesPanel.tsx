@@ -4,6 +4,7 @@ import type { CentralBankRate } from '../types'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { YieldCurvePanel } from './YieldCurvePanel'
+import { formatFredValue, formatFredChange } from '../services/fredService'
 
 const FLAG: Record<string, string> = {
   US: '🇺🇸', EU: '🇪🇺', GB: '🇬🇧', JP: '🇯🇵',
@@ -39,7 +40,8 @@ function TrendIcon({ trend }: { trend: CentralBankRate['trend'] }) {
 
 export function RatesPanel() {
   const [tab, setTab] = useState<'cb' | 'yields'>('cb')
-  const tickers = useStore((s) => s.tickers)
+  const tickers  = useStore((s) => s.tickers)
+  const fredData = useStore((s) => s.fredData)
 
   // Live yields from Yahoo Finance store
   const tnx  = tickers['^TNX']   // US 10Y
@@ -145,29 +147,47 @@ export function RatesPanel() {
             })}
 
             {/* ── Key Indicators ─────────────────────────────────────────── */}
-            <div className="px-3 py-1.5 bg-terminal-panel/50 border-b border-terminal-border">
+            <div className="px-3 py-1.5 bg-terminal-panel/50 border-b border-terminal-border flex items-center justify-between">
               <span className="font-mono text-2xs font-semibold text-terminal-accent tracking-widest">KEY INDICATORS</span>
+              {fredData.length > 0 && (
+                <span className="font-mono text-2xs text-terminal-up">● FRED Live</span>
+              )}
             </div>
             <div className="grid grid-cols-2">
-              {KEY_INDICATORS.map((ind) => (
-                <div
-                  key={ind.name}
-                  className="flex flex-col p-2 border-b border-r border-terminal-border/30 hover:bg-terminal-panel transition-colors"
-                >
-                  <span className="font-mono text-2xs text-terminal-faint truncate">{ind.name}</span>
-                  <span className="font-mono text-xs font-semibold text-terminal-text mt-0.5">
-                    {/* Show live value if available */}
-                    {ind.name === 'US 10Y Yield' && tnx ? `${tnx.price.toFixed(2)}%` :
-                     ind.name === 'VIX' && tickers['^VIX'] ? tickers['^VIX']!.price.toFixed(1) :
-                     ind.value}
-                  </span>
-                  {ind.change && ind.change !== '—' && (
-                    <span className={`font-mono text-2xs mt-0.5 ${ind.positive ? 'text-terminal-up' : 'text-terminal-down'}`}>
-                      {ind.change}
-                    </span>
-                  )}
-                </div>
-              ))}
+              {fredData.length > 0
+                ? fredData.map((s) => {
+                    const chg = formatFredChange(s)
+                    return (
+                      <div key={s.id} className="flex flex-col p-2 border-b border-r border-terminal-border/30 hover:bg-terminal-panel transition-colors">
+                        <span className="font-mono text-2xs text-terminal-faint truncate">{s.label}</span>
+                        <span className="font-mono text-xs font-semibold text-terminal-text mt-0.5">{formatFredValue(s)}</span>
+                        {chg && (
+                          <span className={`font-mono text-2xs mt-0.5 ${chg.positive ? 'text-terminal-up' : 'text-terminal-down'}`}>
+                            {chg.text}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })
+                : KEY_INDICATORS.map((ind) => (
+                    <div
+                      key={ind.name}
+                      className="flex flex-col p-2 border-b border-r border-terminal-border/30 hover:bg-terminal-panel transition-colors"
+                    >
+                      <span className="font-mono text-2xs text-terminal-faint truncate">{ind.name}</span>
+                      <span className="font-mono text-xs font-semibold text-terminal-text mt-0.5">
+                        {ind.name === 'US 10Y Yield' && tnx ? `${tnx.price.toFixed(2)}%` :
+                         ind.name === 'VIX' && tickers['^VIX'] ? tickers['^VIX']!.price.toFixed(1) :
+                         ind.value}
+                      </span>
+                      {ind.change && ind.change !== '—' && (
+                        <span className={`font-mono text-2xs mt-0.5 ${ind.positive ? 'text-terminal-up' : 'text-terminal-down'}`}>
+                          {ind.change}
+                        </span>
+                      )}
+                    </div>
+                  ))
+              }
             </div>
           </div>
 

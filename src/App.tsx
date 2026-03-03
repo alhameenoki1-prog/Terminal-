@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { TickerTape }   from './components/TickerTape'
 import { Watchlist }    from './components/Watchlist'
 import { TradingChart } from './components/TradingChart'
@@ -13,6 +14,8 @@ import { SettingsPanel } from './components/SettingsPanel'
 import { MobileLayout } from './components/MobileLayout'
 import { useStore }     from './store/useStore'
 import { useBreakpoint } from './hooks/useBreakpoint'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { fetchFredSeries } from './services/fredService'
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels'
 
 const RIGHT_TABS: { key: ReturnType<typeof useStore.getState>['rightPanelTab']; label: string; icon: string }[] = [
@@ -29,6 +32,23 @@ export default function App() {
   const alertRules       = useStore((s) => s.alertRules)
   const triggeredCount   = alertRules.filter((r) => r.triggered).length
   const breakpoint       = useBreakpoint()
+  const settings         = useStore((s) => s.settings)
+  const setFredData      = useStore((s) => s.setFredData)
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts()
+
+  // FRED polling — every 6h (data updates daily/weekly)
+  useEffect(() => {
+    const poll = () => {
+      fetchFredSeries(settings.fredApiKey)
+        .then(setFredData)
+        .catch(() => {})
+    }
+    poll()
+    const id = setInterval(poll, 6 * 60 * 60_000)
+    return () => clearInterval(id)
+  }, [settings.fredApiKey, setFredData])
 
   if (breakpoint === 'mobile') return <MobileLayout />
 
