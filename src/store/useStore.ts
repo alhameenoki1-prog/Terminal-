@@ -93,6 +93,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   digestIncludeHeadlines: true,
   digestIncludeSnapshot: true,
   fredApiKey: '',
+  youtubeApiKey: '',
 }
 
 const DEFAULT_REGIME: RegimeScores = {

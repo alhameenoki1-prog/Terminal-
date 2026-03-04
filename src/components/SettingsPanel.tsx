@@ -67,6 +67,18 @@ export function SettingsPanel() {
       </section>
 
       <section>
+        <div className="font-mono text-2xs text-terminal-faint mb-2 border-b border-terminal-border/50 pb-1">Live TV (YouTube)</div>
+        <div className="flex flex-col gap-2">
+          {field('youtubeApiKey', 'YouTube Data API v3 Key', 'password', 'AIza...')}
+          <div className="font-mono text-2xs text-terminal-faint/60 leading-relaxed">
+            Free key at <span className="text-terminal-accent">console.cloud.google.com</span>
+            <br />Enable "YouTube Data API v3" → Create API key.
+            <br />Free tier: 10,000 units/day (100 live-stream lookups).
+          </div>
+        </div>
+      </section>
+
+      <section>
         <div className="font-mono text-2xs text-terminal-faint mb-2 border-b border-terminal-border/50 pb-1">Telegram Alerts</div>
         <div className="flex flex-col gap-2">
           {field('telegramBotToken', 'Bot Token', 'password', '123456789:AABBcc...')}

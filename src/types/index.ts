@@ -361,6 +361,7 @@ export interface AppSettings {
   digestIncludeHeadlines: boolean
   digestIncludeSnapshot: boolean
   fredApiKey: string
+  youtubeApiKey: string
 }
 
 // ─── Economic Calendar ────────────────────────────────────────────────────────

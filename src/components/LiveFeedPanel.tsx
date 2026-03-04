@@ -1,221 +1,282 @@
-// NEXUS Live Feed — Bloomberg, CNBC, Reuters, Yahoo Finance, Al Jazeera, Fox Business
-// Embeds public YouTube live streams (no API key required)
-// Channels sourced from official public YouTube pages
+// Live TV panel — embeds YouTube live streams using YouTube Data API v3
+// All channel IDs verified via vidIQ / Social Blade / Wikidata
 
-const CHANNELS: {
-  id: string
-  name: string
-  channelId: string
-  flag: string
-  category: string
-  description: string
-}[] = [
-  {
-    id:          'bloomberg',
-    name:        'Bloomberg Television',
-    channelId:   'UCIALMKvObZNtJ6AmdCLP7Lg',
-    flag:        '📺',
-    category:    'markets',
-    description: 'Live market coverage, analysis & breaking news',
-  },
-  {
-    id:          'cnbc',
-    name:        'CNBC Television',
-    channelId:   'UCvJJ_dzjViJCoLf5uKUTwoA',
-    flag:        '🇺🇸',
-    category:    'markets',
-    description: 'US markets, earnings, Fed coverage',
-  },
-  {
-    id:          'reuters',
-    name:        'Reuters TV',
-    channelId:   'UChqUTb7kYRX8-EiaN3XFrSQ',
-    flag:        '🌐',
-    category:    'macro',
-    description: 'Global news & macroeconomic events',
-  },
-  {
-    id:          'yahoo',
-    name:        'Yahoo Finance',
-    channelId:   'UCEAZeUIeJs0IjQiqTCdVSIg',
-    flag:        '📊',
-    category:    'markets',
-    description: 'Markets open/close, earnings calls',
-  },
-  {
-    id:          'aljazeera',
-    name:        'Al Jazeera English',
-    channelId:   'UCNye-wNBqNL5ZzHSJdrlvxA',
-    flag:        '🇶🇦',
-    category:    'geopolitical',
-    description: 'Geopolitical & emerging market coverage',
-  },
-  {
-    id:          'foxbusiness',
-    name:        'Fox Business',
-    channelId:   'UCF9IOB2TExg3QIBupFtBDxg',
-    flag:        '🦊',
-    category:    'markets',
-    description: 'US business, trade & markets',
-  },
-  {
-    id:          'wion',
-    name:        'WION',
-    channelId:   'UCpgDp31ND0GKMxEkGsZEGqg',
-    flag:        '🌏',
-    category:    'geopolitical',
-    description: 'Asia-Pacific & global geopolitical news',
-  },
-  {
-    id:          'dwnews',
-    name:        'DW News',
-    channelId:   'UCknLrEdhRCp1aegoMqRaCZg',
-    flag:        '🇩🇪',
-    category:    'macro',
-    description: 'European macro, ECB, German/EU policy',
-  },
-]
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useStore } from '../store/useStore'
+import { getLiveVideoId } from '../services/youtubeService'
 
-import { useState, useRef, useCallback } from 'react'
+// ── Verified channel IDs ──────────────────────────────────────────────────────
+// Bloomberg Television  : https://vidiq.com/youtube-stats/channel/UCIALMKvObZNtJ6AmdCLP7Lg/
+// CNBC Television       : https://vidiq.com/youtube-stats/channel/UCrp_UI8XtuYfpiqluWLD7Lw/
+// Yahoo Finance         : https://vidiq.com/youtube-stats/channel/UCEAZeUIeJs0IjQiqTCdVSIg/
+// Al Jazeera English    : https://vidiq.com/youtube-stats/channel/UCNye-wNBqNL5ZzHSJj3l8Bg/
+// DW News               : https://www.wikidata.org/wiki/Q39055013
+const CHANNELS = [
+  {
+    id:        'bloomberg',
+    name:      'Bloomberg TV',
+    channelId: 'UCIALMKvObZNtJ6AmdCLP7Lg',
+    handle:    'BloombergTelevision',
+    category:  'Markets',
+    flag:      '📺',
+  },
+  {
+    id:        'cnbc',
+    name:      'CNBC Television',
+    channelId: 'UCrp_UI8XtuYfpiqluWLD7Lw',
+    handle:    'CNBCtelevision',
+    category:  'Markets',
+    flag:      '🇺🇸',
+  },
+  {
+    id:        'yahoo',
+    name:      'Yahoo Finance',
+    channelId: 'UCEAZeUIeJs0IjQiqTCdVSIg',
+    handle:    'YahooFinance',
+    category:  'Markets',
+    flag:      '📊',
+  },
+  {
+    id:        'aljazeera',
+    name:      'Al Jazeera',
+    channelId: 'UCNye-wNBqNL5ZzHSJj3l8Bg',
+    handle:    'AlJazeeraEnglish',
+    category:  'Geopolitical',
+    flag:      '🌐',
+  },
+  {
+    id:        'dw',
+    name:      'DW News',
+    channelId: 'UCknLrEdhRCp1aegoMqRaCZg',
+    handle:    'DWNews',
+    category:  'Europe/Macro',
+    flag:      '🇩🇪',
+  },
+] as const
+
+type Channel = typeof CHANNELS[number]
+
+type Status = 'idle' | 'loading' | 'live' | 'offline' | 'no_key' | 'invalid_key' | 'quota' | 'error'
+
+const REFRESH_MS = 5 * 60_000 // 5 min
 
 export function LiveFeedPanel() {
-  const [selected, setSelected] = useState(CHANNELS[0])
-  const [muted, setMuted]       = useState(true)
-  const [quality, setQuality]   = useState<'hd720' | 'medium' | 'small'>('medium')
-  const [errored, setErrored]   = useState(false)
-  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const settings       = useStore((s) => s.settings)
+  const apiKey         = settings.youtubeApiKey
 
-  const embedUrl = `https://www.youtube.com/embed/live_stream?channel=${selected.channelId}&autoplay=1&mute=${muted ? 1 : 0}&rel=0&modestbranding=1&vq=${quality}`
+  const [channel, setChannel]   = useState<Channel>(CHANNELS[0])
+  const [videoId, setVideoId]   = useState<string | null>(null)
+  const [status,  setStatus]    = useState<Status>('idle')
+  const [muted,   setMuted]     = useState(true)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const switchChannel = useCallback((ch: typeof CHANNELS[0]) => {
-    setSelected(ch)
-    setErrored(false)
-  }, [])
+  const fetchStream = useCallback(async (ch: Channel) => {
+    setStatus('loading')
+    setVideoId(null)
+    const result = await getLiveVideoId(ch.channelId, apiKey)
+    if (result.error === 'no_key')        { setStatus('no_key');      return }
+    if (result.error === 'invalid_key')   { setStatus('invalid_key'); return }
+    if (result.error === 'quota_exceeded'){ setStatus('quota');       return }
+    if (result.error === 'api_error')     { setStatus('error');       return }
+    if (!result.videoId)                  { setStatus('offline');     return }
+    setVideoId(result.videoId)
+    setStatus('live')
+  }, [apiKey])
 
-  const CATEGORY_COLOR: Record<string, string> = {
-    markets:      'text-terminal-up',
-    macro:        'text-blue-400',
-    geopolitical: 'text-orange-400',
+  // Fetch on mount + channel/key change, then poll every 5 min
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+    fetchStream(channel)
+    timerRef.current = setInterval(() => fetchStream(channel), REFRESH_MS)
+    return () => { if (timerRef.current) clearInterval(timerRef.current) }
+  }, [channel, fetchStream])
+
+  const handleSelect = (ch: Channel) => {
+    setChannel(ch)
   }
+
+  const embedUrl = videoId
+    ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=${muted ? 1 : 0}&rel=0&modestbranding=1`
+    : null
+
+  const ytChannelUrl = `https://www.youtube.com/@${channel.handle}/live`
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-terminal-bg">
 
-      {/* Channel selector */}
-      <div className="flex-shrink-0 border-b border-terminal-border bg-terminal-surface">
-        <div className="overflow-x-auto scrollbar-none">
-          <div className="flex min-w-max">
-            {CHANNELS.map((ch) => (
-              <button
-                key={ch.id}
-                onClick={() => switchChannel(ch)}
-                className={`flex items-center gap-1.5 px-3 py-2 font-mono text-2xs whitespace-nowrap border-b-2 transition-colors ${
-                  selected.id === ch.id
-                    ? 'border-terminal-accent text-terminal-accent'
-                    : 'border-transparent text-terminal-faint hover:text-terminal-dim'
-                }`}
-              >
-                <span>{ch.flag}</span>
-                <span>{ch.name.split(' ')[0]}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Channel info bar */}
-      <div className="flex-shrink-0 flex items-center justify-between px-3 py-1.5 bg-terminal-panel border-b border-terminal-border/40">
-        <div>
-          <span className="font-mono text-xs text-terminal-text">{selected.name}</span>
-          <span className={`ml-2 font-mono text-2xs ${CATEGORY_COLOR[selected.category] ?? 'text-terminal-faint'}`}>
-            {selected.category.toUpperCase()}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* Quality selector */}
-          <div className="flex gap-0.5">
-            {(['small', 'medium', 'hd720'] as const).map((q) => (
-              <button
-                key={q}
-                onClick={() => { setQuality(q); setErrored(false) }}
-                className={`px-1.5 py-0.5 font-mono text-2xs rounded ${quality === q ? 'bg-terminal-accent text-terminal-bg' : 'text-terminal-faint'}`}
-              >
-                {q === 'hd720' ? 'HD' : q === 'medium' ? '480p' : '360p'}
-              </button>
-            ))}
-          </div>
-          {/* Mute toggle */}
-          <button
-            onClick={() => { setMuted((m) => !m); setErrored(false) }}
-            className="font-mono text-xs text-terminal-faint hover:text-terminal-dim px-1.5 py-0.5 border border-terminal-border/50 rounded"
-            title={muted ? 'Unmute' : 'Mute'}
-          >
-            {muted ? '🔇' : '🔊'}
-          </button>
-        </div>
-      </div>
-
-      {/* Video embed */}
-      <div className="flex-1 relative overflow-hidden bg-black">
-        {errored ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-            <div className="font-mono text-2xs text-terminal-faint text-center px-4">
-              <div className="text-terminal-down mb-2">Stream unavailable</div>
-              <div className="text-terminal-faint/60">
-                {selected.name} may not be live right now, or YouTube is blocking the embed.
-              </div>
-            </div>
-            <a
-              href={`https://www.youtube.com/@${selected.id}/live`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-mono text-2xs text-terminal-accent border border-terminal-accent/40 px-3 py-1 rounded hover:bg-terminal-accent/10"
-            >
-              Open in YouTube →
-            </a>
+      {/* Channel tabs */}
+      <div className="flex-shrink-0 border-b border-terminal-border bg-terminal-surface overflow-x-auto scrollbar-none">
+        <div className="flex min-w-max">
+          {CHANNELS.map((ch) => (
             <button
-              onClick={() => setErrored(false)}
-              className="font-mono text-2xs text-terminal-faint border border-terminal-border px-3 py-1 rounded"
+              key={ch.id}
+              onClick={() => handleSelect(ch)}
+              className={`flex items-center gap-1.5 px-3 py-2 font-mono text-2xs whitespace-nowrap border-b-2 transition-colors ${
+                channel.id === ch.id
+                  ? 'border-terminal-accent text-terminal-accent'
+                  : 'border-transparent text-terminal-faint hover:text-terminal-dim'
+              }`}
             >
-              Retry
+              <span>{ch.flag}</span>
+              <span>{ch.name}</span>
             </button>
-          </div>
-        ) : (
+          ))}
+        </div>
+      </div>
+
+      {/* Controls bar */}
+      <div className="flex-shrink-0 flex items-center justify-between px-3 py-1.5 border-b border-terminal-border/40 bg-terminal-panel">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-2xs text-terminal-faint">{channel.category}</span>
+          {status === 'live' && (
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              <span className="font-mono text-2xs text-red-400">LIVE</span>
+            </span>
+          )}
+          {status === 'loading' && (
+            <span className="font-mono text-2xs text-terminal-faint animate-pulse">checking…</span>
+          )}
+          {status === 'offline' && (
+            <span className="font-mono text-2xs text-terminal-faint">OFF AIR</span>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5">
+          {status === 'live' && (
+            <button
+              onClick={() => setMuted((m) => !m)}
+              className="font-mono text-xs text-terminal-faint hover:text-terminal-dim px-1.5 py-0.5 border border-terminal-border/40 rounded"
+              title={muted ? 'Unmute' : 'Mute'}
+            >
+              {muted ? '🔇' : '🔊'}
+            </button>
+          )}
+          <button
+            onClick={() => fetchStream(channel)}
+            className="font-mono text-2xs text-terminal-faint hover:text-terminal-dim px-1.5 py-0.5 border border-terminal-border/40 rounded"
+          >
+            ↺
+          </button>
+          <a
+            href={ytChannelUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono text-2xs text-terminal-faint/50 hover:text-terminal-accent px-1.5 py-0.5"
+          >
+            ↗ YT
+          </a>
+        </div>
+      </div>
+
+      {/* Main area */}
+      <div className="flex-1 relative overflow-hidden bg-black">
+
+        {/* Live embed */}
+        {status === 'live' && embedUrl && (
           <iframe
-            ref={iframeRef}
-            key={`${selected.id}-${muted}-${quality}`}
+            key={`${videoId}-${muted}`}
             src={embedUrl}
             className="w-full h-full border-0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            title={`${selected.name} Live`}
-            onError={() => setErrored(true)}
+            title={`${channel.name} Live`}
           />
         )}
 
-        {/* Live badge */}
-        {!errored && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 bg-red-600/90 rounded px-1.5 py-0.5 pointer-events-none">
-            <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-            <span className="font-mono text-2xs text-white font-bold">LIVE</span>
+        {/* No API key */}
+        {status === 'no_key' && (
+          <StatusCard
+            icon="🔑"
+            title="YouTube API Key Required"
+            body="Add a free YouTube Data API v3 key in the Alerts → Settings tab to watch live streams."
+            hint="console.cloud.google.com → Create project → YouTube Data API v3 → API key"
+            action={{ label: 'Watch on YouTube →', href: ytChannelUrl }}
+          />
+        )}
+
+        {/* Invalid key */}
+        {status === 'invalid_key' && (
+          <StatusCard
+            icon="⚠️"
+            title="Invalid API Key"
+            body="The YouTube API key in Settings is invalid or has restrictions set. Check the key and try again."
+            action={{ label: 'Watch on YouTube →', href: ytChannelUrl }}
+          />
+        )}
+
+        {/* Quota exceeded */}
+        {status === 'quota' && (
+          <StatusCard
+            icon="⛔"
+            title="Quota Exceeded"
+            body="YouTube API daily quota (10,000 units) reached. Resets at midnight Pacific time."
+            action={{ label: 'Watch on YouTube →', href: ytChannelUrl }}
+          />
+        )}
+
+        {/* Offline */}
+        {status === 'offline' && (
+          <StatusCard
+            icon="📴"
+            title={`${channel.name} — Not Currently Live`}
+            body="This channel has no active live stream right now. Check back during market hours."
+            action={{ label: 'Open channel →', href: `https://www.youtube.com/@${channel.handle}` }}
+          />
+        )}
+
+        {/* API error */}
+        {status === 'error' && (
+          <StatusCard
+            icon="❌"
+            title="API Error"
+            body="Could not reach the YouTube API. Check your internet connection."
+            action={{ label: 'Watch on YouTube →', href: ytChannelUrl }}
+          />
+        )}
+
+        {/* Loading */}
+        {status === 'loading' && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="font-mono text-2xs text-terminal-faint animate-pulse">
+              Checking for live stream…
+            </span>
           </div>
         )}
       </div>
+    </div>
+  )
+}
 
-      {/* Description bar */}
-      <div className="flex-shrink-0 px-3 py-1.5 border-t border-terminal-border/40 bg-terminal-panel">
-        <div className="flex items-center justify-between">
-          <span className="font-mono text-2xs text-terminal-faint/60">{selected.description}</span>
-          <a
-            href={`https://www.youtube.com/channel/${selected.channelId}/live`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-mono text-2xs text-terminal-faint/50 hover:text-terminal-accent"
-          >
-            youtube ↗
-          </a>
-        </div>
+// ── Helper ────────────────────────────────────────────────────────────────────
+function StatusCard({
+  icon, title, body, hint, action,
+}: {
+  icon: string
+  title: string
+  body: string
+  hint?: string
+  action: { label: string; href: string }
+}) {
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6">
+      <div className="text-2xl">{icon}</div>
+      <div className="font-mono text-xs text-terminal-text text-center">{title}</div>
+      <div className="font-mono text-2xs text-terminal-faint/70 text-center leading-relaxed max-w-xs">
+        {body}
       </div>
+      {hint && (
+        <div className="font-mono text-2xs text-terminal-faint/40 text-center leading-relaxed max-w-xs border border-terminal-border/30 rounded px-2 py-1">
+          {hint}
+        </div>
+      )}
+      <a
+        href={action.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-mono text-2xs text-terminal-accent border border-terminal-accent/40 px-3 py-1 rounded hover:bg-terminal-accent/10"
+      >
+        {action.label}
+      </a>
     </div>
   )
 }
