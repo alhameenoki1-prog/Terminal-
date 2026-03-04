@@ -9,8 +9,9 @@ import { StatusBar }    from './components/StatusBar'
 import { CountryPanel } from './components/CountryPanel'
 import { NexusPanel }   from './components/NexusPanel'
 import { ChatPanel }    from './components/ChatPanel'
-import { AlertsPanel }  from './components/AlertsPanel'
-import { SettingsPanel } from './components/SettingsPanel'
+import { AlertsPanel }   from './components/AlertsPanel'
+import { SettingsPanel }  from './components/SettingsPanel'
+import { LiveFeedPanel }  from './components/LiveFeedPanel'
 import { MobileLayout } from './components/MobileLayout'
 import { useStore }     from './store/useStore'
 import { useBreakpoint } from './hooks/useBreakpoint'
@@ -20,6 +21,7 @@ import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'reac
 
 const RIGHT_TABS: { key: ReturnType<typeof useStore.getState>['rightPanelTab']; label: string; icon: string }[] = [
   { key: 'news',    label: 'News',    icon: '📰' },
+  { key: 'live',    label: 'Live TV', icon: '📡' },
   { key: 'country', label: 'Country', icon: '🌍' },
   { key: 'nexus',   label: 'NEXUS',   icon: '⚡' },
   { key: 'chat',    label: 'Chat',    icon: '🧠' },
@@ -127,6 +129,7 @@ export default function App() {
               </PanelGroup>
             </div>
           )}
+          {rightPanelTab === 'live'    && <LiveFeedPanel />}
           {rightPanelTab === 'country' && <CountryPanel />}
           {rightPanelTab === 'nexus'   && <NexusPanel />}
           {rightPanelTab === 'chat'    && <ChatPanel />}

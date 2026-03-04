@@ -186,7 +186,7 @@ interface TerminalStore {
   fredData: FredData
   setFredData: (data: FredData) => void
 
-  rightPanelTab: 'news' | 'country' | 'nexus' | 'chat' | 'alerts'
+  rightPanelTab: 'news' | 'country' | 'nexus' | 'chat' | 'alerts' | 'live'
   setRightPanelTab: (tab: TerminalStore['rightPanelTab']) => void
   nexusSubTab: string
   setNexusSubTab: (tab: string) => void
