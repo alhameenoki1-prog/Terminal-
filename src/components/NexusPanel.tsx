@@ -12,6 +12,9 @@ import { EdgePlaybook } from './EdgePlaybook'
 import { DailyLogPanel } from './DailyLogPanel'
 import { OptionsPanel } from './OptionsPanel'
 import { ResearchFeedPanel } from './ResearchFeedPanel'
+import { SmcPanel } from './SmcPanel'
+import { MacroScorecardPanel } from './MacroScorecardPanel'
+import { PerformancePanel } from './PerformancePanel'
 
 const NEXUS_TABS: { key: string; label: string; icon: string }[] = [
   { key: 'regime',    label: 'Regime',    icon: '⚡' },
@@ -23,6 +26,9 @@ const NEXUS_TABS: { key: string; label: string; icon: string }[] = [
   { key: 'options',   label: 'Options',   icon: '🎰' },
   { key: 'yields',    label: 'Yields',    icon: '📈' },
   { key: 'transmit',  label: 'Transmit',  icon: '🔗' },
+  { key: 'smc',       label: 'SMC',       icon: '🧭' },
+  { key: 'macro',     label: 'Macro',     icon: '🌐' },
+  { key: 'perf',      label: 'Performance', icon: '📉' },
   { key: 'research',  label: 'Research',  icon: '🔬' },
   { key: 'checklist', label: 'Checklist', icon: '✅' },
   { key: 'edge',      label: 'Edge',      icon: '🎯' },
@@ -64,6 +70,9 @@ export function NexusPanel() {
         {nexusSubTab === 'options'   && <OptionsPanel />}
         {nexusSubTab === 'yields'    && <YieldCurvePanel />}
         {nexusSubTab === 'transmit'  && <TransmissionMap />}
+        {nexusSubTab === 'smc'       && <SmcPanel />}
+        {nexusSubTab === 'macro'     && <MacroScorecardPanel />}
+        {nexusSubTab === 'perf'      && <PerformancePanel />}
         {nexusSubTab === 'research'  && <ResearchFeedPanel />}
         {nexusSubTab === 'checklist' && <PreTradeChecklist />}
         {nexusSubTab === 'edge'      && <EdgePlaybook />}

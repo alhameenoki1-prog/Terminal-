@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useStore } from '../store/useStore'
 import { sendTelegramAlert, formatAlertMessage } from '../services/telegramService'
 import { sendEmailDigest, digestIntervalMs } from '../services/emailService'
-import type { AlertRule, AlertType } from '../types'
+import { CALENDAR_EVENTS } from '../data/economicCalendar'
+import type { AlertRule, AlertType, EconomicEvent } from '../types'
 
 const ALERT_TYPE_LABELS: Record<AlertType, string> = {
   price_above:         'Price Above',
@@ -13,6 +14,31 @@ const ALERT_TYPE_LABELS: Record<AlertType, string> = {
   vol_spread_extreme:  'Vol Spread Extreme',
   rate_divergence:     'Rate Divergence',
   yield_curve_signal:  'Yield Curve Signal',
+}
+
+// ── Event Risk Gate ────────────────────────────────────────────────────────
+
+const GATE_BEFORE_MIN = 30   // no-trade window before high-impact event
+const GATE_AFTER_MIN  = 60   // no-trade window after high-impact event
+
+interface ActiveGate {
+  event: EconomicEvent
+  status: 'pre-event' | 'post-event'
+  minutesUntil: number  // negative = past
+}
+
+function checkEventGates(allEvents: EconomicEvent[]): ActiveGate[] {
+  const now = Date.now()
+  const gates: ActiveGate[] = []
+  for (const event of allEvents) {
+    if (event.impact !== 'high' || !event.time) continue
+    const eventTs = new Date(`${event.date}T${event.time}:00Z`).getTime()
+    const diffMin = (eventTs - now) / 60000
+    if (diffMin >= -GATE_AFTER_MIN && diffMin <= GATE_BEFORE_MIN) {
+      gates.push({ event, status: diffMin > 0 ? 'pre-event' : 'post-event', minutesUntil: Math.round(diffMin) })
+    }
+  }
+  return gates
 }
 
 function newRule(): Partial<AlertRule> {
@@ -31,6 +57,7 @@ export function AlertsPanel() {
   const tickers       = useStore((s) => s.tickers)
   const settings      = useStore((s) => s.settings)
   const regime        = useStore((s) => s.regime)
+  const dailyLogs     = useStore((s) => s.dailyLogs)
 
   const news          = useStore((s) => s.news)
 
@@ -38,6 +65,25 @@ export function AlertsPanel() {
   const [draft, setDraft]             = useState<Partial<AlertRule>>(newRule())
   const [testResult, setTestResult]   = useState<string | null>(null)
   const [formError, setFormError]     = useState<string | null>(null)
+  const [gateEnabled, setGateEnabled] = useState(true)
+  const [now, setNow]                 = useState(Date.now())
+
+  // Tick every minute for gate display updates
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
+  // Custom calendar events from daily logs (none stored separately — use static + custom)
+  const allCalendarEvents: EconomicEvent[] = useMemo(() => CALENDAR_EVENTS, [])
+
+  // Active event risk gates (recalculated each minute)
+  const activeGates = useMemo(
+    () => (gateEnabled ? checkEventGates(allCalendarEvents) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [now, allCalendarEvents, gateEnabled]
+  )
+  void dailyLogs
 
   // Alert evaluation engine — runs every 60s
   useEffect(() => {
@@ -269,6 +315,59 @@ export function AlertsPanel() {
             + Rule
           </button>
         </div>
+      </div>
+
+      {/* ── Event Risk Gates ──────────────────────────────────────────────── */}
+      <div className="px-3 pt-2 pb-1">
+        <div className="flex items-center justify-between mb-1">
+          <span className="font-mono text-2xs text-terminal-faint tracking-widest">EVENT RISK GATES</span>
+          <label className="flex items-center gap-1 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={gateEnabled}
+              onChange={(e) => setGateEnabled(e.target.checked)}
+              className="accent-terminal-accent"
+            />
+            <span className="font-mono text-2xs text-terminal-faint">Enable</span>
+          </label>
+        </div>
+
+        {gateEnabled && activeGates.length === 0 && (
+          <div className="font-mono text-2xs text-terminal-faint/40 bg-terminal-panel rounded px-2 py-1.5 border border-terminal-border/20">
+            No high-impact events within ±{GATE_BEFORE_MIN}/{GATE_AFTER_MIN} min window. Clear to trade.
+          </div>
+        )}
+
+        {gateEnabled && activeGates.map((gate) => (
+          <div
+            key={gate.event.id}
+            className={`font-mono text-2xs rounded px-2 py-2 border mb-1 ${
+              gate.status === 'pre-event'
+                ? 'bg-red-950/30 border-red-700/50 text-red-300'
+                : 'bg-yellow-950/20 border-yellow-700/40 text-yellow-300'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-bold">
+                {gate.status === 'pre-event' ? '🚫 PRE-EVENT GATE' : '⚠ POST-EVENT GATE'}
+              </span>
+              <span className="opacity-70">
+                {gate.status === 'pre-event'
+                  ? `T-${gate.minutesUntil}m`
+                  : `T+${Math.abs(gate.minutesUntil)}m`}
+              </span>
+            </div>
+            <div className="mt-0.5 opacity-90">
+              {gate.event.flag} {gate.event.title}
+            </div>
+            <div className="opacity-60 mt-0.5">
+              {gate.event.date} {gate.event.time} UTC ·{' '}
+              {gate.status === 'pre-event'
+                ? `No-trade window: ${GATE_BEFORE_MIN}m before event`
+                : `Caution: ${GATE_AFTER_MIN}m post-event volatility window`}
+            </div>
+          </div>
+        ))}
       </div>
 
       {testResult && (
