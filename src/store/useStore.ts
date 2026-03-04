@@ -45,6 +45,38 @@ const DEFAULT_WATCHLIST: WatchlistItem[] = [
   { symbol: 'GC=F',     tvSymbol: 'TVC:GOLD',         name: 'Gold',       type: 'commodity', category: 'commodities' },
   { symbol: 'CL=F',     tvSymbol: 'NYMEX:CL1!',       name: 'WTI Crude',  type: 'commodity', category: 'commodities' },
   { symbol: 'SI=F',     tvSymbol: 'TVC:SILVER',       name: 'Silver',     type: 'commodity', category: 'commodities' },
+  { symbol: 'BZ=F',     tvSymbol: 'TVC:UKOIL',        name: 'Brent Crude', type: 'commodity', category: 'commodities' },
+  { symbol: 'HG=F',     tvSymbol: 'COMEX:HG1!',       name: 'Copper',     type: 'commodity', category: 'commodities' },
+  { symbol: 'ZW=F',     tvSymbol: 'CBOT:ZW1!',        name: 'Wheat',      type: 'commodity', category: 'commodities' },
+  { symbol: 'ZC=F',     tvSymbol: 'CBOT:ZC1!',        name: 'Corn',       type: 'commodity', category: 'commodities' },
+  { symbol: 'ZS=F',     tvSymbol: 'CBOT:ZS1!',        name: 'Soybeans',   type: 'commodity', category: 'commodities' },
+  { symbol: 'KC=F',     tvSymbol: 'ICEUS:KC1!',       name: 'Coffee',     type: 'commodity', category: 'commodities' },
+  { symbol: 'CC=F',     tvSymbol: 'ICEUS:CC1!',       name: 'Cocoa',      type: 'commodity', category: 'commodities' },
+  // FX Crosses
+  { symbol: 'EURJPY=X', tvSymbol: 'FX:EURJPY',        name: 'EUR/JPY',    type: 'forex',     category: 'crosses'     },
+  { symbol: 'GBPJPY=X', tvSymbol: 'FX:GBPJPY',        name: 'GBP/JPY',    type: 'forex',     category: 'crosses'     },
+  { symbol: 'AUDJPY=X', tvSymbol: 'FX:AUDJPY',        name: 'AUD/JPY',    type: 'forex',     category: 'crosses'     },
+  { symbol: 'EURGBP=X', tvSymbol: 'FX:EURGBP',        name: 'EUR/GBP',    type: 'forex',     category: 'crosses'     },
+  { symbol: 'EURCHF=X', tvSymbol: 'FX:EURCHF',        name: 'EUR/CHF',    type: 'forex',     category: 'crosses'     },
+  { symbol: 'CADJPY=X', tvSymbol: 'FX:CADJPY',        name: 'CAD/JPY',    type: 'forex',     category: 'crosses'     },
+  // EM FX
+  { symbol: 'USDMXN=X', tvSymbol: 'FX:USDMXN',       name: 'USD/MXN',    type: 'forex',     category: 'em'          },
+  { symbol: 'USDZAR=X', tvSymbol: 'FX:USDZAR',        name: 'USD/ZAR',    type: 'forex',     category: 'em'          },
+  { symbol: 'USDTRY=X', tvSymbol: 'FX:USDTRY',        name: 'USD/TRY',    type: 'forex',     category: 'em'          },
+  { symbol: 'USDBRL=X', tvSymbol: 'FX:USDBRL',        name: 'USD/BRL',    type: 'forex',     category: 'em'          },
+  // US Sectors
+  { symbol: 'XLF',      tvSymbol: 'AMEX:XLF',         name: 'Financials', type: 'stock',     category: 'sectors'     },
+  { symbol: 'XLE',      tvSymbol: 'AMEX:XLE',         name: 'Energy',     type: 'stock',     category: 'sectors'     },
+  { symbol: 'XLK',      tvSymbol: 'AMEX:XLK',         name: 'Technology', type: 'stock',     category: 'sectors'     },
+  { symbol: 'XLV',      tvSymbol: 'AMEX:XLV',         name: 'Health Care', type: 'stock',    category: 'sectors'     },
+  { symbol: 'XLI',      tvSymbol: 'AMEX:XLI',         name: 'Industrials', type: 'stock',    category: 'sectors'     },
+  { symbol: 'XLB',      tvSymbol: 'AMEX:XLB',         name: 'Materials',  type: 'stock',     category: 'sectors'     },
+  { symbol: 'XLU',      tvSymbol: 'AMEX:XLU',         name: 'Utilities',  type: 'stock',     category: 'sectors'     },
+  { symbol: 'XLY',      tvSymbol: 'AMEX:XLY',         name: 'Cons. Disc.', type: 'stock',    category: 'sectors'     },
+  { symbol: 'XLP',      tvSymbol: 'AMEX:XLP',         name: 'Cons. Staples', type: 'stock',  category: 'sectors'     },
+  { symbol: 'XLC',      tvSymbol: 'AMEX:XLC',         name: 'Comm. Svcs', type: 'stock',     category: 'sectors'     },
+  // US Russell 2000
+  { symbol: '^RUT',     tvSymbol: 'TVC:RUT',          name: 'Russell 2000', type: 'index',   category: 'indices'     },
 ]
 
 const DEFAULT_SETTINGS: AppSettings = {

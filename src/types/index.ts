@@ -23,7 +23,7 @@ export interface WatchlistItem {
   category: WatchlistCategory
 }
 
-export type WatchlistCategory = 'crypto' | 'indices' | 'forex' | 'bonds' | 'commodities' | 'stocks'
+export type WatchlistCategory = 'crypto' | 'indices' | 'forex' | 'bonds' | 'commodities' | 'stocks' | 'sectors' | 'em' | 'crosses'
 
 export interface Candle {
   time: number

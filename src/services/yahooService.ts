@@ -63,16 +63,28 @@ export async function fetchYahooQuotes(symbols: string[]): Promise<Ticker[]> {
 // Symbols for the global indices / FX / bonds / futures we want to track
 export const GLOBAL_YAHOO_SYMBOLS = [
   // US indices
-  '^GSPC', '^IXIC', '^DJI', '^VIX',
+  '^GSPC', '^IXIC', '^DJI', '^VIX', '^RUT',
   // Global indices
   '^FTSE', '^N225', '^GDAXI', '^FCHI', '^HSI', '^AXJO', '^BSESN', '^KS11', '^BVSP', '^GSPTSE',
   // Forex majors
   'EURUSD=X', 'USDJPY=X', 'GBPUSD=X', 'AUDUSD=X', 'USDCHF=X', 'USDCAD=X', 'NZDUSD=X',
   'USDCNH=X', 'USDKRW=X', 'USDINR=X',
+  // FX crosses
+  'EURJPY=X', 'GBPJPY=X', 'AUDJPY=X', 'EURGBP=X', 'EURCHF=X', 'CADJPY=X', 'NZDJPY=X',
+  // EM FX
+  'USDMXN=X', 'USDZAR=X', 'USDTRY=X', 'USDBRL=X', 'USDPLN=X', 'USDHUF=X',
   // US Yields + Japan 10Y
   '^TNX', '^FVX', '^IRX', '^TYX', '^JN10Y',
+  // VIX complex
+  '^VIX3M', '^VIX6M', '^VVIX',
   // Commodities
-  'GC=F', 'SI=F', 'CL=F', 'NG=F', 'HG=F',
+  'GC=F', 'SI=F', 'CL=F', 'BZ=F', 'NG=F', 'HG=F',
+  // Agricultural commodities
+  'ZW=F', 'ZC=F', 'ZS=F', 'KC=F', 'CC=F', 'SB=F',
   // Futures (CME)
-  'ES=F', 'NQ=F', 'ZN=F',
+  'ES=F', 'NQ=F', 'ZN=F', 'RTY=F', 'YM=F',
+  // US Sector ETFs
+  'XLF', 'XLE', 'XLK', 'XLV', 'XLI', 'XLB', 'XLU', 'XLRE', 'XLY', 'XLP', 'XLC',
+  // Bond ETFs / Real yields proxy
+  'TIP', 'LQD', 'HYG', 'TLT', 'IEF',
 ]

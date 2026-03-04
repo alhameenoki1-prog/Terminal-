@@ -11,6 +11,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/yahoo/, ''),
       },
+      '/api/binance/fapi': {
+        target: 'https://fapi.binance.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/binance/, ''),
+      },
       '/api/binance': {
         target: 'https://api.binance.com',
         changeOrigin: true,
