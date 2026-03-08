@@ -265,6 +265,55 @@ function YoutubePlayer({
   return <div ref={containerRef} className="w-full h-full" />
 }
 
+// ─── Country → channel mapping ────────────────────────────────────────────────
+// Maps ISO-2 country code to a CHANNELS id. Covers every country in COUNTRY_PROFILES
+// plus broad regional fallbacks for all other world countries.
+const COUNTRY_CHANNEL_MAP: Record<string, string> = {
+  // Americas
+  US: 'bloomberg', CA: 'bloomberg', MX: 'bloomberg', BR: 'bloomberg',
+  AR: 'bloomberg', CL: 'bloomberg', CO: 'bloomberg', PE: 'bloomberg',
+  VE: 'bloomberg', EC: 'bloomberg', BO: 'bloomberg', PY: 'bloomberg',
+  UY: 'bloomberg', GY: 'bloomberg', SR: 'bloomberg', TT: 'bloomberg',
+  JM: 'bloomberg', CU: 'bloomberg', DO: 'bloomberg', HT: 'bloomberg',
+  HN: 'bloomberg', GT: 'bloomberg', SV: 'bloomberg', NI: 'bloomberg',
+  CR: 'bloomberg', PA: 'bloomberg',
+  // UK
+  GB: 'bbc-news',
+  // Europe (DE/FR have native channels; rest go to euronews)
+  DE: 'dw',
+  FR: 'france24',
+  IT: 'euronews', ES: 'euronews', NL: 'euronews', PL: 'euronews',
+  AT: 'euronews', BE: 'euronews', PT: 'euronews', SE: 'euronews',
+  NO: 'euronews', DK: 'euronews', FI: 'euronews', GR: 'euronews',
+  HU: 'euronews', RO: 'euronews', CZ: 'euronews', SK: 'euronews',
+  HR: 'euronews', SI: 'euronews', LT: 'euronews', LV: 'euronews',
+  EE: 'euronews', IE: 'euronews', CH: 'euronews', LU: 'euronews',
+  IS: 'euronews', MT: 'euronews', CY: 'euronews', BG: 'euronews',
+  AL: 'euronews', RS: 'euronews', ME: 'euronews', MK: 'euronews',
+  BA: 'euronews', XK: 'euronews', MD: 'euronews', UA: 'euronews',
+  BY: 'euronews', RU: 'bloomberg',
+  // Middle East
+  SA: 'alarabiya', AE: 'alarabiya', KW: 'alarabiya', BH: 'alarabiya',
+  OM: 'alarabiya', YE: 'alarabiya',
+  QA: 'aljazeera', EG: 'aljazeera', IQ: 'aljazeera', SY: 'aljazeera',
+  LB: 'aljazeera', JO: 'aljazeera', PS: 'aljazeera',
+  IL: 'bloomberg',
+  TR: 'trt-world', IR: 'trt-world', AF: 'trt-world', PK: 'trt-world',
+  // Asia-Pacific
+  JP: 'nhk-world',
+  CN: 'bloomberg', HK: 'bloomberg', TW: 'bloomberg', KR: 'bloomberg',
+  IN: 'bloomberg', SG: 'bloomberg', AU: 'bloomberg', NZ: 'bloomberg',
+  TH: 'bloomberg', VN: 'bloomberg', MY: 'bloomberg', ID: 'bloomberg',
+  PH: 'bloomberg', BD: 'bloomberg', LK: 'bloomberg', MM: 'bloomberg',
+  KH: 'bloomberg', LA: 'bloomberg', MN: 'bloomberg', NP: 'bloomberg',
+  // Africa
+  NG: 'bloomberg', ZA: 'bloomberg', KE: 'bloomberg', ET: 'bloomberg',
+  GH: 'bloomberg', TZ: 'bloomberg', UG: 'bloomberg', AO: 'bloomberg',
+  MZ: 'bloomberg', CI: 'bloomberg', CM: 'bloomberg', SN: 'bloomberg',
+  ZM: 'bloomberg', ZW: 'bloomberg', SD: 'bloomberg', LY: 'bloomberg',
+  TN: 'aljazeera', DZ: 'aljazeera', MA: 'aljazeera',
+}
+
 // ─── Main panel ───────────────────────────────────────────────────────────────
 
 type Mode = 'loading' | 'hls' | 'yt' | 'error'
@@ -272,9 +321,18 @@ type Mode = 'loading' | 'hls' | 'yt' | 'error'
 const IDLE_MS = 5 * 60_000 // 5 minutes — auto-pause like worldmonitor
 
 export function LiveFeedPanel() {
-  const apiKey = useStore((s) => s.settings.youtubeApiKey)
+  const apiKey          = useStore((s) => s.settings.youtubeApiKey)
+  const selectedCountry = useStore((s) => s.selectedCountry)
 
   const [channel, setChannel] = useState<Channel>(CHANNELS[0])
+
+  // Auto-switch to country's channel when country mode activates
+  useEffect(() => {
+    if (!selectedCountry) return
+    const channelId = COUNTRY_CHANNEL_MAP[selectedCountry.code]
+    const matched = CHANNELS.find((c) => c.id === channelId)
+    if (matched) setChannel(matched)
+  }, [selectedCountry?.code])
   const [mode,    setMode]    = useState<Mode>('loading')
   const [videoId, setVideoId] = useState<string | null>(null)
   const [muted,   setMuted]   = useState(true)

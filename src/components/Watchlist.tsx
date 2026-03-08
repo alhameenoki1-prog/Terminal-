@@ -15,6 +15,8 @@ const CATEGORY_TABS: { key: WatchlistCategory | 'all'; label: string }[] = [
   { key: 'stocks',      label: 'Stocks' },
 ]
 
+const COUNTRY_TAB = 'country' as WatchlistCategory | 'all'
+
 export function Watchlist() {
   const tickers           = useStore((s) => s.tickers)
   const watchlist         = useStore((s) => s.watchlist)
@@ -23,6 +25,50 @@ export function Watchlist() {
   const chartConfig       = useStore((s) => s.chartConfig)
   const activeCategory    = useStore((s) => s.activeWatchlistCategory)
   const setActiveCategory = useStore((s) => s.setActiveWatchlistCategory)
+  const selectedCountry   = useStore((s) => s.selectedCountry)
+
+  // Build country-specific watchlist items from the active country profile
+  const countryItems: WatchlistItem[] = selectedCountry
+    ? [
+        {
+          symbol:   selectedCountry.yahooIndex,
+          tvSymbol: selectedCountry.tvIndex,
+          name:     `${selectedCountry.name} Index`,
+          type:     'index',
+          category: 'indices',
+        },
+        {
+          symbol:   selectedCountry.yahooCurrency,
+          tvSymbol: selectedCountry.tvCurrency,
+          name:     selectedCountry.tvCurrency.replace('FX:', ''),
+          type:     'forex',
+          category: 'forex',
+        },
+        {
+          symbol:   selectedCountry.yahooBond,
+          tvSymbol: selectedCountry.tvBond,
+          name:     `${selectedCountry.name} 10Y`,
+          type:     'bond',
+          category: 'bonds',
+        },
+        ...selectedCountry.mainStocks.map((s) => ({
+          symbol:   s.symbol,
+          tvSymbol: s.symbol,
+          name:     s.name,
+          type:     'stock' as WatchlistItem['type'],
+          category: 'stocks' as WatchlistCategory,
+        })),
+      ]
+    : []
+
+  // Auto-switch to country tab when country mode activates; revert when it exits
+  useEffect(() => {
+    if (selectedCountry) {
+      setActiveCategory(COUNTRY_TAB)
+    } else if (activeCategory === COUNTRY_TAB) {
+      setActiveCategory('all')
+    }
+  }, [selectedCountry?.code]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Poll Yahoo Finance for non-crypto prices every 30s
   useEffect(() => {
@@ -34,8 +80,12 @@ export function Watchlist() {
     return () => clearInterval(id)
   }, [setTickers])
 
+  const isCountryTab = activeCategory === COUNTRY_TAB
+
   const filtered: WatchlistItem[] =
-    activeCategory === 'all'
+    isCountryTab
+      ? countryItems
+      : activeCategory === 'all'
       ? watchlist
       : watchlist.filter((w) => w.category === activeCategory)
 
@@ -43,10 +93,17 @@ export function Watchlist() {
     <div className="flex flex-col h-full bg-terminal-surface border-r border-terminal-border overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-terminal-border flex-shrink-0">
-        <span className="font-mono text-2xs font-semibold text-terminal-accent tracking-widest uppercase">
-          Watchlist
-        </span>
-        <span className="font-mono text-2xs text-terminal-faint">{filtered.length}</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-mono text-2xs font-semibold text-terminal-accent tracking-widest uppercase flex-shrink-0">
+            Watchlist
+          </span>
+          {selectedCountry && isCountryTab && (
+            <span className="font-mono text-2xs text-terminal-faint truncate">
+              {selectedCountry.flag} {selectedCountry.name}
+            </span>
+          )}
+        </div>
+        <span className="font-mono text-2xs text-terminal-faint flex-shrink-0">{filtered.length}</span>
       </div>
 
       {/* Category tabs */}
@@ -64,6 +121,19 @@ export function Watchlist() {
             {tab.label}
           </button>
         ))}
+        {/* Country tab — only visible when a country is selected */}
+        {selectedCountry && (
+          <button
+            onClick={() => setActiveCategory(COUNTRY_TAB)}
+            className={`flex-shrink-0 px-2 py-1.5 font-mono text-2xs transition-colors whitespace-nowrap ${
+              isCountryTab
+                ? 'text-terminal-accent border-b-2 border-terminal-accent'
+                : 'text-terminal-faint hover:text-terminal-dim'
+            }`}
+          >
+            {selectedCountry.flag}
+          </button>
+        )}
       </div>
 
       {/* Column headers */}

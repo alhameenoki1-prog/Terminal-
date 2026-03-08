@@ -29,13 +29,15 @@ const RIGHT_TABS: { key: ReturnType<typeof useStore.getState>['rightPanelTab']; 
 ]
 
 export default function App() {
-  const rightPanelTab    = useStore((s) => s.rightPanelTab)
-  const setRightPanelTab = useStore((s) => s.setRightPanelTab)
-  const alertRules       = useStore((s) => s.alertRules)
-  const triggeredCount   = alertRules.filter((r) => r.triggered).length
-  const breakpoint       = useBreakpoint()
-  const settings         = useStore((s) => s.settings)
-  const setFredData      = useStore((s) => s.setFredData)
+  const rightPanelTab      = useStore((s) => s.rightPanelTab)
+  const setRightPanelTab   = useStore((s) => s.setRightPanelTab)
+  const alertRules         = useStore((s) => s.alertRules)
+  const triggeredCount     = alertRules.filter((r) => r.triggered).length
+  const breakpoint         = useBreakpoint()
+  const settings           = useStore((s) => s.settings)
+  const setFredData        = useStore((s) => s.setFredData)
+  const selectedCountry    = useStore((s) => s.selectedCountry)
+  const setSelectedCountry = useStore((s) => s.setSelectedCountry)
 
   // Keyboard shortcuts
   useKeyboardShortcuts()
@@ -56,9 +58,36 @@ export default function App() {
 
   return (
     <div className="app-grid font-sans text-terminal-text select-none">
-      {/* ── Row 1: Ticker tape (full width) ─────────────────────── */}
-      <header className="col-span-3 h-10 border-b border-terminal-border z-10">
-        <TickerTape />
+      {/* ── Row 1: Ticker tape + optional country mode banner ────── */}
+      <header className="col-span-3 border-b border-terminal-border z-10">
+        <div className="h-10">
+          <TickerTape />
+        </div>
+        {selectedCountry && (
+          <div className="flex items-center justify-between px-4 py-1.5 bg-terminal-accent/10 border-t border-terminal-accent/30">
+            <div className="flex items-center gap-3">
+              <span className="text-lg leading-none">{selectedCountry.flag}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs font-bold text-terminal-accent tracking-widest uppercase">
+                  Country Mode
+                </span>
+                <span className="font-mono text-xs text-terminal-dim">—</span>
+                <span className="font-mono text-xs text-terminal-text font-semibold">
+                  {selectedCountry.name}
+                </span>
+              </div>
+              <span className="font-mono text-2xs text-terminal-faint hidden md:inline">
+                All feeds filtered to {selectedCountry.name} · Click map to switch country
+              </span>
+            </div>
+            <button
+              onClick={() => setSelectedCountry(null)}
+              className="font-mono text-2xs text-terminal-faint hover:text-terminal-down transition-colors px-2 py-0.5 border border-terminal-border/50 rounded hover:border-terminal-down/50"
+            >
+              ✕ Exit Country Mode
+            </button>
+          </div>
+        )}
       </header>
 
       {/* ── Row 2: Main content ──────────────────────────────────── */}
@@ -104,6 +133,11 @@ export default function App() {
               {tab.key === 'alerts' && triggeredCount > 0 && (
                 <span className="absolute top-1 right-1 w-3 h-3 bg-terminal-accent rounded-full font-mono text-2xs text-terminal-bg flex items-center justify-center leading-none" style={{ fontSize: '8px' }}>
                   {triggeredCount}
+                </span>
+              )}
+              {tab.key === 'country' && selectedCountry && (
+                <span className="absolute top-1 right-1 text-base leading-none" style={{ fontSize: '10px' }}>
+                  {selectedCountry.flag}
                 </span>
               )}
             </button>

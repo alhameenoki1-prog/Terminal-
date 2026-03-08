@@ -32,7 +32,16 @@ export function TradingChart() {
   const { symbol, tvSymbol, interval, type } = useStore((s) => s.chartConfig)
   const setChartInterval = useStore((s) => s.setChartInterval)
   const setChartType     = useStore((s) => s.setChartType)
+  const setChartSymbol   = useStore((s) => s.setChartSymbol)
   const ticker           = useStore((s) => s.tickers[symbol])
+  const selectedCountry  = useStore((s) => s.selectedCountry)
+
+  // Auto-switch chart to country's main index when country mode activates
+  useEffect(() => {
+    if (selectedCountry) {
+      setChartSymbol(selectedCountry.yahooIndex, selectedCountry.tvIndex)
+    }
+  }, [selectedCountry?.code])
 
   useEffect(() => {
     if (!containerRef.current) return
