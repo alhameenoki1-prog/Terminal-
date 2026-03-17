@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import { TickerTape }   from './components/TickerTape'
 import { Watchlist }    from './components/Watchlist'
 import { TradingChart } from './components/TradingChart'
@@ -184,6 +185,7 @@ export default function App() {
       <footer className="col-span-3 h-8 border-t border-terminal-border">
         <StatusBar />
       </footer>
+      <SpeedInsights />
     </div>
   )
 }
