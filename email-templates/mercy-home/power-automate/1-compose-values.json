@@ -1,0 +1,15 @@
+{
+  "RecipientName": "REPLACE with dynamic content: Client name",
+  "RecipientEmail": "REPLACE with dynamic content: Client email",
+  "DocumentName": "REPLACE with dynamic content: Document name",
+  "SecureMessageLink": "REPLACE with dynamic content: Secure link",
+  "DueDate": "@{formatDateTime(addDays(utcNow(), 7), 'MMMM d, yyyy')}",
+  "ExpirationDate": "@{formatDateTime(addDays(utcNow(), 30), 'MMMM d, yyyy')}",
+  "SenderName": "Full Name",
+  "SenderTitle": "Job Title",
+  "SenderEmail": "name@mercyhomeny.org",
+  "OfficePhone": "(000) 000-0000",
+  "OfficePhoneDigits": "+10000000000",
+  "OfficeAddress": "Street Address, City, NY 00000",
+  "LogoUrl": "https://www.mercyhomeny.org/path/to/logo.png"
+}

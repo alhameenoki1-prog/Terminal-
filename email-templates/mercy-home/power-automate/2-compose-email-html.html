@@ -27,7 +27,7 @@ img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: b
 <body style="margin:0; padding:0; background-color:#F3F2F1;">
 
 <!-- Preview line shown in the inbox list -->
-<div style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">{{SenderName}} at Mercy Home sent you a secure message: {{DocumentName}}.</div>
+<div style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">@{outputs('Values')?['SenderName']} at Mercy Home sent you a secure message: @{outputs('Values')?['DocumentName']}.</div>
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F3F2F1" style="background-color:#F3F2F1;">
 <tr>
@@ -43,7 +43,7 @@ img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: b
 <tr>
 <td class="px" align="left" style="padding:28px 48px 0 48px;">
 <a href="https://www.mercyhomeny.org" target="_blank" style="text-decoration:none;">
-<img src="{{LogoUrl}}" width="150" alt="Mercy Home" style="width:150px; max-width:150px; height:auto; font-family:'Segoe UI', Arial, sans-serif; font-size:20px; font-weight:600; color:#323130;">
+<img src="@{outputs('Values')?['LogoUrl']}" width="150" alt="Mercy Home" style="width:150px; max-width:150px; height:auto; font-family:'Segoe UI', Arial, sans-serif; font-size:20px; font-weight:600; color:#323130;">
 </a>
 </td>
 </tr>
@@ -59,9 +59,9 @@ img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: b
 <tr>
 <td class="px" style="padding:8px 48px 0 48px; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif; color:#323130;">
 <h1 class="h1" style="margin:0 0 20px 0; font-size:28px; line-height:36px; font-weight:600; color:#323130;">You have documents to review</h1>
-<p style="margin:0 0 16px 0; font-size:15px; line-height:22px;">Hello {{RecipientName}},</p>
-<p style="margin:0 0 16px 0; font-size:15px; line-height:22px;">{{SenderName}} from Mercy Home sent you a secure message with your <strong style="font-weight:600;">{{DocumentName}}</strong>. To protect your information, it's stored in our encrypted portal instead of being attached to this email.</p>
-<p style="margin:0 0 28px 0; font-size:15px; line-height:22px;">Please review and return it by <strong style="font-weight:600;">{{DueDate}}</strong>.</p>
+<p style="margin:0 0 16px 0; font-size:15px; line-height:22px;">Hello @{outputs('Values')?['RecipientName']},</p>
+<p style="margin:0 0 16px 0; font-size:15px; line-height:22px;">@{outputs('Values')?['SenderName']} from Mercy Home sent you a secure message with your <strong style="font-weight:600;">@{outputs('Values')?['DocumentName']}</strong>. To protect your information, it's stored in our encrypted portal instead of being attached to this email.</p>
+<p style="margin:0 0 28px 0; font-size:15px; line-height:22px;">Please review and return it by <strong style="font-weight:600;">@{outputs('Values')?['DueDate']}</strong>.</p>
 </td>
 </tr>
 
@@ -71,7 +71,7 @@ img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: b
 <table role="presentation" cellpadding="0" cellspacing="0" border="0">
 <tr>
 <td align="center" bgcolor="#0078D4" style="background-color:#0078D4; border-radius:2px; mso-padding-alt:12px 28px;">
-<a href="{{SecureMessageLink}}" target="_blank" style="display:inline-block; padding:12px 28px; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif; font-size:15px; line-height:20px; font-weight:600; color:#FFFFFF; text-decoration:none; border-radius:2px;">Read the message</a>
+<a href="@{outputs('Values')?['SecureMessageLink']}" target="_blank" style="display:inline-block; padding:12px 28px; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif; font-size:15px; line-height:20px; font-weight:600; color:#FFFFFF; text-decoration:none; border-radius:2px;">Read the message</a>
 </td>
 </tr>
 </table>
@@ -97,7 +97,7 @@ img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: b
 <tr>
 <td class="px" style="padding:20px 48px 0 48px; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif; font-size:13px; line-height:18px; color:#605E5C;">
 If the button doesn't work, copy this link into your browser:<br>
-<a href="{{SecureMessageLink}}" target="_blank" style="color:#0078D4; text-decoration:underline; word-break:break-all;">{{SecureMessageLink}}</a>
+<a href="@{outputs('Values')?['SecureMessageLink']}" target="_blank" style="color:#0078D4; text-decoration:underline; word-break:break-all;">@{outputs('Values')?['SecureMessageLink']}</a>
 </td>
 </tr>
 
@@ -108,7 +108,7 @@ If the button doesn't work, copy this link into your browser:<br>
 <tr>
 <td style="padding:16px 20px; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif; font-size:13px; line-height:19px; color:#605E5C;">
 <p style="margin:0 0 6px 0; font-weight:600; color:#323130;">Is this really from us?</p>
-<p style="margin:0;">Mercy Home will never ask for your password, Social Security number or bank details by email. This link expires on <strong style="font-weight:600; color:#323130;">{{ExpirationDate}}</strong>. If you weren't expecting this message, don't open the link. Call us at <a href="tel:{{OfficePhoneDigits}}" style="color:#0078D4;">{{OfficePhone}}</a>, the number listed on <a href="https://www.mercyhomeny.org" target="_blank" style="color:#0078D4;">mercyhomeny.org</a>.</p>
+<p style="margin:0;">Mercy Home will never ask for your password, Social Security number or bank details by email. This link expires on <strong style="font-weight:600; color:#323130;">@{outputs('Values')?['ExpirationDate']}</strong>. If you weren't expecting this message, don't open the link. Call us at <a href="tel:@{outputs('Values')?['OfficePhoneDigits']}" style="color:#0078D4;">@{outputs('Values')?['OfficePhone']}</a>, the number listed on <a href="https://www.mercyhomeny.org" target="_blank" style="color:#0078D4;">mercyhomeny.org</a>.</p>
 </td>
 </tr>
 </table>
@@ -119,9 +119,9 @@ If the button doesn't work, copy this link into your browser:<br>
 <tr>
 <td class="px" style="padding:28px 48px 40px 48px; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif; font-size:15px; line-height:22px; color:#323130;">
 <p style="margin:0;">Thank you,</p>
-<p style="margin:0; font-weight:600;">{{SenderName}}</p>
-<p style="margin:0; font-size:14px; line-height:20px; color:#605E5C;">{{SenderTitle}}, Mercy Home</p>
-<p style="margin:0; font-size:14px; line-height:20px;"><a href="mailto:{{SenderEmail}}" style="color:#0078D4; text-decoration:none;">{{SenderEmail}}</a></p>
+<p style="margin:0; font-weight:600;">@{outputs('Values')?['SenderName']}</p>
+<p style="margin:0; font-size:14px; line-height:20px; color:#605E5C;">@{outputs('Values')?['SenderTitle']}, Mercy Home</p>
+<p style="margin:0; font-size:14px; line-height:20px;"><a href="mailto:@{outputs('Values')?['SenderEmail']}" style="color:#0078D4; text-decoration:none;">@{outputs('Values')?['SenderEmail']}</a></p>
 </td>
 </tr>
 
@@ -133,7 +133,7 @@ If the button doesn't work, copy this link into your browser:<br>
 <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:600px;">
 <tr>
 <td class="px" style="padding:24px 48px 0 48px; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif; font-size:12px; line-height:18px; color:#605E5C;">
-<p style="margin:0 0 8px 0;">Mercy Home &middot; {{OfficeAddress}} &middot; <a href="https://www.mercyhomeny.org" target="_blank" style="color:#605E5C; text-decoration:underline;">mercyhomeny.org</a></p>
+<p style="margin:0 0 8px 0;">Mercy Home &middot; @{outputs('Values')?['OfficeAddress']} &middot; <a href="https://www.mercyhomeny.org" target="_blank" style="color:#605E5C; text-decoration:underline;">mercyhomeny.org</a></p>
 <p style="margin:0;">This email and any linked content are confidential and intended only for the person named above. If you received it by mistake, please tell the sender and delete it.</p>
 </td>
 </tr>
