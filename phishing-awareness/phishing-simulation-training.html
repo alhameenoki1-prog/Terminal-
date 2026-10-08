@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Awareness Drill</title>
+<style>
+  :root{
+    --bg:#eef0f3; --panel:#ffffff; --ink:#20242b; --muted:#5e6672; --line:#e2e5ea;
+    --sim:#b45309; --sim-bg:#fef3c7; --sim-ink:#7c2d12;
+    --brand:#0f766e; --brand-ink:#0b5a53; --ok:#15803d; --ok-bg:#dcfce7;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14171c; --panel:#1c2026; --ink:#e8eaed; --muted:#9aa4b2; --line:#2a2f37;
+      --sim:#fbbf24; --sim-bg:#2a1f08; --sim-ink:#fcd34d;
+      --brand:#2dd4bf; --brand-ink:#5eead4; --ok:#4ade80; --ok-bg:#0f2a19;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14171c; --panel:#1c2026; --ink:#e8eaed; --muted:#9aa4b2; --line:#2a2f37;
+    --sim:#fbbf24; --sim-bg:#2a1f08; --sim-ink:#fcd34d;
+    --brand:#2dd4bf; --brand-ink:#5eead4; --ok:#4ade80; --ok-bg:#0f2a19;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;line-height:1.55;}
+  /* persistent simulation banner */
+  .simbar{position:sticky;top:0;z-index:50;background:var(--sim-bg);color:var(--sim-ink);
+    border-bottom:2px solid var(--sim);display:flex;gap:10px;align-items:center;justify-content:center;
+    flex-wrap:wrap;padding:10px 16px;font-size:13.5px;font-weight:600;text-align:center;}
+  .simbar .dot{width:9px;height:9px;border-radius:999px;background:var(--sim);flex:0 0 auto;
+    animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .stage{max-width:560px;margin:34px auto;padding:0 16px;}
+  /* the lure (fictitious brand) */
+  .lure{background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--brand);
+    border-radius:10px;padding:34px 30px;position:relative;}
+  .lure .brand{display:flex;align-items:center;gap:10px;margin:0 0 20px;font-weight:700;font-size:16px;color:var(--brand-ink);}
+  .lure .brand .glyph{width:26px;height:26px;border-radius:6px;background:var(--brand);
+    display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;}
+  .lure h1{font-size:22px;font-weight:700;margin:0 0 10px;}
+  .lure p{font-size:15px;margin:0 0 14px;}
+  .lure .cta{display:inline-block;margin:6px 0 18px;padding:12px 26px;background:var(--brand);
+    color:#fff;font-weight:600;border-radius:4px;border:none;font-size:15px;cursor:pointer;}
+  .lure .fine{color:var(--muted);font-size:12.5px;margin:0;}
+  .fake-url{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted);
+    margin-top:14px;padding:8px 10px;background:var(--bg);border:1px dashed var(--line);border-radius:6px;
+    word-break:break-all;}
+  .fake-url b{color:var(--sim);}
+  /* the reveal */
+  .reveal{display:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    margin-top:18px;overflow:hidden;animation:rise .35s ease both;}
+  @keyframes rise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  .reveal.show{display:block;}
+  .reveal .hd{background:var(--ok-bg);color:var(--ok);padding:16px 22px;font-weight:700;font-size:17px;
+    display:flex;gap:10px;align-items:center;border-bottom:1px solid var(--line);}
+  .reveal .bd{padding:20px 22px;}
+  .reveal .bd p{margin:0 0 14px;font-size:14.5px;}
+  .reveal h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:4px 0 10px;}
+  .reveal ol{margin:0;padding-left:20px;}
+  .reveal li{margin:9px 0;font-size:14px;}
+  .reveal li b{color:var(--ink);}
+  .reset{margin-top:18px;background:none;border:1px solid var(--line);color:var(--muted);
+    padding:9px 16px;border-radius:6px;font-size:13px;cursor:pointer;}
+  .reset:hover{color:var(--ink);border-color:var(--muted);}
+  .foot{max-width:560px;margin:10px auto 50px;padding:0 16px;color:var(--muted);font-size:12px;text-align:center;}
+</style>
+</head>
+<body>
+  <div class="simbar" role="alert">
+    <span class="dot" aria-hidden="true"></span>
+    SECURITY AWARENESS DRILL — this is a simulated phishing message. Nothing here is real and no data is collected.
+  </div>
+
+  <main class="stage">
+    <!-- The lure: fictitious brand, mirrors real phishing patterns -->
+    <section class="lure" id="lure" aria-label="Simulated phishing message">
+      <div class="brand"><span class="glyph">N</span> Northwind Files</div>
+      <h1>Your secure documents are ready</h1>
+      <p>Select the button below to continue to our protected document portal, where you can review and return your documents.</p>
+      <button class="cta" id="clickBait">Continue to the secure portal</button>
+      <p class="fine">If you weren't expecting this, you can safely close this page and verify with your IT team. Northwind Files will never ask for your password or banking details.</p>
+      <div class="fake-url" aria-label="Where this link really points">
+        this link really points to → <b>hxxps://northwind-files-login[.]secure-verify[.]xyz</b>
+      </div>
+    </section>
+
+    <!-- The drill reveal -->
+    <section class="reveal" id="reveal" aria-live="polite">
+      <div class="hd"><span aria-hidden="true">✓</span> Caught you — and that's the point.</div>
+      <div class="bd">
+        <p>If this were a real attack, clicking would have taken you to a fake login page built to steal your password. Because this is a <b>training drill</b>, nothing happened. Here's what should have stopped you:</p>
+        <h2>The tells in this message</h2>
+        <ol>
+          <li><b>Unexpected "documents ready" hook.</b> A vague notice with no named sender or specific file is bait designed to be sent to everyone.</li>
+          <li><b>The link didn't match the brand.</b> The button says "Northwind," but the real destination was <code>secure-verify[.]xyz</code> — a stranger's domain dressed up with brand words.</li>
+          <li><b>Reassurance used as a disguise.</b> "We'll never ask for your password" is lifted from genuine mail to make a fake feel safe. Comforting words are not verification.</li>
+          <li><b>Urgency to click now.</b> Real documents wait. The push to act immediately is pressure, not service.</li>
+        </ol>
+        <h2>What to do for real</h2>
+        <p style="margin-bottom:0">Don't click. Hover to check the true link, verify with the sender through a channel you already trust, and report the message to your security team so the domain gets blocked for everyone.</p>
+        <button class="reset" id="reset">Run the drill again</button>
+      </div>
+    </section>
+  </main>
+
+  <p class="foot">Training simulation using the fictitious brand "Northwind Files." Not affiliated with any real company. For internal phishing-awareness exercises only.</p>
+
+<script>
+  var reveal=document.getElementById('reveal');
+  var lure=document.getElementById('lure');
+  function trip(){
+    reveal.classList.add('show');
+    lure.style.opacity='.55';
+    reveal.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  document.getElementById('clickBait').addEventListener('click',trip);
+  document.getElementById('reset').addEventListener('click',function(){
+    reveal.classList.remove('show');
+    lure.style.opacity='1';
+    lure.scrollIntoView({behavior:'smooth',block:'center'});
+  });
+</script>
+</body>
+</html>
