@@ -1,0 +1,53 @@
+{{company_name}}
+{{#if requires_signature}}SIGNATURE REQUESTED{{else}}DOCUMENT SHARED FOR REVIEW{{/if}}
+
+Hello{{#if recipient_name}} {{recipient_name}}{{/if}},
+
+{{sender_name}}{{#if sender_organization}} from {{sender_organization}}{{/if}} is using {{company_name}} to send you "{{document_title}}"{{#if requires_signature}} for your electronic signature{{else}} for your review{{/if}}.
+
+The document is hosted on {{app_domain}} and opens with the link below. Nothing is attached to this email.
+{{#if sender_message}}
+
+Message from {{sender_name}}:
+{{sender_message}}
+{{/if}}
+
+DOCUMENT DETAILS
+Document:        {{document_title}}
+{{#if document_reference}}Reference:       {{document_reference}}
+{{/if}}Sent by:         {{sender_name}}{{#if sender_organization}}, {{sender_organization}}{{/if}} ({{sender_email}})
+Sent on:         {{sent_date}}
+{{#if expiration_date}}{{#if requires_signature}}Sign by:         {{else}}Available until: {{/if}}{{expiration_date}}
+{{/if}}{{#if has_access_code}}Access code:     Required. {{sender_name}} will share the code with you separately; it is never sent in this email.
+{{/if}}
+
+{{#if requires_signature}}REVIEW AND SIGN THE DOCUMENT{{else}}VIEW THE DOCUMENT{{/if}}
+{{document_action_url}}
+
+{{#if expiration_date}}This link stays active until {{expiration_date}}. {{/if}}You can return to this email and open the document again later.
+
+WHAT HAPPENS NEXT
+1. Open the document on {{app_domain}}. No account or software is needed to {{#if requires_signature}}sign{{else}}view it{{/if}}.
+2. Read every page. {{#if requires_signature}}If something is not right, you can decline and let {{sender_name}} know why.{{else}}You can download a copy for your records.{{/if}}
+{{#if requires_signature}}3. Sign where indicated and select Finish. Everyone involved receives the completed copy by email.
+{{/if}}
+
+NOT EXPECTING THIS DOCUMENT?
+Check that you recognise {{sender_name}} ({{sender_email}}) and that the document relates to something you are involved in. If you are unsure, confirm with the sender using a phone number or email address you already have, rather than replying to this message.
+
+Genuine {{company_name}} links always open on https://{{app_domain}}. {{company_name}} will never ask you for a password, payment details or a verification code by email.
+
+Report a suspicious document: {{#if report_url}}{{report_url}}{{else}}{{support_email}}{{/if}}
+
+--
+You are receiving this email because {{sender_name}} addressed a document to {{recipient_email}} using {{company_name}}. It is a transactional notification about that document, not a marketing message.
+{{#if preferences_url}}Notification preferences: {{preferences_url}}
+{{/if}}
+Need help? Email {{support_email}}{{#if help_url}} or visit {{help_url}}{{/if}}. Quote reference {{notification_id}}.
+
+Website: {{website_url}}
+Privacy policy: {{privacy_url}}
+Terms of service: {{terms_url}}
+{{#if esign_disclosure_url}}Electronic signature disclosure: {{esign_disclosure_url}}
+{{/if}}
+(c) {{current_year}} {{company_legal_name}}{{#if company_address}}, {{company_address}}{{/if}}. All rights reserved.

@@ -1,0 +1,19 @@
+{
+  "company_name": "[Platform name]",
+  "company_legal_name": "[Platform legal entity name]",
+  "app_domain": "app.example.com",
+  "website_url": "https://www.example.com",
+  "support_email": "support@example.com",
+  "privacy_url": "https://www.example.com/privacy",
+  "terms_url": "https://www.example.com/terms",
+  "current_year": "2026",
+  "notification_id": "NTF-7Q4K2M-9H",
+  "recipient_email": "amara.okafor@example.org",
+  "sender_name": "Daniel Reyes",
+  "sender_email": "daniel.reyes@northwind-partners.example",
+  "document_title": "Consultancy Services Agreement 2026",
+  "sent_date": "13 October 2026",
+  "requires_signature": true,
+  "confidential_title": false,
+  "document_action_url": "https://app.example.com/d/3f9c2a7e-6b41-4c8d-9e0a-5d2b7c1f8a64"
+}
