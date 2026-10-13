@@ -1,0 +1,313 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<!--
+  Document notification email ("You have a document to review / sign")
+  Template syntax: Handlebars. Every variable is HTML-escaped by the renderer.
+  Never use the raw (triple-brace) output syntax in this file. See variables.md for the variable contract.
+
+  BRAND TOKENS (placeholders, replace with the real brand palette):
+    Page background ........ #F2F4F7
+    Card background ........ #FFFFFF
+    Brand primary .......... #1C3D6E   (header rule, button, eyebrow, panel accent)
+    Heading text ........... #16212B
+    Body text .............. #2E3A46
+    Muted text ............. #5B6B7B
+    Border ................. #DDE3EA
+    Panel background ....... #F7F9FB
+    Link ................... #1C3D6E
+  Search-and-replace a token to re-theme; every colour is declared inline because
+  Gmail (non-Google accounts) and some Outlook builds strip the <style> block.
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>[Platform name]: Daniel Alejandro Reyes-Montgomery sent you a document</title>
+<!--[if mso]>
+<xml>
+  <o:OfficeDocumentSettings>
+    <o:AllowPNG/>
+    <o:PixelsPerInch>96</o:PixelsPerInch>
+  </o:OfficeDocumentSettings>
+</xml>
+<style>
+  table, td, div, h1, h2, h3, p, a, span, li { font-family: Arial, Helvetica, sans-serif !important; }
+  table { border-collapse: collapse; }
+</style>
+<![endif]-->
+<style>
+  /* ---- Client resets ---- */
+  html, body { margin: 0 !important; padding: 0 !important; height: 100% !important; width: 100% !important; }
+  * { -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
+  table, td { mso-table-lspace: 0pt !important; mso-table-rspace: 0pt !important; }
+  img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+  a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; font-size: inherit !important; font-family: inherit !important; font-weight: inherit !important; line-height: inherit !important; }
+  u + #body a { color: inherit; text-decoration: none; font-size: inherit; font-family: inherit; font-weight: inherit; line-height: inherit; }
+  #MessageViewBody a { color: inherit; text-decoration: none; }
+  .ExternalClass { width: 100%; }
+  .ExternalClass, .ExternalClass p, .ExternalClass span, .ExternalClass font, .ExternalClass td, .ExternalClass div { line-height: 100%; }
+
+  /* ---- Mobile (progressive enhancement; layout is fluid without it) ---- */
+  @media only screen and (max-width: 620px) {
+    .w-full { width: 100% !important; max-width: 100% !important; min-width: 0 !important; }
+    .px-mobile { padding-left: 20px !important; padding-right: 20px !important; }
+    .py-mobile { padding-top: 28px !important; padding-bottom: 28px !important; }
+    .stack { display: block !important; width: 100% !important; box-sizing: border-box !important; }
+    .stack-label { padding-bottom: 2px !important; }
+    .stack-value { padding-top: 0 !important; padding-bottom: 14px !important; padding-left: 20px !important; border-top: none !important; }
+    .btn-full { width: 100% !important; }
+    .btn-full a { display: block !important; }
+    .h1 { font-size: 22px !important; line-height: 30px !important; }
+  }
+</style>
+<style>
+  /* ---- Dark mode (Apple Mail, iOS Mail, Outlook.com and Outlook apps via data-ogsc).
+          Kept in a separate block so clients that drop it still get the full light layout. ---- */
+  @media (prefers-color-scheme: dark) {
+    .dm-bg { background-color: #0F172A !important; }
+    .dm-card { background-color: #1E293B !important; }
+    .dm-panel { background-color: #243247 !important; }
+    .dm-border { border-color: #334155 !important; }
+    .dm-text { color: #E2E8F0 !important; }
+    .dm-muted { color: #A3B1C2 !important; }
+    .dm-link { color: #9CC3F5 !important; }
+    .dm-btn { background-color: #2F67B7 !important; }
+    .dm-keep-light { background-color: #FFFFFF !important; }
+  }
+  [data-ogsc] .dm-bg { background-color: #0F172A !important; }
+  [data-ogsc] .dm-card { background-color: #1E293B !important; }
+  [data-ogsc] .dm-panel { background-color: #243247 !important; }
+  [data-ogsc] .dm-border { border-color: #334155 !important; }
+  [data-ogsc] .dm-text { color: #E2E8F0 !important; }
+  [data-ogsc] .dm-muted { color: #A3B1C2 !important; }
+  [data-ogsc] .dm-link { color: #9CC3F5 !important; }
+  [data-ogsc] .dm-btn { background-color: #2F67B7 !important; }
+  [data-ogsc] .dm-keep-light { background-color: #FFFFFF !important; }
+</style>
+</head>
+<body id="body" class="dm-bg" bgcolor="#F2F4F7" style="margin:0;padding:0;background-color:#F2F4F7;word-spacing:normal;">
+
+<!-- Preheader: shown in the inbox preview, hidden in the opened email. -->
+<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;color:#F2F4F7;font-family:Arial,sans-serif;" aria-hidden="true">
+  Daniel Alejandro Reyes-Montgomery sent you &ldquo;Master Services Agreement between Northwind Partners LLP and Okafor Advisory Limited including Schedule A (Statement of Work), Schedule B (Data Processing Addendum) &amp; Schedule C &lt;Fees&gt; &quot;2026 Edition&quot;&rdquo; to review and sign using [Platform name]. Available until 27 October 2026.
+  &#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;
+</div>
+
+<div role="article" aria-roledescription="email" aria-label="Document from Daniel Alejandro Reyes-Montgomery via [Platform name]" lang="en" dir="ltr" style="font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:24px;color:#2E3A46;">
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" class="dm-bg" bgcolor="#F2F4F7" style="background-color:#F2F4F7;">
+  <tr>
+    <td align="center" style="padding:24px 12px 32px 12px;">
+      <!--[if mso]>
+      <table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td>
+      <![endif]-->
+      <table role="presentation" class="w-full" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;margin:0 auto;">
+
+        <!-- ===== Platform identity (who is sending the notification) ===== -->
+        <tr>
+          <td class="px-mobile" align="left" style="padding:8px 4px 18px 4px;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+              <tr>
+                <td align="left" valign="middle" style="padding:0;">
+                  <a href="https://www.example.com" target="_blank" class="dm-text" style="font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:19px;font-weight:bold;line-height:24px;color:#16212B;text-decoration:none;letter-spacing:-0.2px;">[Platform name]</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ===== Main card ===== -->
+        <tr>
+          <td style="padding:0;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" class="dm-card dm-border" bgcolor="#FFFFFF" style="background-color:#FFFFFF;border:1px solid #DDE3EA;border-radius:8px;">
+              <!-- Brand rule -->
+              <tr>
+                <td bgcolor="#1C3D6E" style="background-color:#1C3D6E;height:5px;line-height:5px;font-size:5px;border-radius:8px 8px 0 0;">&nbsp;</td>
+              </tr>
+
+              <!-- Card body -->
+              <tr>
+                <td class="px-mobile py-mobile" style="padding:36px 40px 8px 40px;">
+                  <p class="dm-link" style="margin:0 0 10px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:16px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#1C3D6E;">
+                    Signature requested
+                  </p>
+                  <h1 class="h1 dm-text" style="margin:0 0 18px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:24px;line-height:32px;font-weight:bold;color:#16212B;word-break:break-word;">
+                    Daniel Alejandro Reyes-Montgomery has sent you a document to review and sign
+                  </h1>
+                  <p class="dm-text" style="margin:0 0 16px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:24px;color:#2E3A46;">
+                    Hello Amara Okafor,
+                  </p>
+                  <p class="dm-text" style="margin:0 0 16px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:24px;color:#2E3A46;">
+                    Daniel Alejandro Reyes-Montgomery from Northwind Partners LLP (International Advisory &amp; Restructuring Practice) is using [Platform name] to send you
+                    <strong style="font-weight:bold;word-break:break-word;">Master Services Agreement between Northwind Partners LLP and Okafor Advisory Limited including Schedule A (Statement of Work), Schedule B (Data Processing Addendum) &amp; Schedule C &lt;Fees&gt; &quot;2026 Edition&quot;</strong> for your electronic signature.
+                    The document is hosted on app.example.com and opens with the button below. Nothing is attached to this email.
+                  </p>
+                </td>
+              </tr>
+
+              <!-- Optional personal message from the document sender -->
+              <tr>
+                <td class="px-mobile" style="padding:0 40px 8px 40px;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                      <td class="dm-panel" bgcolor="#F7F9FB" style="padding:16px 20px;background-color:#F7F9FB;border-left:3px solid #1C3D6E;border-radius:0 6px 6px 0;">
+                        <p class="dm-muted" style="margin:0 0 6px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:16px;font-weight:bold;letter-spacing:0.5px;text-transform:uppercase;color:#5B6B7B;">Message from Daniel Alejandro Reyes-Montgomery</p>
+                        <p class="dm-text" style="margin:0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:22px;color:#2E3A46;word-break:break-word;">Hi Amara,<br>Here is the consultancy agreement we discussed on Tuesday. Section 4 reflects the revised payment schedule.<br>Let me know if anything needs changing before you sign.</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- Document details -->
+              <tr>
+                <td class="px-mobile" style="padding:12px 40px 8px 40px;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" class="dm-border" style="border:1px solid #DDE3EA;border-radius:6px;">
+                    <tr>
+                      <td class="stack stack-label dm-muted" width="120" valign="top" style="padding:12px 12px 12px 20px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#5B6B7B;">Document</td>
+                      <td class="stack stack-value dm-text" valign="top" style="padding:12px 20px 12px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;font-weight:bold;color:#16212B;word-break:break-word;">Master Services Agreement between Northwind Partners LLP and Okafor Advisory Limited including Schedule A (Statement of Work), Schedule B (Data Processing Addendum) &amp; Schedule C &lt;Fees&gt; &quot;2026 Edition&quot;</td>
+                    </tr>
+                    <tr>
+                      <td class="stack stack-label dm-muted dm-border" width="120" valign="top" style="padding:12px 12px 12px 20px;border-top:1px solid #DDE3EA;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#5B6B7B;">Reference</td>
+                      <td class="stack stack-value dm-text dm-border" valign="top" style="padding:12px 20px 12px 0;border-top:1px solid #DDE3EA;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;color:#2E3A46;word-break:break-all;">NWP-MSA-2026-0000000000000000000000000000000000000000000000000000000412</td>
+                    </tr>
+                    <tr>
+                      <td class="stack stack-label dm-muted dm-border" width="120" valign="top" style="padding:12px 12px 12px 20px;border-top:1px solid #DDE3EA;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#5B6B7B;">Sent by</td>
+                      <td class="stack stack-value dm-text dm-border" valign="top" style="padding:12px 20px 12px 0;border-top:1px solid #DDE3EA;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;color:#2E3A46;word-break:break-word;">Daniel Alejandro Reyes-Montgomery, Northwind Partners LLP (International Advisory &amp; Restructuring Practice)<br><span class="dm-muted" style="font-size:14px;color:#5B6B7B;word-break:break-all;">daniel.reyes@northwind-partners.example</span></td>
+                    </tr>
+                    <tr>
+                      <td class="stack stack-label dm-muted dm-border" width="120" valign="top" style="padding:12px 12px 12px 20px;border-top:1px solid #DDE3EA;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#5B6B7B;">Sent on</td>
+                      <td class="stack stack-value dm-text dm-border" valign="top" style="padding:12px 20px 12px 0;border-top:1px solid #DDE3EA;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;color:#2E3A46;">13 October 2026</td>
+                    </tr>
+                    <tr>
+                      <td class="stack stack-label dm-muted dm-border" width="120" valign="top" style="padding:12px 12px 12px 20px;border-top:1px solid #DDE3EA;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#5B6B7B;">Sign by</td>
+                      <td class="stack stack-value dm-text dm-border" valign="top" style="padding:12px 20px 12px 0;border-top:1px solid #DDE3EA;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;color:#2E3A46;">27 October 2026</td>
+                    </tr>
+                    <tr>
+                      <td class="stack stack-label dm-muted dm-border" width="120" valign="top" style="padding:12px 12px 12px 20px;border-top:1px solid #DDE3EA;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#5B6B7B;">Access code</td>
+                      <td class="stack stack-value dm-text dm-border" valign="top" style="padding:12px 20px 12px 0;border-top:1px solid #DDE3EA;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:20px;color:#2E3A46;">Required. Daniel Alejandro Reyes-Montgomery will share the code with you separately; it is never sent in this email.</td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- Primary action -->
+              <tr>
+                <td class="px-mobile" align="center" style="padding:24px 40px 12px 40px;">
+                  <table role="presentation" class="btn-full" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto;">
+                    <tr>
+                      <td align="center" class="dm-btn" bgcolor="#1C3D6E" style="background-color:#1C3D6E;border-radius:6px;mso-padding-alt:0;">
+                        <a href="https://app.example.com/d/3f9c2a7e-6b41-4c8d-9e0a-5d2b7c1f8a64" target="_blank" style="display:inline-block;padding:15px 36px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:20px;font-weight:bold;color:#FFFFFF;text-decoration:none;border-radius:6px;mso-padding-alt:0;">
+                          <!--[if mso]><i style="mso-font-width:450%;mso-text-raise:30pt;" hidden>&nbsp;</i><![endif]-->
+                          <span style="mso-text-raise:15pt;color:#FFFFFF;">Review and sign document</span>
+                          <!--[if mso]><i style="mso-font-width:450%;" hidden>&nbsp;&#8203;</i><![endif]-->
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- Link fallback and validity -->
+              <tr>
+                <td class="px-mobile" align="center" style="padding:0 40px 28px 40px;">
+                  <p class="dm-muted" style="margin:0 0 10px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#5B6B7B;">
+                    This link stays active until 27 October 2026. You can return to this email and open the document again later.
+                  </p>
+                  <p class="dm-muted" style="margin:0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#5B6B7B;word-break:break-all;">
+                    If the button does not work, copy this address into your browser:<br>
+                    <a href="https://app.example.com/d/3f9c2a7e-6b41-4c8d-9e0a-5d2b7c1f8a64" target="_blank" class="dm-link" style="color:#1C3D6E;text-decoration:underline;">https://app.example.com/d/3f9c2a7e-6b41-4c8d-9e0a-5d2b7c1f8a64</a>
+                  </p>
+                </td>
+              </tr>
+
+              <!-- What happens next -->
+              <tr>
+                <td class="px-mobile" style="padding:0 40px 8px 40px;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" class="dm-border" style="border-top:1px solid #DDE3EA;">
+                    <tr>
+                      <td style="padding:24px 0 0 0;">
+                        <h2 class="dm-text" style="margin:0 0 12px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:24px;font-weight:bold;color:#16212B;">What happens next</h2>
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                          <tr>
+                            <td width="28" valign="top" class="dm-link" style="padding:0 0 10px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:22px;font-weight:bold;color:#1C3D6E;">1.</td>
+                            <td valign="top" class="dm-text" style="padding:0 0 10px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:22px;color:#2E3A46;">Open the document on app.example.com. No account or software is needed to sign.</td>
+                          </tr>
+                          <tr>
+                            <td width="28" valign="top" class="dm-link" style="padding:0 0 10px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:22px;font-weight:bold;color:#1C3D6E;">2.</td>
+                            <td valign="top" class="dm-text" style="padding:0 0 10px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:22px;color:#2E3A46;">Read every page. If something is not right, you can decline and let Daniel Alejandro Reyes-Montgomery know why.</td>
+                          </tr>
+                          <tr>
+                            <td width="28" valign="top" class="dm-link" style="padding:0 0 10px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:22px;font-weight:bold;color:#1C3D6E;">3.</td>
+                            <td valign="top" class="dm-text" style="padding:0 0 10px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:22px;color:#2E3A46;">Sign where indicated and select Finish. Everyone involved receives the completed copy by email.</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- Security notice -->
+              <tr>
+                <td class="px-mobile" style="padding:12px 40px 36px 40px;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                      <td class="dm-panel dm-border" bgcolor="#F7F9FB" style="padding:18px 20px;background-color:#F7F9FB;border:1px solid #DDE3EA;border-radius:6px;">
+                        <h2 class="dm-text" style="margin:0 0 8px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:22px;font-weight:bold;color:#16212B;">Not expecting this document?</h2>
+                        <p class="dm-text" style="margin:0 0 10px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:21px;color:#2E3A46;">
+                          Check that you recognise Daniel Alejandro Reyes-Montgomery (daniel.reyes@northwind-partners.example) and that the document relates to something you are involved in. If you are unsure, confirm with the sender using a phone number or email address you already have, rather than replying to this message.
+                        </p>
+                        <p class="dm-text" style="margin:0 0 10px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:21px;color:#2E3A46;">
+                          Genuine [Platform name] links always open on <strong style="font-weight:bold;">https://app.example.com</strong>. [Platform name] will never ask you for a password, payment details or a verification code by email.
+                        </p>
+                        <p style="margin:0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:21px;color:#2E3A46;">
+                          <a href="https://www.example.com/report-abuse" target="_blank" class="dm-link" style="color:#1C3D6E;text-decoration:underline;font-weight:bold;">Report a suspicious document</a>
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ===== Footer ===== -->
+        <tr>
+          <td class="px-mobile" align="left" style="padding:28px 8px 0 8px;">
+            <p class="dm-muted" style="margin:0 0 12px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#5B6B7B;">
+              You are receiving this email because Daniel Alejandro Reyes-Montgomery addressed a document to amara.okafor@example.org using [Platform name]. It is a transactional notification about that document, not a marketing message. <a href="https://app.example.com/notifications/preferences" target="_blank" class="dm-link" style="color:#1C3D6E;text-decoration:underline;">Manage notification preferences</a>.
+            </p>
+            <p class="dm-muted" style="margin:0 0 12px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#5B6B7B;">
+              Need help? Email <a href="mailto:support@example.com" class="dm-link" style="color:#1C3D6E;text-decoration:underline;">support@example.com</a> or visit the <a href="https://help.example.com" target="_blank" class="dm-link" style="color:#1C3D6E;text-decoration:underline;">help centre</a>. Quote reference NTF-7Q4K2M-9H.
+            </p>
+            <p class="dm-muted" style="margin:0 0 12px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#5B6B7B;">
+              <a href="https://www.example.com" target="_blank" class="dm-link" style="color:#1C3D6E;text-decoration:underline;">app.example.com</a>
+              &nbsp;&middot;&nbsp;
+              <a href="https://www.example.com/privacy" target="_blank" class="dm-link" style="color:#1C3D6E;text-decoration:underline;">Privacy policy</a>
+              &nbsp;&middot;&nbsp;
+              <a href="https://www.example.com/terms" target="_blank" class="dm-link" style="color:#1C3D6E;text-decoration:underline;">Terms of service</a>
+              &nbsp;&middot;&nbsp;
+              <a href="https://www.example.com/esign-disclosure" target="_blank" class="dm-link" style="color:#1C3D6E;text-decoration:underline;">Electronic signature disclosure</a>
+            </p>
+            <p class="dm-muted" style="margin:0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#5B6B7B;">
+              &copy; 2026 [Platform legal entity name], [Registered address]. All rights reserved.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+      <!--[if mso]>
+      </td></tr></table>
+      <![endif]-->
+    </td>
+  </tr>
+</table>
+</div>
+</body>
+</html>

@@ -1,0 +1,39 @@
+[Platform name]
+SIGNATURE REQUESTED
+
+Hello,
+
+Daniel Reyes is using [Platform name] to send you "Consultancy Services Agreement 2026" for your electronic signature.
+
+The document is hosted on app.example.com and opens with the link below. Nothing is attached to this email.
+
+DOCUMENT DETAILS
+Document:        Consultancy Services Agreement 2026
+Sent by:         Daniel Reyes (daniel.reyes@northwind-partners.example)
+Sent on:         13 October 2026
+
+REVIEW AND SIGN THE DOCUMENT
+https://app.example.com/d/3f9c2a7e-6b41-4c8d-9e0a-5d2b7c1f8a64
+
+You can return to this email and open the document again later.
+
+WHAT HAPPENS NEXT
+1. Open the document on app.example.com. No account or software is needed to sign.
+2. Read every page. If something is not right, you can decline and let Daniel Reyes know why.
+3. Sign where indicated and select Finish. Everyone involved receives the completed copy by email.
+
+NOT EXPECTING THIS DOCUMENT?
+Check that you recognise Daniel Reyes (daniel.reyes@northwind-partners.example) and that the document relates to something you are involved in. If you are unsure, confirm with the sender using a phone number or email address you already have, rather than replying to this message.
+
+Genuine [Platform name] links always open on https://app.example.com. [Platform name] will never ask you for a password, payment details or a verification code by email.
+
+Report a suspicious document: support@example.com
+
+--
+You are receiving this email because Daniel Reyes addressed a document to amara.okafor@example.org using [Platform name]. It is a transactional notification about that document, not a marketing message.
+Need help? Email support@example.com. Quote reference NTF-7Q4K2M-9H.
+
+Website: https://www.example.com
+Privacy policy: https://www.example.com/privacy
+Terms of service: https://www.example.com/terms
+(c) 2026 [Platform legal entity name]. All rights reserved.

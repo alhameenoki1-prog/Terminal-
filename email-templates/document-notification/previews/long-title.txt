@@ -1,0 +1,49 @@
+[Platform name]
+SIGNATURE REQUESTED
+
+Hello Amara Okafor,
+
+Daniel Alejandro Reyes-Montgomery from Northwind Partners LLP (International Advisory & Restructuring Practice) is using [Platform name] to send you "Master Services Agreement between Northwind Partners LLP and Okafor Advisory Limited including Schedule A (Statement of Work), Schedule B (Data Processing Addendum) & Schedule C <Fees> "2026 Edition"" for your electronic signature.
+
+The document is hosted on app.example.com and opens with the link below. Nothing is attached to this email.
+
+Message from Daniel Alejandro Reyes-Montgomery:
+Hi Amara,
+Here is the consultancy agreement we discussed on Tuesday. Section 4 reflects the revised payment schedule.
+Let me know if anything needs changing before you sign.
+
+DOCUMENT DETAILS
+Document:        Master Services Agreement between Northwind Partners LLP and Okafor Advisory Limited including Schedule A (Statement of Work), Schedule B (Data Processing Addendum) & Schedule C <Fees> "2026 Edition"
+Reference:       NWP-MSA-2026-0000000000000000000000000000000000000000000000000000000412
+Sent by:         Daniel Alejandro Reyes-Montgomery, Northwind Partners LLP (International Advisory & Restructuring Practice) (daniel.reyes@northwind-partners.example)
+Sent on:         13 October 2026
+Sign by:         27 October 2026
+Access code:     Required. Daniel Alejandro Reyes-Montgomery will share the code with you separately; it is never sent in this email.
+
+REVIEW AND SIGN THE DOCUMENT
+https://app.example.com/d/3f9c2a7e-6b41-4c8d-9e0a-5d2b7c1f8a64
+
+This link stays active until 27 October 2026. You can return to this email and open the document again later.
+
+WHAT HAPPENS NEXT
+1. Open the document on app.example.com. No account or software is needed to sign.
+2. Read every page. If something is not right, you can decline and let Daniel Alejandro Reyes-Montgomery know why.
+3. Sign where indicated and select Finish. Everyone involved receives the completed copy by email.
+
+NOT EXPECTING THIS DOCUMENT?
+Check that you recognise Daniel Alejandro Reyes-Montgomery (daniel.reyes@northwind-partners.example) and that the document relates to something you are involved in. If you are unsure, confirm with the sender using a phone number or email address you already have, rather than replying to this message.
+
+Genuine [Platform name] links always open on https://app.example.com. [Platform name] will never ask you for a password, payment details or a verification code by email.
+
+Report a suspicious document: https://www.example.com/report-abuse
+
+--
+You are receiving this email because Daniel Alejandro Reyes-Montgomery addressed a document to amara.okafor@example.org using [Platform name]. It is a transactional notification about that document, not a marketing message.
+Notification preferences: https://app.example.com/notifications/preferences
+Need help? Email support@example.com or visit https://help.example.com. Quote reference NTF-7Q4K2M-9H.
+
+Website: https://www.example.com
+Privacy policy: https://www.example.com/privacy
+Terms of service: https://www.example.com/terms
+Electronic signature disclosure: https://www.example.com/esign-disclosure
+(c) 2026 [Platform legal entity name], [Registered address]. All rights reserved.
