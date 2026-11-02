@@ -93,7 +93,7 @@ flowchart TB
 | Agent subagents (general-purpose, Explore, Plan, web-fetch) | Separate specialist departments and reviewers with their own context | Nine research agents launched in parallel for Stage 1; reviewers in Stage 1b/3 |
 | Workflow tool (deterministic multi-agent pipelines) | Candidate for repeatable review pipelines (research → verify) | Available; not used for Stage 1 because reviewer briefs are tailored to each draft. Default guidance keeps a workflow under ten agents |
 | WebSearch / WebFetch | Current sources: regulators, exchanges, vendors, papers, repositories | US-based search; agents record URL and access date |
-| Reference-lookup tools (Research Desk plugin; OpenAlex and arXiv) | Verify every academic citation; find papers; citation neighbours | Verification status is recorded as [verified]/[unverified] |
+| Reference-lookup tools (Research Desk plugin; OpenAlex and arXiv) | Verify every academic citation; find papers; citation neighbours | Verification status is recorded as [verified]/[unverified]. Tested 2026-11-02: the hosted server variant verified a known paper by DOI in seconds; the local variant timed out at 60 s twice. OpenAlex and arXiv APIs are also directly reachable as a fallback |
 | Research Desk skills: citation-check, paper-critique, llm-council, decision-matrix, paper-compare | Academic review, red-team critique, structured decisions | Used in Stage 1b and Stage 3 |
 | Product-management skills: write-spec, competitive-brief, brainstorm, roadmap-update, synthesize-research | Specs, competitive analysis, roadmap | Stage 2–4 |
 | Design skills: user-research, design-critique, accessibility-review, design-handoff, ux-copy | UX blueprint review and later handoff | Stage 2–3 |
