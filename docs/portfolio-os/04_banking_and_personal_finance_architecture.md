@@ -1,7 +1,7 @@
 ```
 Document: 04 — Banking and Personal Finance Architecture (financial-ledger and personal-finance requirements specification)
 Department: Banking and Financial Services  ·  Lead role(s): commercial banker, retail banking specialist, private banker / wealth-management professional, financial-planning specialist, financial adviser, credit and lending specialist, financial-infrastructure and open-banking specialist, banking-operations / payments specialist
-Version: 0.2  ·  Date: 2026-11-04  ·  Status: revised after independent review (v0.1 2026-11-02; review R04)
+Version: 0.2  ·  Date: 2026-11-04  ·  Status: revised after independent review
 Reviewers required: Architecture and Accounting (owners of CANONICAL_CONTRACTS.md); Data Architecture & Engineering; Tax Intelligence; Behavioural Finance; Portfolio Management & Quant; Forecasting & Wealth Planning; AI Research & Explanation; Legal/Compliance & Privacy; Commercialisation
 ```
 
@@ -11,15 +11,15 @@ Reviewers required: Architecture and Accounting (owners of CANONICAL_CONTRACTS.m
 
 ## 1. Executive summary
 
-**Conclusion 1 — build the personal MVP on statement upload, not bank APIs.** As of 2026-11-04 Nigeria's CBN open banking has no confirmed go-live. The 1 August 2025 date was missed. Open Banking Nigeria's page (last updated July 2026) still cites "expectations of a phased go-live in early 2026" and awaits the CBN's next directive, and it names fintechs, not individuals, as API consumers [S2, re-checked 2026-11-04; S90]. UAE Open Finance is live at about five of fifteen banks and requires a CBUAE licence [S31, S32]. Exports exist for the accounts that matter (F3). Parser coverage for the founder's banks is unproven: `bankstract` is an alpha package with four Nigerian parsers [S15].
+**Conclusion 1 — build the personal MVP on statement upload, not bank APIs.** As of 2026-11-04 Nigeria's CBN open banking has no confirmed go-live. Open Banking Nigeria (last updated July 2026) still cites "a phased go-live in early 2026", and individuals are not API consumers [S2, S90]. UAE Open Finance is live at about five of fifteen banks and requires a CBUAE licence [S31, S32]. Exports exist for the accounts that matter (F3). Parser coverage for the founder's banks is unproven: `bankstract` is alpha, with four Nigerian parsers [S15].
 
-**Conclusion 2 — the ledger follows Contract C1.** Postings balance per commodity, exactly. Exchanges pass through conversion (trading) accounts and transfers through in-transit accounts. Categories are journaled attributes, not posting accounts. Every base-currency figure, including FX conversion cost and revaluation, is derived and never posted. Foreign currency carries a weighted-average NGN cost so Tax receives realised currency gains.
+**Conclusion 2 — the ledger follows Contract C1.** Postings balance per commodity, exactly, through conversion and in-transit accounts. Categories are journaled attributes, not accounts. Every base-currency figure is derived, never posted. Foreign currency carries a weighted-average NGN cost for Tax.
 
 **Conclusion 3 — reconciliation is a completeness control, not an integrity guarantee.** Opening + credits − debits = closing shows that the parse is complete relative to the document. Classification, matching, dates and authenticity need separate controls (§4.3.7).
 
 **Conclusion 4 — FX cost is measured, not plugged.** Conversion cost against the CBN central rate (C5) is reported only for a confirmed match that passes C1.5's residual rule. The v0.1 symmetric ±6% band, which let mismatches pass as "spread", is withdrawn.
 
-**Conclusion 5 — context changes the numbers.** CPI is rebased (headline 14.63% y/y, September 2026) [S26]. On 29 Oct 2026 NFEM buy was ₦1,345.91, sell ₦1,346.91 and central ₦1,346.41, against a parallel market of about ₦1,375–1,390 [S29]. A ₦50 stamp duty falls on the sender of transfers of ₦10,000 or more (Doc 6 F21) [S20–S22].
+**Conclusion 5 — context changes the numbers.** CPI is rebased (14.63% y/y, September 2026) [S26]. On 29 Oct 2026 NFEM sell was ₦1,346.91 and central ₦1,346.41, against a parallel ₦1,375–1,390 [S29]. Senders pay ₦50 stamp duty on transfers of ₦10,000 or more [S20–S22, S98].
 
 **Biggest uncertainty:** whether every foreign-currency spend is a chargeable disposal (NTA s.34(1)(b)), and whether the founder's banks produce statements that parse and reconcile. Both need outside answers: a licensed practitioner and real redacted samples.
 
@@ -749,3 +749,84 @@ Access dates are 2026-11-02 unless stated; "fetched" means the page or PDF was r
 - S99. Portfolio OS, Review R04 (banking and ledger), 2026-11-04, including its re-fetches of S2, S6, S15, S20–S22, S29, S32, S36, S38 and S51.
 
 *Research artefacts (not sources):* the worked example is reproduced by `docs/portfolio-os/research/scripts/doc04_ledger_worked_example.py` (v0.2, standard library only, `python3 -I`). The v0.1 OpenAlex verification log and the PDF text extracts (CBN 2020 Guide, NBS rebasing, PenCom FAQ, SC VAT FAQ, FPAM standards) were kept in the v0.1 session scratchpad and are not in the repository.
+
+## 11. Revision history and response to review
+
+**v0.1 (2026-11-02):** first draft. **v0.2 (2026-11-04):** revised after review R04 and revision-log rows V-003 (adopt C1), V-008 (adopt C4/C5) and V-025 (Doc 4 side). Finding IDs are the reviewer's (R04 §2–§6, plus R03 B2 for V-025). The worked example was recomputed by `research/scripts/doc04_ledger_worked_example.py`.
+
+| Finding | Revision log | Action | Where | Note |
+|---|---|---|---|---|
+| B1 FX cost is a plug; ±6% band | V-003 | Fixed | §1 C4; §4.2 "FX is derived"; §4.3.2; §4.6 | C1.5 adopted: reference-rate cost, residual rule with the dealer rate, one-sided bands, suspense until confirmed. ±6% withdrawn; the false-positive credits are shown |
+| B2a Σ base_amount invariant | V-003 | Fixed | §4.2 | C1 D1 (per commodity, exact). The reviewer suggested price annotations; the contract chose trading accounts, and we follow the contract |
+| B2b one currency per leaf violated | V-003 | Fixed | §4.2 chart | Expense accounts are by nature and multi-commodity (C1.3); asset and liability leaves hold one commodity (C1-I3) |
+| B2c revaluation postings | V-003 | Fixed | §4.2; F20; §5 | Derived views keyed by rate set (C1 D3) |
+| B2d precision (4-dp rates; minor units) | V-003 | Fixed | §4.5(7) | C1 D6/D7: NUMERIC(38,18) with scale, not the reviewer's NUMERIC(28,8) (contract governs); rates as published; single rounding |
+| B3 no currency cost basis | V-003 | Fixed | §4.2; §4.6 tax view | WA pools in NGN (C1.6). T1 shows a ₦29,670.08 realised loss next to ₦57,985.02 conversion cost. Practitioner flag kept |
+| B4 reconciliation is not an integrity guarantee | — | Fixed | §1 C3; §4.3.7 | Restated as a completeness control; independent controls added (counter-leg, date format, regime boundaries, pair drop, `inspect()`, trace sample) |
+| M1 bankstract over-relied on; OPay contradiction | — | Fixed | F4; §4.1; §9 item 4 | Alpha status, 4 parsers and the check matrix recorded (re-fetched); `reconciled_with_exception` state; pin and vendor review |
+| M2 duplicate hash fails on re-exports | V-003 | Fixed | §4.3.4; §4.6 golden test | C1.8 line key; overlaps at last common row; charge lines anchored; v0.1 hash shown failing (18 and 15 false new lines) |
+| M3 account identity unspecified | V-003 | Fixed | §4.3.4 | C1.8 resolver (HMAC, candidate on masked forms, journaled merges) |
+| M4 Fellegi–Sunter unspecified | — | Fixed | §4.3.2; F12 | Comparison vector, joint amount–date field, EM per stratum, calibrated posterior, Hungarian assignment, strata, hard negatives. Thresholds stay E5 |
+| M5 income detection biased | — | Fixed | §4.3.1 | Typed credit taxonomy with tax relevance; unexplained-inflows total; INT cue; truncated NIP names; business-day anchors; WPS cue E4/E5 |
+| M6 Plaid mapping errors | — | Fixed | §4.3.5 | One-to-one detailed codes from the re-downloaded CSV: telecoms → RENT_AND_UTILITIES_TELEPHONE; stamp duty → GOVERNMENT_AND_NON_PROFIT_TAX_PAYMENT; family remittance → TRANSFER_OUT_OTHER_TRANSFER_OUT; `rail`, `levy_type`, `is_tax` |
+| M7 category as account | V-003 | Fixed | §4.2; §4.3.5 | Classification rows (C1 D4) |
+| m1 reject vs quarantine | — | Fixed | §4.1; §4.3.7 | Quarantine with named difference |
+| m2 balance-assertion off-by-one | — | Fixed | §4.3.7 | Assertion at the start of the day after period end |
+| m3 time zones, calendars, value date | — | Fixed | §4.3.7; §4.6 rates | C1.7; Nigerian holiday calendar in the script |
+| m4 stamp-duty section "not located" | — | Fixed | F5 | Doc 6 F21 citation; "foreign currency equivalent" re-fetched |
+| m5a FAB and DIB consumer data sharing | — | Rejected (evidence) | F8; §7 | Re-fetch: data sharing named only for CBD and Mashreq; FAB/DIB "live and enabled". Both readings preserved |
+| m5b tracker count inconsistency | — | Fixed | F8 | Tiles 5/5/5 vs table 6/4/5 recorded |
+| m6 S61, S84 marked unverified | — | Fixed | S61, S84; F15, F16 | Confirmed on Crossref |
+| m7 "[checked 2026-11-04]" in a 2026-11-02 document | — | Fixed | §7 item 3 | Document now dated 2026-11-04; status re-checked that day |
+| m8 parallel stress unsourced | V-008 | Fixed | §4.4.2; §4.5(2) | Labelled indicative, confidence D (C5.1) |
+| W1 weekend rate dates | V-008 | Fixed | §4.6 rate table; §4.5(6) | C5.2: Sun 18 Oct → Fri 16 Oct; Sat 31 Oct → Fri 30 Oct |
+| W2 sell rate called weighted average; 29 Oct as month-end | V-008 | Fixed | F7; §4.6 | Field and fixing date stored; central is the reference; synthetic rates replace the real figure |
+| W3 which leg dates the FX cost | V-003 | Fixed | §4.2; §4.6 | `conversion_on` per C1.5 |
+| W4 T2 should not auto-link | V-003 | Fixed | §4.6 | T2 `proposed`; C4 condition 5 fails |
+| W5 NIP fee on an FX purchase; intermediary leg | V-003 | Fixed | §4.6 A1 | Narration changed to an NIP transfer to an FX provider; chain as one exchange via in-transit |
+| W6 second fuel debit in suspense | V-003 | Fixed | §4.3.4(5); §4.6 | Both debits to Consumption; reversal entry; BankDispute receivable if no reversal |
+| W7 CAMF base and test | — | Fixed | §4.6 CAMF audit | ≤ cap under gross and net bases, half-even and truncation. Base definition **deferred** to Tax with the 2026 Guide PDF |
+| W8a stamp-duty "exempt" logic | — | Fixed | §4.6 | Recipients never pay under sender-pays |
+| W8b POS/card stamp-duty scope | — | Deferred | §7 item 4; §9 item 10 | Owner: Doc 6 and a licensed practitioner. Flagged, no alert |
+| W9 Aani as dining | — | Fixed | §4.6 A2 | Suspense → review → reclass |
+| W10 residual 0.42 "zero in production" | V-008 | Fixed | §4.4.7; §4.6 decomposition | C5.3 exact identity with intra-month flows translated; sign check |
+| W11 commission expensed | V-003 | Fixed | §4.6 A3 | Capitalised: lot cost USD 701.00 |
+| W12 "four times" denominator | — | Fixed | §4.6 | 5.57× charges incl. VAT; 5.53× with stamp duty; 4.20× all explicit costs |
+| W13 WPS pay period | — | Fixed | §4.3.1(2); §4.4.3 | `pay_period` attribute; two bases |
+| §3 F1 rule texts E2 | — | Fixed | F1 | E2 only for the 2023 Guidelines via Doc 7 S48; E3 otherwise |
+| §3 F1 status not independent | — | Fixed | F1 | TechCrier marked dependent on S2 |
+| §3 F7, F8 E2 | — | Fixed | F7, F8 | E3 |
+| §3 F12 E1 | — | Fixed | F12 | E2 theory, E4 applicability |
+| §3 F14 E1 body | — | Fixed | F14 | E2 + E4 transfer |
+| §3 §4.3.1 thresholds untagged | — | Fixed | §4.3.1 | E5 |
+| §3 "observed 2–3.5% spreads" | V-003 | Fixed | §4.3.2 | Claim removed; bands are E5 per C1.5 |
+| §3 WPS narration cue | — | Fixed | F9; §4.3.1 | E4/E5 |
+| §3 F4 session-ID labels unsourced | — | Fixed | F4; §9 item 1 | Withdrawn; validation item |
+| §3 §8 targets untagged | — | Fixed | §8 | E5, no baseline |
+| §4 S2 "early 2026" vs "mid-2026" | — | Fixed | §1; F1; §7 item 3 | Both wordings given with sources; re-fetched |
+| §4 S36 Aani limit conflict | — | Deferred | §7 item 9 | Sources still conflict; owner: Banking, at the first real Aani transaction |
+| §5 cross-document contradictions (13 rows) | V-003, V-008 | Fixed | §4.2–§4.6 | Resolved by adopting C1, C4 and C5 |
+| §5 CBN NFEM source "not fetchable" vs Doc 7 S44 | V-008 | Deferred | §9 item 6 | Owner: Doc 5c feed. Not re-attempted in this pass |
+| §5 Doc 6 Example 3 VAT error | — | Rejected (out of remit) | — | Doc 6's document; the reviewer referred it to R06 |
+| §6 IC questions 1–2 | V-003 | Fixed | §7 answers | C1 authoritative; unconfirmed residual policy |
+| §6 IC question 3 (founder's banks) | — | Deferred | §7 item 2 | Founder to confirm |
+| §6 IC question 4 (stamp-duty scope) | — | Deferred | §7 item 4 | Licensed practitioner |
+| §6 IC question 5 (false-positive rate) | — | Fixed (proposal) | §7 item 8 | E5 targets for IC decision |
+| §6 IC question 6 (parallel series) | — | Deferred | §7 item 11 | Owner: Doc 5c |
+| V-008 C4 bands and routing | V-008 | Fixed | §4.2; §4.3.6; §4.6 routing | C4 adopted (Wilson condition, tax weight, shared reference) |
+| R03 B2: automation conflict | V-025 | Fixed (Doc 4 side) | R13; §5; §7 disagreements | User-configured automation at the provider is measured, never executed. Escalate if Doc 3 wants execution |
+
+**Count (59 rows):** 51 fixed (one as a proposal for the Investment Committee and one as the Doc 4 side of V-025; W7's base definition is also deferred), 2 rejected (one with evidence, one as outside our remit) and 6 deferred, each with an owner.
+
+**Points for the contract owners (we follow the contracts as written):**
+1. C1.3 `classification` has no `pay_period`. Income lines need one (W13). We store it on `income_stream` and the income classification row, and ask that C1.3 add it.
+2. C5.3 does not say how security trades and capitalised commissions enter the decomposition. We treat the trade's cash leg as internal and the commission as an external flow (§4.6). We ask for confirmation.
+3. C1.5's NGN→USD ceiling of +4% may send many legitimate retail conversions to review in a stressed month (T2 is at 3.33%). This is not a disagreement, because review is the safe failure, but it should be the first item calibrated.
+
+**Still open:**
+- the tax treatment of foreign-currency spends and C1.6's four questions (practitioner);
+- the founder's banks, and real redacted statements;
+- stamp-duty scope for POS/card payments and the CAMF base (practitioner; 2026 Guide PDF);
+- the CBN NFEM feed and the parallel-series ownership (Doc 5c);
+- calibration of the bands and the matcher on confirmed history;
+- the Behavioural department's response on V-025.
