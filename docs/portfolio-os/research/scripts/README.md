@@ -2,18 +2,22 @@
 
 Every number in a worked example must be regenerable from a script in this folder (charter principle 10).
 All inputs are synthetic or are dated assumptions stated in the script header. Run with `python3 -I <script>`.
+Scripts that need numpy or pandas use the versions pinned in `requirements.txt` and stop with an error if a package is missing; none may import scipy.
 
 | Script | Reproduces |
 |--------|-----------|
-| `doc04_ledger_worked_example.py` | Document 4 §4 worked example: postings, transfer match, reconciliation, net worth |
-| `doc06_tax_worked_examples.py` | Document 6 §4.G worked examples (Nigerian PIT bands, residency case, ledger reconciliation) |
-| `worked_example_5b.py` | Document 5b worked example: covariance shrinkage, drawdowns, bootstrap goal range |
-| `prototype_checks.py` | Document 5b §F checks on the NEXUS Monte Carlo and performance prototypes |
-| `thin_trading_demo.py` | Document 5b thin-trading beta bias and Dimson correction |
+| `doc04_ledger_worked_example.py` | Document 4 v0.2 §4.6 worked example under contracts C1/C4/C5: business-day fixings, per-commodity postings with conversion and in-transit accounts, C1.5 residual rule and one-sided bands, C4 routing, WA currency pools and ETF lot, cash flow at transaction-date rates, CAMF cap and stamp-duty scope audits, exact C5.3 net-worth decomposition with sign check, C1.8 re-import golden test, date-format check |
+| `doc06_tax_worked_examples.py` | Document 6 v0.2: §4.2 rule registry (34 records, C7 status derivation, tests, refusal and watermark), §4.8 Examples 1–3 (year-of-assessment split, FX-field branches, resident rent branch, C1 per-commodity ledger, VAT recomputation, USD pool). Optional `--nta/--ntaa <pdftotext file>` checks every gazette pinpoint |
+| `worked_example_5b.py` | Document 5b v0.2 §4.9 worked example: correlation with/without the break day and leave-one-out, Ledoit–Wolf intensities, exact long-only minimum-variance weights (active-set, KKT-checked), drawdowns, C6 goal engine (joint demeaned bootstrap, Politis–White block length golden-tested against `arch` 8.0.0, compensated jump overlay, quantiles, adjustments), reverse stress, calibration demo. numpy + pandas only; prints a SHA-256 of its output, identical with and without `-I` |
+| `doc05b_revision_checks.py` | Document 5b v0.2 §4.7/§4.10/§4.11: decision-matrix totals and phase rule, calibration power and exact binomial bounds, June 2023 unification loss from sourced rates, the H/T band (standard library only) |
+| `doc05b_performance_golden.py` | Document 5b v0.2 §4.5 performance coding contract: 12 golden cases for TWR, Modified Dietz, MWR/IRR root handling, annualisation, fees, dividends and currency decomposition (standard library only, exact fractions) |
+| `prototype_checks.py` | Document 5b §4.8 checks on the NEXUS Monte Carlo and performance prototypes (v0.2 adds the all-loss drawdown and quantile-index checks) |
+| `thin_trading_demo.py` | Document 5b thin-trading beta bias and Dimson correction (v0.2 corrects the volatility sentence and prints the 1 − p^(k+1) unit-test value) |
 | `doc09_sizing_and_unit_economics.py` | Document 9 v0.2 §4.2 conditional funnel and cross-border segment (Tables B, C), §4.4 steady-state P&L and breakeven (one churn input), §4.6 stage capital, §4.4 M4 B2B2C arithmetic, §8.3 signal/kill-criteria arithmetic (Wilson intervals, calendar, U\*). Loads `doc09_unit_economics_mix.py` by file path |
 | `doc09_unit_economics_mix.py` | Document 9 v0.2 §4.4 per-subscriber unit economics by plan mix (VAT, Paystack fixed fee, Mono aggregation, plan-gated LLM token profiles), sensitivities, the churn-indexed USD-share threshold U\*, kill CAC, the cross-border tax-pack economics and the §4.7 worked example. `legacy=True` reproduces the v0.1 table |
 | `r09_unit_economics_sensitivity.py` | Review R09 recomputation and sensitivity of Document 9's unit economics |
 | `../behavioural/payday_sim.py` | Document 3 synthetic payday-spending worked example |
 | `contracts_checks.py` | CANONICAL_CONTRACTS.md C1–C7 worked examples: per-commodity postings, FX residual rule, currency pool and lots, figure-token validator, entry-time status check, confidence rule, FX decomposition and sign check, goal output, tax basis period and watermark |
+| `doc08_journey_figures.py` | Document 8 v0.2 journeys and worked examples: calendar and FX-fixing age checks, C5.3 net-worth decomposition (asserts equality with C5.4) and sign check, transfer-card conversion cost (C1.5), Journey 2 surplus, Journey 3 reserve months, Journey 6 / Overview C6 goal outputs (parametric stand-in; needs numpy), Journey 4 card figures from Doc 3's synthetic ledger (needs pandas), C4 review-queue sizing model, colour-contrast tokens |
 | `doc05c_revision_checks.py` | Document 5c v0.2: entry-time primary-source check on the repo's policy rates (R0, Example C), NGX cost 2×2 and sensitivities incl. non-display and VAT, commercial floor, founder validation workload, NGX corporate-action date sequencing, price-group stale-close check, read-time freshness, kobo/naira dividend normalisation |
 | `doc07_tech_checks.py` | Document 7 v0.2: §4.12(a) FX transfer as a C1 exchange (and the v0.1 arithmetic error), §4.12(c) v0.1 numeric-gate bypasses versus the C2 validator, §4.12(e) duplicate keys versus the C1.8 line key, evaluation bounds, §4.12(b) AI cost with thinking, tool turns, cache writes and evaluation runs, §4.13 effort estimates, §4.12(d) local-model memory and backup cost, F28 Student-t scaling |
