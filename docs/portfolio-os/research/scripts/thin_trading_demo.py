@@ -22,4 +22,8 @@ print(f"{'stale prob':>10s} {'obs vol':>8s} {'true vol':>8s} {'OLS beta':>9s} {'
 for p in (0.0, 0.3, 0.5, 0.7):
     s_obs = stale(s_true, p)
     print(f"{p:10.1f} {s_obs.std()*np.sqrt(252):8.3f} {s_true.std()*np.sqrt(252):8.3f} {ols_beta(s_obs, m):9.3f} {dimson(s_obs, m, 1):10.3f} {dimson(s_obs, m, 3):10.3f} {ols_beta(weekly(s_obs), weekly(m)):11.3f} {(s_obs==0).mean():13.2f}")
-print("Daily observed vol is biased down and OLS beta is biased toward zero as staleness rises; Dimson lags and weekly aggregation recover most of the bias at the cost of precision.")
+print("OLS beta is biased toward zero as staleness rises; Dimson lags and weekly aggregation recover most of the bias at the cost of precision. "
+      "Observed daily vol is NOT understated here, because this generator recovers every missed move on the next trading day; "
+      "in real thin markets incomplete catch-up also biases daily vol down (Doc 5b §4.6).")
+# Unit-test value (R05b m6): with stale probability p and k lags, Dimson recovers 1 - p**(k+1) of the true beta in expectation.
+print(f"theory 1 - p^(k+1) at p=0.5, k=3: {1-0.5**4:.4f}")

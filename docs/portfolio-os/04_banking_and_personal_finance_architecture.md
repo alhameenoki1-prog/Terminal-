@@ -316,10 +316,15 @@ The statement checks prove **completeness relative to the document**. They do no
 The system offers three budget *views* over the same ledger — category envelopes (allocation per category, with the carry-over behaviour the user chooses), zero-based (every unit of expected income assigned), and percentage guides (needs/wants/saving) — and measures the same outcomes for each: adherence (actual ÷ planned by category), spending volatility, and the savings rate. It states the evidence honestly (F13): envelope/partitioning has field-experiment support; zero-based has none we could find; percentage rules are heuristics. Whether a budget view improves outcomes for *this* user is an experiment the Behavioural department designs (eight-question test), not an assumption.
 
 #### 4.4.2 Emergency fund and liquidity
-Metrics (all from the ledger, definitions printed on screen): essential monthly spend (trailing 6-month median of `is_essential` categories, per currency and in base currency); liquid assets (cash, current/savings accounts, e-money, money-market balances; *not* pensions, *not* volatile securities); **months covered = liquid assets ÷ essential monthly spend**; and a stress variant using the parallel-market rate for NGN liquidity held against AED/USD obligations. The target is a user input with a suggested range (3–6 months) labelled as convention, plus two evidence anchors: "could you raise the equivalent of $2,000 within 30 days from liquid assets?" (Lusardi et al.) and "$400 unexpected expense" (Federal Reserve) [F15].
+Metrics (all from the ledger, definitions printed on screen): essential monthly spend (trailing 6-month median of `is_essential` categories, per currency and in base currency); liquid assets (cash, current/savings accounts, e-money, money-market balances; *not* pensions, *not* volatile securities); **months covered = liquid assets ÷ essential monthly spend**; and a stress variant using the parallel-market rate for NGN liquidity held against AED/USD obligations. The stress variant is labelled **indicative (confidence D)** until a documented parallel series exists (§7 item 7; C5.1). The target is a user input with a suggested range (3–6 months) labelled as convention, plus two evidence anchors: "could you raise the equivalent of $2,000 within 30 days from liquid assets?" (Lusardi et al.) and "$400 unexpected expense" (Federal Reserve) [F15].
 
 #### 4.4.3 Savings-rate measurement
-Savings rate = (income − spending − fees − taxes paid from the accounts) ÷ income, computed on a *cash* basis per month and on a trailing-12-month basis, with transfers and investment contributions excluded from spending (§4.3.3) and shown separately as "of which invested". Gross versus net income is a stated choice (payslip data, where available, allows the gross basis). Report alongside the OECD-style definition so the number is comparable (F19).
+Savings rate = net saving ÷ income. Net saving is income − spending − bank charges − levies and taxes paid from the accounts − investing costs − conversion cost vs reference. Each flow is valued at its transaction-date reference rate, which equals C5.3's net external flows plus conversion cost. It is computed per month and trailing 12 months, on two bases:
+
+- a **cash basis** (value date), always available;
+- a **pay-period basis** using `pay_period` (§4.3.1), where known. Under WPS an AED salary for month m may arrive on the 1st of m+1, so the cash basis can show zero or two salaries in one month.
+
+Transfers and investment contributions are excluded from spending (§4.3.3) and shown separately as "of which invested". Gross versus net income is a stated choice; payslip data, where available, allow the gross basis. The OECD-style definition is reported alongside so the number is comparable (F19). A period containing unconfirmed matches or quarantined statements is badged *incomplete*.
 
 #### 4.4.4 Risk capacity, tolerance and need
 Captured separately (F16): **capacity** is computed (months covered, income stability from §4.3.1, horizon of each goal, share of net worth in volatile assets, liabilities); **tolerance** is measured with a validated questionnaire (Grable–Lytton 13-item, licensed/attributed) and re-measured annually; **need** is derived by the Goal Reality Engine (required return for each goal). The system shows the three side by side and flags conflicts (e.g., need > tolerance) as a decision for the user, never as a recommendation to take more risk.
@@ -331,7 +336,7 @@ Liabilities are ledger accounts with interest, fees and principal split per stat
 Two methods, both reproducible from stored inputs: (a) **recurring-pattern projection** — income streams and recurring outflows (rent instalments, subscriptions, school fees, annual rent due dates) projected on their detected cadence with a ± band from historical variance, anchored on paycheque dates (F14); (b) **scenario overlays** — user-defined shocks (income stops for n months, NGN depreciates x%, rent increases y%) applied to (a). No stochastic forecasting of spending at MVP; the Forecasting department owns long-horizon models.
 
 #### 4.4.7 Net-worth statement across currencies
-Base-currency choice is an explicit setting, with the recommendation to show **two views by default**: USD (stable numeraire for a person with AED and USD assets; AED is pegged) and NGN (the currency of most spending). Each monetary account is translated at the closing reference rate of the period (IAS 21 logic, F20); securities at validated prices; pensions at the latest statement value with its as-of date. The period change is decomposed into *net saving*, *market gains/losses*, and *FX translation effect*, each labelled; a secondary line shows NGN assets valued at the parallel rate as a sensitivity, never as the headline (§4.5). Liabilities translate the same way.
+**C5 governs.** Two views are shown by default: USD (a stable numeraire for a person with AED and USD assets; AED is pegged) and NGN (the currency of most spending). The user chooses the headline. Each holding is valued at the closing fixing under C5.2: the last fixing on or before the month's last calendar day, which for October 2026 is Friday 30 October. Securities use validated prices and pensions the latest statement value with its as-of date. Liabilities translate the same way. The change in net worth splits **exactly** (with Fraction arithmetic) into four parts: net external flows at transaction-date rates; conversion cost vs reference; market; and FX translation per commodity. The translation term covers **intra-period flows as well as opening balances** (C5.3), which v0.1 omitted (R04 W10). Display rounding is its own line. A render-time sign check withholds any FX figure whose sign contradicts the rate move for a currency held long throughout a monotone move. A secondary line may value NGN assets at a parallel rate as a sensitivity, labelled with confidence D, never as the headline.
 
 #### 4.4.8 Planning workflow adapted to software (CFP Board / FPSB steps, F17)
 
@@ -348,101 +353,178 @@ Ask-versus-infer principle: anything that is a legal status, a preference or a g
 
 ### 4.5 Recording and displaying amounts across currencies without misleading the user
 
-1. **Native first.** Every amount is stored and displayed in its native currency with its ISO code (₦/NGN, AED, USD); converted figures are secondary and always carry the rate, the rate source and the as-of date (e.g., "≈ $2,894 at NFEM ₦1,346.91/$ (CBN, 29 Oct 2026)").
-2. **One reference series per currency pair, named.** NGN: CBN/NFEM weighted average as the default reference; parallel-market survey as an optional secondary series shown side by side for NGN-denominated liquidity and for what-if views; never blended. AED: fixed 3.6725 (state "pegged since 1997").
-3. **Spread is an expense line, not a rounding error.** Implied rates on own transfers are computed and the difference from the reference rate is booked and displayed (§4.3.2).
-4. **Translation effects are labelled.** Net-worth changes separate real flows from FX translation; a user whose NGN balance "grew" in NGN but shrank in USD must see both.
-5. **Inflation is a distinct lens.** Real-terms views use the rebased NBS CPI (2024 = 100) and state the base; old-series comparisons are disallowed by the data layer (F6).
-6. **No silent defaults.** If a rate for a date is missing, the amount is shown unconverted with a "rate missing" badge; aggregates that include unconverted items are marked incomplete.
-7. **Rounding and precision.** Store amounts as integers in minor units (kobo/fils/cents) or decimals with four places for rates; display with the currency's conventional precision; totals are computed from stored precision, not from displayed values.
+1. **Native first.** Every amount is stored and displayed in its native commodity with its ISO code. A converted figure is secondary and always carries the rate, its field, the source and the fixing and applied dates. For example: "≈ $2,874.74 at CBN central ₦1,356.00/$ (fixing Fri 30 Oct 2026, applied 31 Oct)" (synthetic rate).
+2. **One reference series per pair, named (C5.1).** For NGN this is the CBN NFEM **central** rate, stored with `price_type` and `fixing_date`. FMDQ closing is a corroboration check only. The parallel market is an indicative sensitivity line, confidence D, never in totals and never blended. For AED it is the CBUAE peg of 3.6725, registered as a reference fact with a source and a deviation check (C3.5), not a code constant. AED/NGN is the exact cross (NGN/USD) ÷ (AED/USD).
+3. **Spread is a measured, labelled figure, not a plug (C1.5).** "Cost of converting vs CBN central rate (date)" is shown only for confirmed matches that pass the residual rule. Where a receipt prints a dealer rate, the provider's markup is shown and any remainder is labelled **unexplained difference**.
+4. **Translation effects are labelled (C5.3).** Net-worth changes separate flows, conversion cost, market and FX translation per currency, and the sign check runs at render time. A user whose NGN balance "grew" in NGN but shrank in USD sees both views.
+5. **Inflation is a distinct lens.** Real-terms views use the rebased NBS CPI (2024 = 100) and state the base. The data layer disallows comparisons with the old series (F6).
+6. **No silent defaults (C5.2).** A non-business day takes the latest earlier fixing, and both `fixing_date` and `applied_date` are stored. A fixing more than 2 business days old makes the converted figure `stale` (badged). More than 10 business days old makes it `expired`: the amount is shown unconverted with "rate missing", and the aggregate is marked incomplete.
+7. **Precision and rounding (C1 D6, D7, C1.7).** Amounts are decimal strings with a scale per commodity, stored as NUMERIC(38,18) with a scale check. Rates are stored exactly as published, in the published direction. An inverse is computed to at least 28 significant digits and rounded **once**, half-even, at the final amount. Truncation is forbidden: 1/1,352 truncated to 4 dp gives a −5.36% error (C1.9). Bank-printed amounts are never re-rounded.
+8. **Status display (C3.4).** Amounts from a `reconciled` statement are `auto_validated`, those from a quarantined statement are `candidate` (never in totals), and aggregates carry `complete | incomplete`.
 
 ### 4.6 Worked example (synthetic data, October 2026)
 
-All figures are synthetic and were produced by a small decimal-arithmetic script (`worked_example.py`, kept with the research notes) so that they can be re-run. Reference rates: AED 3.6725/USD (peg); NFEM ₦1,329.00/$ on 30 Sep (assumption), ₦1,350.00 on 18 Oct, ₦1,352.00 on 20 Oct (assumptions), ₦1,346.91 on 31 Oct (CBN weighted average published for 29 Oct 2026, used as month-end). Three accounts: **A1** NGN current account (opening ₦1,250,000.00), **A2** AED current account (opening AED 18,400.00), **A3** USD brokerage (opening cash $2,150.00; 12 units of an ETF at cost $240, price $250 on 30 Sep). No liabilities.
+All figures are synthetic and are reproduced verbatim by `research/scripts/doc04_ledger_worked_example.py` (`python3 -I`, standard library, `Decimal`/`Fraction`). The v0.1 example has been re-run under C1, C4 and C5. Its arithmetic was correct (R04 §2.0); its accounting was not.
 
-**A1 — NGN current account, as imported (running balance reproduced by the parser check)**
+**Reference rates (synthetic CBN central, NGN per USD; Nigerian business days only; 1 Oct is Independence Day).** Anchors: 30 Sep 1,329.00; 16 Oct 1,350.00; 20 Oct 1,352.00; 30 Oct 1,356.00, with linear interpolation by business day between them (full table in the script output). A non-business day takes the latest earlier fixing (C5.2):
 
-| Date | Narration (as printed) | Debit ₦ | Credit ₦ | Balance ₦ | System posting |
-|---|---|---:|---:|---:|---|
-| 03 Oct | POS/WEB PURCHASE TRANSACTION SHOPRITE LEKKI | 48,500.00 | | 1,201,500.00 | Expenses:Groceries |
-| 05 Oct | NIP/ZEN/ADEBAYO LANDLORD/RENT OCT | 400,000.00 | | 801,500.00 | Expenses:Housing:Rent |
-| 05 Oct | NIP TRANSFER FEE | 50.00 | | 801,450.00 | BankCharges:TransferFee |
-| 05 Oct | VAT ON NIP FEE | 3.75 | | 801,446.25 | BankCharges:VAT |
-| 05 Oct | STAMP DUTY (NTA 2025) | 50.00 | | 801,396.25 | BankCharges:StampDuty |
-| 10 Oct | USSD AIRTIME TOPUP 0803XXXXXXX | 5,000.00 | | 796,396.25 | Expenses:Telecoms:Airtime |
-| 12 Oct | POS PURCHASE TOTAL ENERGIES IKOYI 12/10 09:41 | 27,300.00 | | 769,096.25 | Expenses:Transport:Fuel |
-| 12 Oct | POS PURCHASE TOTAL ENERGIES IKOYI 12/10 09:42 | 27,300.00 | | 741,796.25 | Suspense:PendingReversal (possible duplicate flagged) |
-| 14 Oct | REVERSAL OF POS TXN 12/10 TOTAL ENERGIES | | 27,300.00 | 769,096.25 | Suspense:PendingReversal (pair closed) |
-| 19 Oct | NIP/IMTO PARTNER/REMITTANCE REF AE7781 | | 1,780,000.00 | 2,549,096.25 | Transfer from A2 (match T1) |
-| 20 Oct | FX PURCHASE USD 715.00 FOR BROKERAGE FUNDING | 1,000,000.00 | | 1,549,096.25 | Transfer to A3 (match T2) |
-| 20 Oct | NIP TRANSFER FEE / VAT / STAMP DUTY | 50.00 + 3.75 + 50.00 | | 1,548,992.50 | BankCharges (three postings) |
-| 26 Oct | SALARY OCT 2026 ACME NIGERIA LTD | | 2,350,000.00 | 3,898,992.50 | Income:Salary:NG:ACME |
-| 31 Oct | SMS ALERT CHARGES 12 @ N4 + VAT | 48.00 + 3.60 | | 3,898,940.90 | BankCharges:SMSAlert, VAT |
-| 31 Oct | ACCOUNT MAINTENANCE FEE (₦0.5/mille) + VAT | 740.40 + 55.53 | | 3,898,144.97 | BankCharges:CAMF, VAT |
+| Applied date | Fixing used | Rate |
+|---|---|---:|
+| Thu 1 Oct (holiday) | Wed 30 Sep | 1,329.00 |
+| Sat 3 Oct | Fri 2 Oct | 1,330.91 |
+| **Sun 18 Oct** (T1 conversion) | **Fri 16 Oct** | 1,350.00 |
+| Tue 20 Oct (T2 conversion) | Tue 20 Oct | 1,352.00 |
+| Sun 25 Oct | Fri 23 Oct | 1,353.50 |
+| **Sat 31 Oct** (month-end) | **Fri 30 Oct** | 1,356.00 |
 
-Reconciliation A1: 1,250,000.00 + 4,157,300.00 − 1,509,155.03 = **3,898,144.97** = printed closing balance → statement accepted. Charge audit: CAMF base = customer-induced debits net of the reversed duplicate = ₦1,480,800 × 0.0005 = ₦740.40; VAT 7.5% = ₦55.53 — consistent with the 2026 cap (F5), so no "unexpected charge" alert. Stamp duty appears twice (two outward transfers ≥ ₦10,000, sender pays, 2026 rule); the salary credit carries none (exempt).
+These synthetic values replace v0.1's "₦1,346.91 on 31 Oct". That figure was a real **sell** rate for 29 Oct presented as a weighted average and as a 31 Oct (Saturday) rate (R04 W1, W2). AED/USD is the peg, 3.6725. There are three accounts: **A1**, an NGN current account (opening ₦1,250,000.00); **A2**, an AED current account (opening AED 18,400.00); and **A3**, a USD brokerage account (opening cash $2,150.00; 12 ETF units at cost $240, price $250 on 30 Sep). There are no liabilities.
+
+**A1 — NGN current account, as imported**
+
+| Date | Narration (as printed) | Debit ₦ | Credit ₦ | Balance ₦ | Rail | Posting (nature) · classification · status |
+|---|---|---:|---:|---:|---|---|
+| 03 Oct | POS/WEB PURCHASE TRANSACTION SHOPRITE LEKKI | 48,500.00 | | 1,201,500.00 | POS | Consumption · groceries |
+| 05 Oct | NIP/ZEN/ADEBAYO LANDLORD/RENT OCT | 400,000.00 | | 801,500.00 | NIP | Consumption · rent |
+| 05 Oct | NIP TRANSFER FEE | 50.00 | | 801,450.00 | NIP | BankCharge · transfer_fee (anchored to the rent debit) |
+| 05 Oct | VAT ON NIP FEE | 3.75 | | 801,446.25 | NIP | Tax · vat_on_fee |
+| 05 Oct | STAMP DUTY (NTA 2025) | 50.00 | | 801,396.25 | NIP | Levy · stamp_duty |
+| 10 Oct | USSD AIRTIME TOPUP 0803XXXXXXX | 5,000.00 | | 796,396.25 | USSD | Consumption · telephone |
+| 12 Oct | POS PURCHASE TOTAL ENERGIES IKOYI 12/10 09:41 | 27,300.00 | | 769,096.25 | POS | Consumption · fuel |
+| 12 Oct | POS PURCHASE TOTAL ENERGIES IKOYI 12/10 09:42 | 27,300.00 | | 741,796.25 | POS | Consumption · fuel · **flagged: possible bank duplicate** (review) |
+| 14 Oct | REVERSAL OF POS TXN 12/10 TOTAL ENERGIES | | 27,300.00 | 769,096.25 | POS | Consumption (−) · `reverses_line_id` = 09:42 line; pair netted |
+| 19 Oct | NIP/IMTO PARTNER/REMITTANCE REF AE7781 | | 1,780,000.00 | 2,549,096.25 | NIP | Credit leg of **T1**: `Suspense:FXUnexplained:NGN` until confirmed, then an exchange |
+| 20 Oct | NIP/FX PROVIDER LTD/USD 715.00 FOR BROKERAGE FUNDING | 1,000,000.00 | | 1,549,096.25 | NIP | `Assets:InTransit:T2` · match **T2** proposed |
+| 20 Oct | NIP TRANSFER FEE / VAT / STAMP DUTY | 50.00 + 3.75 + 50.00 | | 1,548,992.50 | NIP | BankCharge, Tax, Levy |
+| 26 Oct | SALARY OCT 2026 ACME NIGERIA LTD | | 2,350,000.00 | 3,898,992.50 | NIP | Income:Employment:NG:ACME · pay_period 2026-10 · first classification tax-weighted → review |
+| 31 Oct | SMS ALERT CHARGES 12 @ N4 + VAT | 48.00 + 3.60 | | 3,898,940.90 | SYS | BankCharge, Tax |
+| 31 Oct | ACCOUNT MAINTENANCE FEE (₦0.5/mille) + VAT | 740.40 + 55.53 | | 3,898,144.97 | SYS | BankCharge · camf, Tax |
+
+v0.1 called the 20 Oct debit "FX PURCHASE" and charged it a NIP fee, which is inconsistent: a bank FX sale would be a SWIFT or FX-desk transaction (R04 W5). The synthetic narration is now an NIP transfer to a non-owned FX provider that wires USD to A3. The chain A1 → provider → A3 is one exchange (§4.3.2), and the NIP fee and stamp duty apply to the NIP leg.
+
+Reconciliation A1: 1,250,000.00 + 4,157,300.00 − 1,509,155.03 = **3,898,144.97** = printed closing → `reconciled`. This is a completeness check only (§4.3.7).
+
+*CAMF audit.* ₦0.5 per mille is a **cap**, so the test is charged ≤ cap. Which debits count as the base is not sourced (the 2026 Guide PDF was not retrieved):
+
+| Base reading | Base ₦ | Cap, half-even | Cap, truncated | 740.40 ≤ cap |
+|---|---:|---:|---:|---|
+| Gross customer-induced debits (POS, NIP, USSD, incl. the duplicate) | 1,508,100.00 | 754.05 | 754.05 | yes |
+| Net of the reversed duplicate | 1,480,800.00 | 740.40 | 740.40 | yes |
+
+VAT 7.5% on ₦740.40 = ₦55.53 (printed 55.53). No alert is raised under either reading. The base definition and the bank's rounding mode are open items for Tax (§7).
+
+*Stamp-duty scope audit* (Ninth Schedule item 48 per Doc 6 F21; ₦50, sender pays, ≥ ₦10,000): the NIP debits of ₦400,000 and ₦1,000,000 are in scope and charged. The USSD airtime purchase of ₦5,000 is below the threshold. The **POS/card payments** (₦48,500 and ₦27,300 × 2) carry no duty on this statement. Whether they are in scope is **unconfirmed**, so they are flagged for the practitioner and raise no alert. Credits (salary, remittance) carry no duty because the sender pays, not because of an exemption (R04 W8).
 
 **A2 — AED current account**
 
-| Date | Narration | Debit AED | Credit AED | Balance AED | Posting |
-|---|---|---:|---:|---:|---|
-| 01 Oct | WPS SALARY SEP 2026 GULF EMPLOYER LLC | | 22,000.00 | 40,400.00 | Income:Salary:AE (WPS cue) |
-| 02 Oct | STANDING ORDER RENT INSTALMENT | 9,000.00 | | 31,400.00 | Expenses:Housing:Rent |
-| 06 Oct | POS CARREFOUR MOE | 612.35 | | 30,787.65 | Expenses:Groceries |
-| 09 Oct | DEWA BILL PAYMENT | 540.00 | | 30,247.65 | Expenses:Utilities |
-| 12 Oct | AANI TRANSFER TO +9715XXXXXXX | 250.00 | | 29,997.65 | Expenses:Dining:SharedBills (not an own account) |
-| 18 Oct | OUTWARD REMITTANCE NGN BENEF SELF REF AE7781 | 5,000.00 | | 24,997.65 | Transfer to A1 (match T1) |
-| 18 Oct | REMITTANCE FEE + VAT 5% | 15.00 + 0.75 | | 24,981.90 | BankCharges:TransferFee, VAT |
-| 25 Oct | ACCOUNT FEE + VAT 5% | 25.00 + 1.25 | | 24,955.65 | BankCharges:AccountFee, VAT |
-| 28 Oct | POS RESTAURANT JBR | 180.00 | | 24,775.65 | Expenses:Dining |
+| Date | Narration | Debit AED | Credit AED | Balance AED | Rail | Posting · classification · status |
+|---|---|---:|---:|---:|---|---|
+| 01 Oct | WPS SALARY SEP 2026 GULF EMPLOYER LLC | | 22,000.00 | 40,400.00 | WPS | Income:Employment:AE · **pay_period 2026-09** |
+| 02 Oct | STANDING ORDER RENT INSTALMENT | 9,000.00 | | 31,400.00 | SO | Consumption · rent |
+| 06 Oct | POS CARREFOUR MOE | 612.35 | | 30,787.65 | POS | Consumption · groceries |
+| 09 Oct | DEWA BILL PAYMENT | 540.00 | | 30,247.65 | BILL | Consumption · electricity (DEWA combined) |
+| 12 Oct | AANI TRANSFER TO +9715XXXXXXX | 250.00 | | 29,997.65 | AANI | `Suspense:Unmatched:A2` (the proxy may be the user's own Wio or Liv account) → user confirms a friend's shared bill → `reclass` to Consumption · restaurant |
+| 18 Oct | OUTWARD REMITTANCE NGN BENEF SELF REF AE7781 | 5,000.00 | | 24,997.65 | SWIFT | `Assets:InTransit:T1` |
+| 18 Oct | REMITTANCE FEE + VAT 5% | 15.00 + 0.75 | | 24,981.90 | SWIFT | BankCharge, Tax |
+| 25 Oct | ACCOUNT FEE + VAT 5% | 25.00 + 1.25 | | 24,955.65 | SYS | BankCharge, Tax |
+| 28 Oct | POS RESTAURANT JBR | 180.00 | | 24,775.65 | POS | Consumption · restaurant |
 
-Reconciliation A2: 18,400.00 + 22,000.00 − 15,624.35 = **24,775.65** → accepted.
+Reconciliation A2: 18,400.00 + 22,000.00 − 15,624.35 = **24,775.65** → `reconciled`.
 
 **A3 — USD brokerage (cash section)**
 
 | Date | Line | Debit $ | Credit $ | Cash $ | Posting |
 |---|---|---:|---:|---:|---|
-| 22 Oct | DEPOSIT (wire from FX provider) ref NG-5520 | | 715.00 | 2,865.00 | Transfer from A1 (match T2) |
-| 23 Oct | BUY 2.8 ETF @ 250.00 | 700.00 | | 2,165.00 | Assets:Brokerage:Positions:ETF (cost lot) |
-| 23 Oct | COMMISSION | 1.00 | | 2,164.00 | Expenses:Investing:Commission |
-| 30 Oct | DIVIDEND ETF 12 × 0.80 (gross) | | 9.60 | 2,173.60 | Income:Dividends:US |
-| 30 Oct | WITHHOLDING TAX 30% | 2.88 | | 2,170.72 | Expenses:Tax:Withholding:US |
+| 22 Oct | DEPOSIT (wire from FX provider) ref NG-5520 | | 715.00 | 2,865.00 | Credit leg of **T2** (exchange once confirmed) |
+| 23 Oct | BUY 2.8 ETF @ 250.00 | 700.00 | | 2,165.00 | One `trade` entry: cash −701.00; ETF lot +2.8 units, `cost_total` **USD 701.00 including commission** (C1.6; R04 W11) |
+| 23 Oct | COMMISSION | 1.00 | | 2,164.00 | (part of the trade entry above) |
+| 30 Oct | DIVIDEND ETF 12 × 0.80 (gross) | | 9.60 | 2,173.60 | Income:Dividend (US source) |
+| 30 Oct | WITHHOLDING TAX 30% | 2.88 | | 2,170.72 | Tax · foreign_wht |
 
-Positions: 12 → 14.8 units; price $250.00 → $257.50; market value $3,000.00 → $3,811.00; unrealised gain in the month = 3,811.00 − 3,000.00 − 700.00 = **$111.00**. Position check: units from trades (12 + 2.8) = broker position section.
+Positions: 12 → 14.8 units; price $250.00 → $257.50; market value $3,000.00 → $3,811.00.
 
-**Transfer matches**
+**Journal checks.** All 35 entries balance per commodity, exactly (C1-I1). Ledger assertions at the start of 1 November equal every statement closing. Both in-transit accounts are zero after confirmation, and suspense is zero at close. Conversion accounts hold AED +5,000.00, NGN −780,000.00 (−1,780,000 + 1,000,000) and USD −715.00. In the script the confirmed exchanges are written directly. In production the 19 Oct and 22 Oct credits first post against `Suspense:FXUnexplained:<C>`, and a `reclass` on confirmation moves them into the exchange; the balances are the same.
 
-| Match | Legs | Date gap | Implied rate | Reference rate (source) | Conversion cost booked | Score |
+**Transfer matches (C1.5 and C4)**
+
+| Match | Legs | conversion_on → fixing | Implied vs reference | Cost vs reference | Rule applied | Routing |
 |---|---|---|---|---|---|---|
-| T1 | A2 −AED 5,000.00 (18 Oct) → A1 +₦1,780,000.00 (19 Oct), shared ref AE7781 | 1 day | ₦356.00/AED | ₦367.60/AED (NFEM ₦1,350.00 ÷ 3.6725, 18 Oct) | ₦57,985.02 (3.15%) + explicit fee AED 15.75 | auto-link (amount within 6%, date in window, reference shared, both accounts owned) |
-| T2 | A1 −₦1,000,000.00 (20 Oct) → A3 +$715.00 (22 Oct) | 2 days | ₦1,398.60/$ | ₦1,352.00/$ (NFEM, 20 Oct) | ₦33,320.00 (3.33%) + ₦103.75 fee/VAT/stamp | auto-link |
+| T1 | A2 −AED 5,000.00 (Sun 18 Oct) → A1 +₦1,780,000.00 (Mon 19 Oct); shared ref AE7781 | 18 Oct (no provider time; debit value date) → Fri 16 Oct, ₦1,350.00/$ | ₦356.00/AED vs ₦367.597…/AED (1,350.00 ÷ 3.6725, exact) | AED 157.74 = ₦57,985.02 (**3.15%**); explicit fee AED 15.75 separate | No dealer rate printed → band AED→NGN via IMTO [−3%, +4%]: within | Review: cross-currency stratum has 0 confirmations (provisional), and classifying a credit as not-income is tax-weighted. User confirms → exchange entry |
+| T2 | A1 −₦1,000,000.00 (Tue 20 Oct) → provider → A3 +$715.00 (Thu 22 Oct); no shared ref | 20 Oct (provider receipt timestamp) → 20 Oct, ₦1,352.00/$ | ₦1,398.601…/$ vs ₦1,352.00/$ | ₦33,320.00 (**3.33%**); NIP fee/VAT/stamp ₦103.75 separate | Receipt prints q = ₦1,398.60: markup ₦33,319.00; unexplained residual ₦1.00 ≤ tolerance ₦7.00 → rounding only | **Proposed, not auto-linked** (R04 W4): no shared reference, so C4 condition 5 fails. User confirms with the receipt as evidence |
 
-Postings generated for T2 (base currency USD, rate ₦1,352.00): A1 −₦1,000,000.00 (−$739.64); A3 +$715.00; Expenses:FX:ConversionCost +₦33,320.00 (+$24.64); the transaction's base amounts sum to zero. The same transfer in a single-entry list would have shown ₦1,000,000 of "spending" and $715 of "income".
+v0.1's symmetric ±6% band would have accepted a third-party USD credit in place of T2's counter-leg. Under C1.5 these go to review:
 
-**Duplicate and reversal handling.** The two 12 Oct fuel debits differ only by the printed time and running balance; the deterministic line hash (which includes the running balance) treats them as distinct lines, the fuzzy layer flags the second as a *possible duplicate*, and the 14 Oct reversal closes the pair: net fuel spend ₦27,300, statement still reconciles because all three lines are kept. When the founder later uploads an overlapping 1 Oct–15 Nov statement, every October line hashes identically and is skipped; the overlap is recorded on the new statement's provenance and the boundary balance (₦3,898,144.97 at 31 Oct) is re-asserted.
+| Candidate USD credit | Cost vs ref | v0.1 ±6% | C1.5 band NGN→USD [−1%, +4%] |
+|---:|---:|---|---|
+| 700.00 | 5.36% | accept | outside → review, `Suspense:FXUnexplained` |
+| 750.00 | −1.40% | accept | outside → review |
+| 760.00 | −2.75% | accept | outside → review |
 
-**October cash-flow (USD view at month-end NFEM ₦1,346.91; AED at 3.6725)**
+Valued at their reference rates, the conversion-account legs of T1 and T2 are worth ₦57,985.02 and ₦33,320.00. These equal the conversion costs, which is the trading-account identity (C1 D2). Before review, the T1 credit counts in **unexplained inflows** (₦1,780,000.00); after confirmation the figure is ₦0.00. The two fuel debits and the Aani payment also go to review (C4: a provisional rule history of 41/44 has a Wilson lower bound of 0.82; the Aani suggestion comes from a model).
 
-| Item | NGN | AED | USD | Total USD |
-|---|---:|---:|---:|---:|
-| Income (salaries, gross dividend) | 2,350,000.00 | 22,000.00 | 9.60 | 7,744.80 |
-| Spending (excl. charges; fuel counted once) | 480,800.00 | 10,582.35 | — | 3,238.48 |
-| Bank charges, levies, withholding tax | 1,055.03 | 42.00 | 3.88 | 16.10 |
-| Implicit FX conversion cost on own transfers | 91,305.02 | — | — | 67.79 |
-| **Net saving** | | | | **4,422.44** (57.1% of gross income) |
-| of which invested (ETF purchase) | | | 700.00 | 700.00 |
+**Tax view: currency pools at weighted-average NGN cost (C1.6).** ⚠ This assumes every foreign-currency spend is a disposal under NTA s.34(1)(b), which needs **practitioner confirmation**. Synthetic opening pools: AED 18,400.00 at ₦6,660,800.00; USD 2,150.00 at ₦2,857,350.00. Acquisitions are booked at NGN given, or at the official rate on the acquisition date (the 1 Oct WPS salary uses the 30 Sep fixing). Disposals are booked at NGN received, or at the official-rate value.
 
-Note how the two "costs of moving money" (₦91,305 implicit, ₦1,055 + AED 42 explicit) are four times the visible bank charges — exactly the figure a single-entry list hides.
+| Event | Proceeds ₦ | Relieved cost ₦ | Gain (loss) ₦ |
+|---|---:|---:|---:|
+| 18 Oct AED 5,000.00 exchanged (T1), NGN actually received | 1,780,000.00 | 1,809,670.08 | **(29,670.08)** |
+| 23 Oct USD 701.00 spent on the ETF lot | 948,803.50 | 943,805.36 | 4,998.14 |
+| October total, AED pool (all AED spends) | | | (20,487.66) |
+| October total, USD pool | | | 5,025.75 |
+
+At 31 Oct the AED pool holds 24,775.65 units at ₦8,967,150.51 (weighted average 361.934016), and the USD pool 2,170.72 units at ₦2,922,684.57 (weighted average 1,346.412513). Pool quantities equal ledger balances. The new ETF lot has `tax_cost_ngn` ₦948,803.50, equal to the USD pool's disposal proceeds. T1 shows why the three FX measures must be kept apart. Its **conversion cost** of ₦57,985.02 is a spread against CBN central. Its **realised currency loss** of ₦29,670.08 against pool cost is a tax figure. They are different numbers answering different questions (R04 B3).
+
+**October cash flow (each flow at its transaction-date reference rate; cash basis)**
+
+| Item | NGN | AED | USD | USD view | NGN view |
+|---|---:|---:|---:|---:|---:|
+| Income (salaries, gross dividend) | 2,350,000.00 | 22,000.00 | 9.60 | 7,735.67 | 10,324,351.84 |
+| Spending (fuel counted once; Aani after review) | −480,800.00 | −10,582.35 | — | −3,242.19 | −4,319,831.97 |
+| Bank charges incl. VAT on fees | −955.03 | −42.00 | — | −12.14 | −16,419.12 |
+| Stamp duty | −100.00 | — | — | −0.07 | −100.00 |
+| Withholding tax | — | — | −2.88 | −2.88 | −3,905.28 |
+| Investing cost (commission; capitalised for tax) | — | — | −1.00 | −1.00 | −1,353.50 |
+| Conversion cost vs reference (T1 + T2, confirmed) | | | | −67.60 | −91,305.02 |
+| **Net saving** | | | | **4,409.78** (57.01%) | **5,891,436.94** (57.06%) |
+| of which invested (ETF purchase) | | | 700.00 | 700.00 | |
+
+The savings rate differs slightly between views because flows are valued at different dates' rates. The 1 Oct AED salary belongs to pay period September. On a pay-period basis, October's AED salary is not in this statement (due by 1 Nov), and that view is shown as incomplete for October.
+
+*Implicit versus explicit costs, with stated denominators (R04 W12).* The implicit conversion cost, $67.60, is **5.57×** bank charges including VAT ($12.14), **5.53×** bank charges plus stamp duty ($12.21), and **4.20×** all explicit costs including withholding tax and commission ($16.10).
 
 **Net worth**
 
-| As of | A1 NGN | A2 AED | A3 cash $ | ETF $ | Net worth USD | Net worth NGN | Rate used |
+| As of | A1 NGN | A2 AED | A3 cash $ | ETF $ | Net worth USD | Net worth NGN | Fixing |
 |---|---:|---:|---:|---:|---:|---:|---|
-| 30 Sep 2026 | 1,250,000.00 | 18,400.00 | 2,150.00 | 3,000.00 | 11,100.77 | 14,752,920.46 | ₦1,329.00/$ |
-| 31 Oct 2026 | 3,898,144.97 | 24,775.65 | 2,170.72 | 3,811.00 | 15,622.12 | 21,041,592.23 | ₦1,346.91/$ |
-| Change | | | | | +4,521.35 | +6,288,671.78 | |
+| 30 Sep 2026 | 1,250,000.00 | 18,400.00 | 2,150.00 | 3,000.00 | 11,100.77 | 14,752,920.46 | Wed 30 Sep, 1,329.00 |
+| 31 Oct 2026 | 3,898,144.97 | 24,775.65 | 2,170.72 | 3,811.00 | 15,602.72 | 21,157,289.60 | Fri 30 Oct, 1,356.00 |
+| Change | | | | | +4,501.95 | +6,404,369.14 | |
 
-Decomposition (USD view): net saving +4,422.44, market gain +111.00, FX translation on the opening NGN balance −12.51 (naira weakened from 1,329.00 to 1,346.91), residual +0.42 from converting all October flows at the month-end rate rather than transaction-date rates (the production system uses transaction-date rates, so the residual is zero). In the NGN view the same month shows an FX translation *gain* of ₦181,969.38 on the opening AED and USD holdings — the display rule in §4.5(4) requires both to be shown with labels, because the user's "wealth grew" is true in one numeraire and partly an FX artefact in the other.
+**Decomposition (C5.3; exact in Fraction arithmetic; display rounding shown)**
+
+| Component | USD view | NGN view |
+|---|---:|---:|
+| Net external flows (transaction-date rates) | 4,477.38 | 5,982,741.97 |
+| Conversion cost vs reference | −67.60 | −91,305.02 |
+| Market (local-currency move, translated at the closing rate) | 111.00 | 150,516.00 |
+| FX translation on NGN (opening balance and intra-month flows) | −18.83 | 0.00 |
+| FX translation on AED | 0.00 | 220,508.70 |
+| FX translation on USD (cash and ETF, incl. trade-date value) | 0.00 | 141,907.50 |
+| Display rounding | 0.00 | −0.01 |
+| **Total = change in net worth** | **4,501.95** | **6,404,369.14** |
+
+The sign check passes. The synthetic naira weakens monotonically, so in the USD view FX on NGN is negative, and in the NGN view FX on AED and USD holdings is positive. v0.1 showed a "residual +0.42" and claimed it "is zero in production". That was wrong: it was untranslated intra-month NGN flows, now inside "FX translation on NGN" (R04 W10). The trade's $700 cash leg is internal (it becomes security value); the $1 commission is an external flow. C5.3 does not say how trades enter the decomposition, so this treatment is ours and flagged for the contract owners (§11).
+
+**Duplicates, re-import and identity (C1.8; golden test C1-I10)**
+
+| Re-import variant of A1 | New keys (C1.8) | New lines (v0.1 `line_hash`) |
+|---|---:|---:|
+| PDF re-upload of the same period | 0 | 0 |
+| XLSX re-export (narrations cut at 24 characters, no balance column) | 0 | 18, plus 1 in-file collision |
+| Later PDF with one back-dated line (8 Oct) | 1 (the real new line) | 15 |
+| Export taken mid-day on 31 Oct (last 4 charge lines absent) | 0; overlap ends at the last common row, row 15 of 19 | 0 |
+
+In the XLSX variant, the two 12 Oct fuel debits become identical under the v0.1 hash. The second would be skipped silently and the file would then fail its own totals check. C1.8 ordinals keep the two lines distinct. The account resolver matches A1 on the HMAC of the full NUBAN. The masked forms `******6789` and `012*******` produce candidates only.
+
+**Date format.** The nine distinct dates in A1 all fall inside the printed period when read as DD/MM; read as MM/DD, one in nine does. The file is therefore accepted as DD/MM. A file whose day values are all ≤ 12 would be quarantined for the user to confirm the format.
 
 ## 5. Alternatives considered and rejected
 
@@ -456,23 +538,50 @@ Decomposition (USD view): net saving +4,422.44, market gain +111.00, FX translat
 | **OCR of scanned statements in the MVP** | Error rates undermine the reconciliation guarantee; deferred behind a human-review queue. |
 | **Pulling credit-bureau data programmatically** | No consumer API with a lawful purpose for a self-use app; reports are user-uploaded documents (F18). |
 | **Fixed "6 months of expenses" emergency-fund target** | Convention, not evidence; the metric is shown and the target is the user's (F15). |
+| **Base-currency balancing with an FX-cost posting that forces balance (v0.1)** | Stored base amounts could drift unnoticed; history was tied to a base-currency choice; any mismatch became "spread" (R04 B1, B2). Replaced by per-commodity balancing through conversion accounts (C1 D1–D3). |
+| **Revaluation journal entries (v0.1)** | They have no native amount, and changing the base currency would rewrite them. Replaced by derived views keyed by rate-set version (C1 D3). |
+| **Categories as posting accounts (v0.1)** | A recategorisation rewrote postings, which conflicts with append-only storage (R04 M7). Replaced by bitemporal classification rows (C1 D4). |
+| **Symmetric ±6% cross-currency tolerance (v0.1)** | It would accept any USD credit from about $695 to $784 as T2's counter-leg (R04 B1). Replaced by C1.5's residual rule and one-sided bands per pair. |
+| **Rejecting statements that fail a check (v0.1)** | Rejection loses the data. Replaced by quarantine with a named difference (§4.3.7; Doc 6). |
+| **Portfolio OS executing sweeps, conversions or trade friction (Doc 3 proposals)** | Payment initiation is licensed activity in both jurisdictions (F1, F8), and Portfolio OS routes no orders. Automation the user configures at the bank or app is in scope and measured (R13; V-025; §7). |
 
 ## 6. Cross-department dependencies
 
-**We need from others:** Data Architecture & Engineering — storage schema review, integer minor-unit amounts, encryption-at-rest for statements, parser test harness; Tax Intelligence — the authoritative rule set for stamp duty, VAT on fees, withholding on foreign dividends, residency tests under the Nigeria Tax Act 2025 and UAE rules (F5, F21), and the list of income tags they need; Investment Research — validated price and FX series with provenance (NFEM/CBN, FMDQ, CBUAE, parallel-market survey methodology), corporate-action feeds for position reconciliation (F22); Behavioural Finance — the experiment design for budget views and the risk-tolerance instrument licensing (F13, F16); Forecasting & Wealth Planning — consumption of income streams and recurring-outflow objects; Goal Reality Engine — definition of "risk need" per goal; AI Research & Explanation — the contract that any narrative cites ledger IDs and never restates numbers it did not compute; Legal/Compliance & Privacy — data-retention, NDPA/PDPL obligations for storing statements, and the consent text for any aggregator link; Commercialisation — whether multi-user tenancy changes the ledger (it should not change the schema).
+**We need from others:**
+- **Architecture and Accounting (contract owners):** confirmation of the three points raised in §11: `pay_period` on classification, trades in the C5.3 decomposition, and calibration of the C1.5 bands. Ownership of the C1 invariant tests.
+- **Data Architecture & Engineering:** implementation of C1.3 (NUMERIC(38,18) with scale, conversion and in-transit accounts, bitemporal classification), the line-key golden test, encryption at rest, and a parser test harness.
+- **Tax Intelligence (with a licensed practitioner):** answers to C1.6's four questions, above all whether every foreign-currency spend is a disposal. Also: stamp-duty scope for card/POS payments and domiciliary transfers; the CAMF base and rounding; VAT on fees; withholding on foreign dividends; residency tests under the Nigeria Tax Act 2025 and UAE rules (F5, F21); and treatment of the typed credit classes (§4.3.1).
+- **Investment Research / Market Data (Doc 5c):** the CBN central NFEM series with `price_type` and `fixing_date`; FMDQ as corroboration; the peg as a registered reference fact (C3.5); a documented parallel-market methodology, or confirmation that it stays indicative; corporate-action feeds for position reconciliation (F22).
+- **Behavioural Finance (V-025):** whether to adopt user-configured bank-side automation as the intervention, with Portfolio OS only measuring it (R13; §7). Also the experiment design for budget views and the risk-tolerance instrument licensing (F13, F16).
+- **Forecasting & Wealth Planning:** consumption of income-stream objects, including `pay_period`.
+- **Goal Reality Engine:** the definition of "risk need" per goal.
+- **AI Research & Explanation:** narratives follow C2. Ledger figures reach the model only as figure tokens.
+- **Legal/Compliance & Privacy:** data retention and NDPA/PDPL obligations for statements; consent text for any aggregator link; confirmation that observing user-configured automation is not payment initiation.
+- **Commercialisation:** whether multi-user tenancy changes the ledger (it should not change the schema).
 
-**Others need from us:** the ledger schema and category taxonomy (this document, §4.2–4.3); the reconciliation status per period (every downstream figure must inherit the "incomplete" badge); income-stream and recurring-outflow objects; the FX-cost and fee-leakage series (behavioural and planning use); the net-worth decomposition (forecasting baseline); the fact-find record with confirmation stamps (tax and planning).
+**Others need from us:**
+- the C1 mapping, chart of accounts and category taxonomy (§4.2–4.3);
+- reconciliation status per statement and period (every downstream figure inherits the *incomplete* badge);
+- the unexplained-inflows total (Tax);
+- income-stream and recurring-outflow objects;
+- the three labelled FX measures (C1 D9) and the fee-leakage series;
+- the net-worth decomposition (C5.3);
+- the fact-find record with confirmation stamps (tax and planning).
 
 ## 7. Risks, open uncertainties and disagreements
 
 **Uncertainties (ranked):**
-1. CBN open-banking go-live date and whether individuals or small developers will be able to register as API consumers — unknown; no CBN primary notice found [checked 2026-11-04].
-2. Exact text and section of the Nigeria Tax Act 2025 stamp-duty provision, and whether the ₦10,000 threshold applies per transfer in foreign currency equivalents on domiciliary accounts — press-level only.
-3. The revised CBN Guide to Charges (effective 1 May 2026): figures come from two press reports; the CBN PDF was not retrieved.
-4. Statement export formats for GTBank, Zenith, Access, UBA, First Bank, Stanbic IBTC (official), OPay and PalmPay (official), Mashreq, Wio, Liv, RAKBANK, Emirates NBD personal, PiggyVest, Cowrywise, Trove, Chaka — unverified; the parser plan depends on real samples.
-5. Aani transaction limit (AED 50,000 on AEP's site vs AED 5,000 per proxy transaction in 2025 press) and Etihad Credit Bureau report price (AED 157.50 vs AED 84) — conflicting sources.
-6. Whether Mono's coverage of the founder's specific banks is reliable enough to justify its cost — untested.
-7. Parallel-market rate sourcing: there is no official series; any secondary series must document its survey method or be labelled indicative.
+1. **Tax treatment of foreign currency:** is each foreign-currency spend a disposal under NTA s.34(1)(b), which cost method applies, and which "official market rate" field? These questions determine whether the pools in §4.6 are tax figures at all (C1.6). Licensed practitioner.
+2. **Founder's institutions:** which banks and brokers are used? `bankstract` covers none of the banks the founder is confirmed to use, and the line-key branch depends on whether references are printed. **Unknown — founder to confirm.**
+3. **CBN open-banking go-live**, and whether individuals or small developers can ever be API consumers. Open Banking Nigeria still cites "early 2026" and a law-firm review cites mid-2026; neither has happened (checked 2026-11-04).
+4. **Stamp duty:** whether card/POS payments are in scope, and how the ₦10,000 threshold applies in foreign-currency equivalents on domiciliary accounts. The statute is cited via Doc 6 F21 and was not re-read here.
+5. **Revised CBN Guide to Charges (1 May 2026):** figures come from press reports; the PDF was not retrieved. The CAMF base (gross or net) and the bank's rounding mode are unknown, so the CAMF audit tests ≤ cap under both readings.
+6. **Statement formats:** GTBank, Zenith, Access, UBA, First Bank, Stanbic IBTC (official), OPay and PalmPay (official), Mashreq, Wio, Liv, RAKBANK, Emirates NBD personal, PiggyVest, Cowrywise, Trove and Chaka are unverified. Per-bank NIBSS session-ID labels are unsourced.
+7. **FX band calibration:** C1.5's one-sided bands are E5. T2's 3.33% sits near the +4% ceiling, so retail fintech FX in a stressed month may often go to review. That is safe (review, not error) but adds friction.
+8. **Acceptable false-positive rate for transfer matching** (R04 IC question 5). We propose zero false positives among *confirmed* matches in the founder's first 12 months, measured by a quarterly trace sample, and at most 2% among *proposed* matches. These are E5 targets for the Investment Committee to accept or change.
+9. **Aani limit** (AED 50,000 on AEP's site vs AED 5,000 per proxy transaction in 2025 press) and **Etihad Credit Bureau** report price (AED 157.50 vs AED 84): the sources conflict.
+10. **Mono** coverage of the founder's banks is untested.
+11. **Parallel-market rate:** there is no official series. Any secondary series must document its survey method or stay labelled indicative (confidence D). Ownership is for Doc 5c to settle (R04 IC question 6).
 
 **Disagreements preserved:**
 - *Commercial/retail banker vs financial planner — what comes first.* The banker position: nothing is trustworthy until statements reconcile and charges are audited, so the first three months should build only ingestion, reconciliation and the charge audit. The planner position: the founder's decisions depend on goals, savings rate and liquidity, which can be estimated from imperfect data, and a system that shows nothing for three months loses the user. Proposed resolution: ship reconciliation-gated aggregates — every KPI is visible from week one but carries the reconciliation badge and confidence band; no forecast or recommendation consumes an "incomplete" period.
@@ -480,18 +589,22 @@ Decomposition (USD view): net saving +4,422.44, market gain +111.00, FX translat
 - *Private banker vs behavioural researcher — risk tolerance.* The private banker is content with a suitability questionnaire; the behavioural researcher regards single questionnaires as noisy and wants repeated measurement and observed behaviour. Resolution: measure with the Grable–Lytton scale annually *and* record observed behaviour (sales after drawdowns) as a separate, labelled signal; never merge the two into one score.
 - *Credit specialist vs planner — credit reports.* The credit specialist wants bureau reports in the MVP; the planner notes the founder's decisions rarely hinge on a bureau score. Resolution: document upload only; no automation.
 - *Base currency.* Wealth-management view: USD numeraire; retail view: NGN because spending is in naira. Resolution: dual view by default, user chooses the headline (§4.4.7).
+- *Doc 3 vs Doc 4 — automation (V-025, R03 B2).* Doc 3 recommends auto-sweeps, rule-based auto-conversion and cooling-off friction for trades. Doc 4 R13 holds that Portfolio OS must not initiate payments, transfers or conversions. Doing so would be payment initiation, which needs a CBN licence in Nigeria and a CBUAE Service Initiation licence in the UAE (F1, F8). **Our position (banking side):** automation the user configures at the provider is in scope as the intervention. Examples are a standing order at the bank, PiggyVest or OPay OWealth auto-save, and a Wise auto-conversion. Portfolio OS detects it from statements as a recurring stream tagged `automation_origin = user_configured_at_provider`, measures its effect on savings rate and buffer, and may offer reminders or a link to the provider's own setup screen. It never executes, and it cannot randomise such automation. Trade friction has no point of application, because Portfolio OS routes no orders; at most a user-run pre-trade checklist is possible. If Doc 3 wants execution, the conflict goes to the Investment Committee with the licensing cost stated.
+- *Reviewer vs us — UAE consumer data sharing (R04 m5).* The reviewer reads the Himma tracker as confirming consumer data sharing at FAB and DIB. Our re-fetch on 2026-11-04 finds data sharing named only for CBD and Mashreq; for FAB and DIB the tracker says AlTareq is "live and enabled" without naming data sharing. We record both readings. We agree with the reviewer that the tracker's counts are internally inconsistent.
 
-**Risks:** silent parser errors (mitigated by mandatory reconciliation); stale fee and rate constants (mitigated by sourced, dated constants and a review calendar — the repository's hard-coded policy-rate anti-pattern must not recur); privacy exposure from storing statements (encryption, retention policy, no third-party model calls with raw statements); over-interpretation of behaviour from one person's data (Behavioural department's eight-question test applies); regulatory change in both jurisdictions (every rule carries an effective date and a "checked on" date).
+**Answers to the reviewer's Investment Committee questions (R04 §6).** (1) C1 is authoritative. Architecture and Accounting own the invariant tests. (2) An unconfirmed match posts no conversion cost; its legs sit in in-transit or `Suspense:FXUnexplained`, and the close is blocked until they are resolved (C1.5). (3) Unknown; founder to confirm (item 2). (4) Unknown; practitioner (item 4). (5) The proposed targets are in item 8. (6) Doc 5c (item 11).
+
+**Risks:** silent parser errors (mitigated by reconciliation plus the independent controls of §4.3.7, since reconciliation alone cannot catch misclassification, false matches, date swaps or dropped pairs); false-positive transfer matches hidden as spread (mitigated by C1.5 and C4 review); stale fee and rate constants (mitigated by sourced, dated constants and a review calendar — the repository's hard-coded policy-rate anti-pattern must not recur); privacy exposure from storing statements (encryption, retention policy, no third-party model calls with raw statements); over-interpretation of behaviour from one person's data (Behavioural department's eight-question test applies); regulatory change in both jurisdictions (every rule carries an effective date and a "checked on" date).
 
 ## 8. Recommendations, ranked
 
 | # | Recommendation | Class |
 |---|---|---|
-| R1 | Statement-import pipeline for Tier 1–2 sources with mandatory reconciliation and provenance | Personal-MVP must-have |
-| R2 | Double-entry ledger with postings, reference FX rates at transaction date, explicit FX-cost and charge accounts, confidence and review states | Personal-MVP must-have |
-| R3 | Transfer matching (same- and cross-currency) and investment-contribution exclusion | Personal-MVP must-have |
-| R4 | Deterministic de-duplication plus fuzzy flagging; reversal pairing | Personal-MVP must-have |
-| R5 | Rules engine with review queue; taxonomy mapped to Plaid PFC v2; charge audit against the Guide to Charges and stamp-duty rules | Personal-MVP must-have |
+| R1 | Statement-import pipeline for Tier 1–2 sources with completeness reconciliation, quarantine (not rejection), the independent controls of §4.3.7 and C1.3 provenance | Personal-MVP must-have |
+| R2 | Ledger per C1: per-commodity postings, conversion and in-transit accounts, categories as classification rows, derived FX measures, currency pools and FIFO lots; confidence per C4 | Personal-MVP must-have |
+| R3 | Transfer matching per §4.3.2 (Fellegi–Sunter with calibrated posteriors, global one-to-one assignment, C1.5 residual rule) and exclusion of investment contributions from spending | Personal-MVP must-have |
+| R4 | Line keys and idempotent re-import per C1.8; account resolver; fuzzy flagging; reversal pairing; bank-dispute receivable | Personal-MVP must-have |
+| R5 | Rules engine with review queue (C4); one-to-one Plaid PFC v2 mapping with `rail`, `levy_type`, `is_tax`; charge audit as cap tests; stamp-duty scope audit; typed credit taxonomy and unexplained-inflows total | Personal-MVP must-have |
 | R6 | Cash-flow, savings-rate, liquidity and dual-currency net-worth views with decomposition and reconciliation badges | Personal-MVP must-have |
 | R7 | Income-stream detection and paycheque-anchored recurring forecast with scenario overlays | Personal-MVP must-have (forecast banded, not point) |
 | R8 | Fact-find record (residency, employment type, goals) with confirmation stamps; risk capacity/tolerance/need shown separately | Personal-MVP must-have (questionnaire licensing: Later) |
@@ -499,44 +612,46 @@ Decomposition (USD view): net saving +4,422.44, market gain +111.00, FX translat
 | R10 | Aggregator adapter (Mono; UAE licensed TPP) after shadow test | Later |
 | R11 | OCR for scanned statements; credit-report parsing | Later |
 | R12 | CBN open-banking / CBUAE AlTareq direct participation | Do-not-build (yet) |
-| R13 | Real-time balance sync, automated payments or transfers from Portfolio OS | Do-not-build (yet) — moves the product into regulated payment activity |
+| R13 | Real-time balance sync, or payments, transfers, sweeps or conversions initiated by Portfolio OS | Do-not-build (yet): payment initiation is licensed activity (F1, F8). Automation the user configures at the bank or app is observed and measured instead (V-025; §7) |
 
 **Five-question test on the top items.**
 
-*R1–R2 (import + ledger).* (1) Problem: the founder cannot see one truthful picture across NGN/AED/USD accounts, and prior tools produced inaccurate figures. (2) Who: the founder now; any multi-banked Nigerian/UAE user later. (3) Evidence: open-source ledgers converge on these primitives (F11); reconciliation failures in PDF parsing are documented (F4); IAS 21 provides the multi-currency logic (F20). (4) Build/validate: per-institution parsers with redacted fixtures; every statement must pass four reconciliation checks; property tests that Σ base amounts = 0. (5) Measurable improvement: share of statements auto-reconciled (target ≥95%), zero unexplained balance differences, time from upload to confirmed ledger (< 10 minutes per statement).
+*R1–R2 (import + ledger).* (1) Problem: the founder cannot see one truthful picture across NGN/AED/USD accounts, and prior tools produced inaccurate figures. (2) Who: the founder now; any multi-banked Nigerian/UAE user later. (3) Evidence: open-source ledgers converge on these primitives (F11); reconciliation failures in PDF parsing are documented (F4); IAS 21 provides the multi-currency logic (F20). (4) Build/validate: per-institution parsers with redacted fixtures; completeness and independent controls (§4.3.7); property tests for C1-I1 to C1-I13; the three-variant re-import golden test (§4.6). (5) Measurable improvement (targets E5, no baseline): share of statements `reconciled` (target ≥95%), zero unexplained differences left open past close, and time from upload to confirmed ledger (< 10 minutes per statement).
 
-*R3–R4 (transfers, duplicates).* (1) Problem: own transfers and reversals inflate income and spending and hide FX spread. (2) Who: anyone moving money across accounts or currencies — the founder does so monthly. (3) Evidence: Fellegi–Sunter record linkage (F12); Actual Budget's documented duplicate-transfer problem (F11); observed 2–3% spreads (F7). (4) Build/validate: labelled set of the founder's confirmed transfers; precision ≥0.98, recall ≥0.95 before auto-linking; replay tests with overlapping statements. (5) Improvement: spending and income error versus manual ground truth < 1%; FX cost series produced monthly.
+*R3–R4 (transfers, duplicates).* (1) Problem: own transfers and reversals inflate income and spending and hide FX spread. (2) Who: anyone moving money across accounts or currencies — the founder does so monthly. (3) Evidence: Fellegi–Sunter record linkage (F12; E2 theory, E4 applicability); Actual Budget's documented duplicate-transfer problem (F11); the v0.1 band would have admitted third-party credits as spread (§4.6). (4) Build/validate: a stratified labelled set with hard negatives (§4.3.2); a calibrated posterior per stratum; replay tests with overlapping statements and back-dated lines. (5) Improvement (targets E5): no false positives among confirmed matches in a quarterly trace sample; spending and income error versus manual ground truth < 1%; a conversion-cost series produced monthly for confirmed matches only.
 
-*R5 (rules + charge audit).* (1) Problem: unexplained bank charges and miscategorised spending. (2) Who: the founder; later retail users who routinely question charges. (3) Evidence: published charge schedules (F5) make an audit deterministic; Plaid's confidence enumeration is an accepted interface (F10). (4) Build/validate: rule precision tracked per rule; charge audit tested on synthetic statements with every charge type. (5) Improvement: ≥90% of lines auto-classified at ≥0.90 confidence after three months; every charge line either matched to a tariff rule or flagged.
+*R5 (rules + charge audit).* (1) Problem: unexplained bank charges and miscategorised spending. (2) Who: the founder; later retail users who routinely question charges. (3) Evidence: published charge schedules (F5) make an audit deterministic; Plaid's confidence enumeration is an accepted interface (F10). (4) Build/validate: rule precision tracked per rule with Wilson lower bounds (C4); charge audit tested on synthetic statements with every charge type and both CAMF base readings. (5) Improvement (targets E5): calibration within each C4 band and a falling correction rate, not an acceptance rate (C4); every charge line either matched to a tariff rule or flagged.
 
-*R6–R7 (views + forecast).* (1) Problem: decisions need savings rate, liquidity and a credible near-term cash position in the right currency. (2) Who: the founder; the Planning and Goal engines downstream. (3) Evidence: income-timing sensitivity (F14), emergency-fund evidence (F15), national-accounts definitions (F19). (4) Build/validate: back-test the recurring forecast on the founder's own history (mean absolute percentage error by horizon); all metrics print their definitions. (5) Improvement: 30-day cash forecast error < 10% of monthly spend after six months of data; months-covered metric stable within ±0.2 between consecutive reconciled months.
+*R6–R7 (views + forecast).* (1) Problem: decisions need savings rate, liquidity and a credible near-term cash position in the right currency. (2) Who: the founder; the Planning and Goal engines downstream. (3) Evidence: income-timing sensitivity (F14), emergency-fund evidence (F15), national-accounts definitions (F19). (4) Build/validate: back-test the recurring forecast on the founder's own history (mean absolute percentage error by horizon); all metrics print their definitions. (5) Improvement (targets E5): 30-day cash forecast error < 10% of monthly spend after six months of data; months-covered metric stable within ±0.2 between consecutive reconciled months.
 
 *R8 (fact-find and risk).* (1) Problem: tax and suitability outcomes depend on facts no statement contains. (2) Who: the founder, Tax and Planning departments. (3) Evidence: CFP Board/FPSB practice standards (F17); three-dimensional risk framework (F16); Tax Act residency rule (F21). (4) Build/validate: structured form with confirmation stamps; questionnaire psychometrics from the literature. (5) Improvement: zero downstream computations running on unconfirmed residency or employment status.
 
 ## 9. Required validation before implementation
 
-1. Obtain redacted real statements (founder's own, after privacy controls are approved) for each institution in Tier 1–2 and record: file type, columns, narration patterns, running-balance presence, printed totals, password behaviour. Build fixtures only from redacted copies.
-2. Retrieve and file the primary texts with dates: CBN Guide to Charges 2026 (PDF), Nigeria Tax Act 2025 stamp-duty provisions (section numbers), CBUAE Open Finance Regulation (Circular 3/2025) from the rulebook, CBN circular of 18 June 2023 on domiciliary accounts, MOHRE Resolution 340/2026.
-3. Confirm with each institution (support ticket or in-app test) the export formats not verified here (§7 item 4) and whether GTBank's Excel export exists.
-4. Run a 60-day shadow comparison of Mono Connect against statements for the founder's Nigerian accounts before any API dependency; record completeness, latency, re-authentication frequency and cost per account.
-5. Establish the FX reference feed (CBN/NFEM daily) and a documented parallel-market series; test the §4.5 display rules with users for misreading risk.
-6. Validate transfer matching and duplicate detection on a labelled set of at least 200 own transfers and 50 reversals; tune Fellegi–Sunter thresholds; measure precision/recall.
-7. Back-test the recurring-pattern forecast on 12 months of reconciled history.
-8. Have a licensed Nigerian tax practitioner and a UAE adviser review the charge, levy, VAT and residency assumptions (F5, F9, F21) before any figure reaches a user.
-9. Privacy and security review of statement storage, encryption and retention (Legal/Compliance) before real data is loaded.
-10. Behavioural department to specify the budget-view experiment and risk-tolerance instrument licensing before R8/R9 proceed.
+1. Obtain redacted real statements (the founder's own, after privacy controls are approved) for each institution in Tiers 1–2. For each, record file type, columns, narration patterns, running-balance presence, printed totals, password behaviour, date format and whether bank references or NIP session IDs are printed, and their labels. Build fixtures only from redacted copies.
+2. Retrieve and file the primary texts with dates: CBN Guide to Charges 2026 (PDF), including the CAMF base and rounding; NTA 2025 s.123, Ninth Schedule item 48 and s.184 (to be re-read, not only via Doc 6); CBUAE Open Finance Regulation (Circular 3/2025); the CBN circular of 18 June 2023 on domiciliary accounts; MOHRE Resolution 340/2026.
+3. Confirm with each institution (support ticket or in-app test) the export formats not verified here (§7 item 6), including whether GTBank's Excel export exists.
+4. Vendor-review and pin `bankstract` if it is used; run its parsers and `inspect()` on redacted samples.
+5. Run a 60-day shadow comparison of Mono Connect against statements for the founder's Nigerian accounts before any API dependency. Record completeness, latency, re-authentication frequency and cost per account.
+6. Establish the CBN central NFEM feed with `price_type` and `fixing_date` (C5.1, C3.5), the holiday calendars (NG, AE, US) and a documented parallel-market series or an "indicative" label. Test the §4.5 display rules with users for misreading risk.
+7. Implement C1-I1 to C1-I13 as property tests, plus the three-variant re-import golden test (C1-I10).
+8. Build the stratified labelled transfer set (§4.3.2) with hard negatives and split transfers. Estimate m/u per stratum, calibrate posteriors and measure precision and recall. Calibrate the C1.5 one-sided bands on the founder's confirmed history; until then they remain E5.
+9. Back-test the recurring-pattern forecast on 12 months of reconciled history, on both cash and pay-period bases.
+10. Have a licensed Nigerian tax practitioner answer C1.6's four questions and §7 items 1 and 4, and review the charge, levy, VAT and residency assumptions (F5, F9, F21), before any figure reaches a user. A UAE adviser should review the UAE items.
+11. Privacy and security review of statement storage, encryption and retention (Legal/Compliance) before real data are loaded.
+12. Behavioural department to specify the budget-view experiment, the risk-tolerance instrument licensing, and the measurement of user-configured automation (V-025), before R8/R9 proceed.
 
 ## 10. Sources
 
-Access dates are 2026-11-02 unless stated; "fetched" means the page or PDF was read directly; "search extract" means the official text was obtained through a search-engine extract because the page blocked automated fetching. Academic references were checked against OpenAlex by DOI on 2026-11-02 ([verified] = title, first author and year agree).
+Access dates are 2026-11-02 unless stated; "fetched" means the page or PDF was read directly; "search extract" means the official text was obtained through a search-engine extract because the page blocked automated fetching. Academic references were checked against OpenAlex by DOI on 2026-11-02 ([verified] = title, first author and year agree). In the revision pass (2026-11-04) the reference-lookup tool timed out, so new and corrected references were checked against the Crossref API.
 
 **Regulators, standards bodies and primary documents**
 - S1. Udo Udoma & Belo-Osagie, *Open Banking in Nigeria: An Overview of the CBN Operational Guidelines for Open Banking in Nigeria 2023* (2023). https://uubo.org/wp-content/uploads/2023/10/OPEN-BANKING-IN-NIGERIA-AN-OVERVIEW-OF-THE-CBN-OPERATIONAL-GUIDELINES-FOR-OPEN-BANKING-IN-NIGERIA-2023.pdf — search extract.
-- S2. Open Banking Nigeria, *Open banking in Nigeria* (page updated July 2026). https://openbanking.ng/open-banking-in-nigeria/ — fetched.
+- S2. Open Banking Nigeria, *Open banking in Nigeria* (page updated July 2026). https://openbanking.ng/open-banking-in-nigeria/ — fetched; re-fetched 2026-11-04 ("Last updated: July 2026"; "expectations of a phased go-live in early 2026"; fintechs named as API consumers).
 - S3. Goldsmiths LLP, *Nigerian Open Banking: The Legal Framework All Banks and FinTechs Need to Know* (2026). https://www.goldsmithsllp.com/nigerian-open-banking-the-legal-framework-all-banks-and-fintechs-need-to-know/ — fetched.
 - S4. Y.-F. Elaigwu, "As Nigeria prepares for the open banking rollout", *BusinessDay*, 8 June 2026. https://businessday.ng/opinion/article/as-nigeria-prepares-for-the-open-banking-rollout/ — fetched.
 - S5. *Vanguard*, "Nigeria's open banking will happen soon — CBN", October 2025. https://www.vanguardngr.com/2025/10/nigerias-open-banking-will-happen-soon-cbn/ — search extract.
-- S6. TechCrier, "What is open banking, and is Nigeria ready for it?", October 2026. https://www.techcrier.com/2026/10/what-is-open-banking-and-is-nigeria.html — fetched.
+- S6. TechCrier, "What is open banking, and is Nigeria ready for it?", October 2026. https://www.techcrier.com/2026/10/what-is-open-banking-and-is-nigeria.html — fetched; relies on S2, so not independent (R04).
 - S7. *Nairametrics*, "Nigerian fintech Okra shuts down as co-founder Fara Ashiru moves to UK's Kernel", 3 July 2025. https://nairametrics.com/2025/07/03/nigerian-fintech-okra-shuts-down-as-co-founder-fara-ashiru-moves-to-uks-kernel/ — search extract.
 - S8. Mono, *Pricing* (undated). https://mono.co/pricing — fetched.
 - S9. Mono, *Coverage*. https://mono.co/coverage — fetched.
@@ -545,30 +660,30 @@ Access dates are 2026-11-02 unless stated; "fetched" means the page or PDF was r
 - S12. Open Banking Nigeria, *Are Mono and Stitch truly open banking?* https://openbanking.ng/are-mono-and-stitch-truly-open-banking/ — search extract.
 - S13. Kuda Help Centre, *Get your account statement*. https://help.kuda.com/en/articles/8947801-get-your-account-statement — fetched.
 - S14. Moniepoint Support, *How to generate account statement*. https://support.moniepoint.com/topics/how-to-generate-account-statement-202/how-to-generate-account-statement-206 — search extract (fetch 403).
-- S15. J. Orazulike, *bankstract* v0.18.3 (MIT), PyPI, released 2 November 2026. https://pypi.org/project/bankstract/ — fetched.
+- S15. J. Orazulike, *bankstract* v0.18.3 (MIT; "Development Status :: 3 - Alpha"), PyPI, released 2 November 2026. https://pypi.org/project/bankstract/ — fetched; JSON API https://pypi.org/pypi/bankstract/json re-fetched 2026-11-04 (4 parsers, check matrix, `inspect()`).
 - S16. GTBank, *Help Centre*. https://gtbank.com/help-centre — fetched (statement path only); TaxFetch, *GTBank Nigeria bank statement analyzer* (third-party). https://taxfetchindia.com/tools/bank-statement/gtbank-nigeria-bank-statement-analyzer — search extract.
 - S17. Central Bank of Nigeria, *Guide to Charges by Banks, Other Financial and Non-Bank Financial Institutions*, effective 1 January 2020 (PDF). https://www.cbn.gov.ng/Out/2022/CCD/Guide%20to%20Charges%20by%20Banks%20Other%20Financial%20and%20Non-Financial%20Institutions%20eff%20Jan%201%202020.pdf — fetched; text extracted.
 - S18. Legit.ng, "CBN scraps card maintenance fees, makes email alerts free as 4 new banking charges take effect" (May 2026). https://www.legit.ng/business-economy/economy/1708374-cbn-scraps-card-maintenance-fees-email-alerts-free-4-banking-charges-effect/ — fetched; *Leadership*, "CBN raises debit, credit card issuance fee to N1,500" (2026). https://leadership.ng/cbn-raises-debit-credit-card-issuance-fee-to-n1500/ — search extract; WithinNigeria, "CBN ATM card fee increase…", 25 April 2026. https://www.withinnigeria.com/2026/04/25/cbn-atm-card-fee-increase-new-charges-effective-date-and-what-every-nigerian-bank-customer-must-know/ — search extract.
 - S19. TechCabal, "Here is why bank transfers in Nigeria will cost more from 2026", 22 December 2025. https://techcabal.com/2025/12/22/why-your-50000-transfer-will-cost-100-from-2026/ — search extract (fetch 403).
 - S20. Kuda Help Centre, *An important update about stamp duty* (2025/26). https://help.kuda.com/en/articles/13285316-an-important-update-about-stamp-duty — fetched.
 - S21. Paystack Support, *Stamp duty charge on NGN transfers* (2026). https://support.paystack.com/en/articles/7573314 — fetched.
-- S22. TechEconomy, "Stamp duty replaces EMTL: sender to bear ₦50 charge on bank transfers", 1 January 2026. https://www.techeconomy.ng/stamp-duty-replaces-emtl-sender-to-bear-50-charge-on-bank-transfers — fetched.
+- S22. TechEconomy, "Stamp duty replaces EMTL: sender to bear ₦50 charge on bank transfers", 1 January 2026. https://www.techeconomy.ng/stamp-duty-replaces-emtl-sender-to-bear-50-charge-on-bank-transfers — fetched; re-fetched 2026-11-04 ("or their foreign currency equivalent"; no statute section; POS not mentioned).
 - S23. Tope Adebayo LP, *Nigeria Tax Act, 2025: An Outlook of Income and Profit Taxation under the Present Regime* (2025, PDF). www.topeadebayolp.com — PDF read; exact URL not recorded.
 - S24. *BusinessDay*, "5 other levies Nigerians pay for electronic transactions" (2024). https://businessday.ng/analysis/article/5-other-levies-nigerians-pay-for-electronic-transactions/ — search extract.
 - S25. National Bureau of Statistics, *Highlights of Consumer Price Index (CPI) Rebasing*, February 2025 (PDF). https://microdata.nigerianstat.gov.ng/index.php/catalog/154/download/1156/Highlights%20of%20CPI%20Rebasing%20Result.pdf — fetched; text extracted.
 - S26. *Nairametrics*, "Nigeria's inflation slows to 14.63% in September, fourth straight monthly decline in 2026", 15 October 2026. https://nairametrics.com/2026/10/15/nigerias-inflation-slows-to-14-63-in-september-fourth-straight-monthly-decline-in-2026/ — fetched; National Bureau of Statistics homepage CPI panel (2024 = 100). https://nigerianstat.gov.ng/ — fetched.
 - S27. *A Review of Key CBN Foreign Exchange Policies in 2024* (Legal500/Mondaq, 2025). https://www.legal500.com/intelligence/nigeria/finance-and-banking/a-review-of-key-cbn-foreign-exchange-policies-in-2024 — fetched.
 - S28. Mondaq, *Recent Reforms in the Nigeria Foreign Exchange Market and the Introduction of the Electronic Foreign Exchange Matching System* (2025). https://www.mondaq.com/nigeria/financial-services/1568396/ — search extract.
-- S29. WithinNigeria, "Dollar to Naira today, October 31, 2026: NFEM rate ₦1,346.91, black market ₦1,385". https://www.withinnigeria.com/2026/10/31/dollar-to-naira-today-october-31-2026-nfem-rate-%E2%82%A61346-91-black-market-%E2%82%A61385/ — fetched; *Vanguard*, "Naira appreciates to N1,373/$ in parallel market", October 2026. https://www.vanguardngr.com/2026/10/naira-appreciates-to-n1373-in-parallel-market/ — search extract.
+- S29. WithinNigeria, "Dollar to Naira today, October 31, 2026: NFEM rate ₦1,346.91, black market ₦1,385". https://www.withinnigeria.com/2026/10/31/dollar-to-naira-today-october-31-2026-nfem-rate-%E2%82%A61346-91-black-market-%E2%82%A61385/ — fetched; re-fetched 2026-11-04: figures are for Thursday 29 Oct trading (buy 1,345.91; sell 1,346.91, also called "weighted average"; central 1,346.41); early 30 Oct trading about 1,346.86; *Vanguard*, "Naira appreciates to N1,373/$ in parallel market", October 2026. https://www.vanguardngr.com/2026/10/naira-appreciates-to-n1373-in-parallel-market/ — search extract.
 - S30. *Nairametrics*, "CBN lifts cash deposit restriction on domiciliary accounts, allows $10k withdrawals daily", 18 June 2023. https://nairametrics.com/2023/06/18/breaking-cbn-lifts-cash-deposit-restriction-on-domiciliary-accounts-allows-10k-withdrawals-daily/ — fetched.
 - S31. Central Bank of the UAE, *Open Finance Regulation* (Circular 7/2023 of 31 December 2023, replaced by Circular 3/2025 of 10 July 2025). https://rulebook.centralbank.ae/node/5686 — fetch 403; summarised via Pinsent Masons, *UAE open finance* (https://www.pinsentmasons.com/out-law/guides/uae-open-finance) and Mondaq, *Open Finance Regulation* (https://www.mondaq.com/financial-services/1555738/open-finance-regulation) — search extracts.
-- S32. Himma.ai, *UAE Open Finance Tracker 2026: Which banks are live on CBUAE AlTareq?* (reviewed 2 July 2026). https://himma.ai/tools/open-finance-tracker/ — fetched.
+- S32. Himma.ai, *UAE Open Finance Tracker 2026: Which banks are live on CBUAE AlTareq?* (reviewed 2 July 2026). https://himma.ai/tools/open-finance-tracker/ — fetched; re-fetched 2026-11-04 (counts inconsistent: tiles 5/5/5, table 6/4/5).
 - S33. PaymentExpert, "UAE fintech hub: open finance, Aani and what's next in 2026", 21 October 2026. https://paymentexpert.com/2026/10/21/uae-fintech-hub-open-finance-2026/ — search extract (fetch 403).
 - S34. The Paypers, "Fintech Galaxy secures CBUAE approval for Open Finance". https://thepaypers.com/fintech/news/fintech-galaxy-secures-cbuae-approval-for-open-finance ; Spare, "Spare receives in-principle approval from the Central Bank of the UAE for Open Finance license" (August 2025). https://tryspare.com/blog/spare-receives-in-principle-approval-from-the-central-bank-of-the-uae-for-open-finance-license/ — search extracts.
 - S35. Central Bank of the UAE, *UAE Fund Transfer System (UAEFTS)*. https://centralbank.ae/en/our-operations/payments-and-settlements/uae-fund-transfer-system-uaefts/ ; *IBAN* FAQ. https://www.centralbank.ae/en/services/iban — search extracts (fetch 403).
 - S36. Al Etihad Payments, *Aani*. https://aep.ae/ — fetched; *Al Etihad*, "Aani…" (September 2025). https://en.aletihad.ae/news/business/4609296/ ; *Gulf News*, "UAE instant payments platform Aani crosses 12.5 million users". https://gulfnews.com/business/banking/uae-instant-payments-platform-aani-crosses-125-million-users-1.500502686 — search extracts.
 - S37. *Gulf News*, "Creation, history and evolution of the UAE dirham" (2021). https://gulfnews.com/amp/story/uae%2Fyear-of-the-50th%2Fcreation-history-and-evolution-of-the-uae-dirham-1.1621767243152 — search extract.
-- S38. EY, *UAE introduces enhanced Wage Protection System, effective 1 June 2026* (Tax Alert, 2026). https://www.ey.com/en_gl/technical/tax-alerts/uae-introduces-enhanced-wage-protection-system-effective-1-june-2026 — fetched.
+- S38. EY, *UAE introduces enhanced Wage Protection System, effective 1 June 2026* (Tax Alert, 2026). https://www.ey.com/en_gl/technical/tax-alerts/uae-introduces-enhanced-wage-protection-system-effective-1-june-2026 — fetched; re-fetched 2026-11-04 (85% compliance threshold; WPS files).
 - S39. Standard Chartered Bank UAE, *Value Added Tax ('VAT') and frequently asked questions* (January 2018, PDF). https://www.sc.com/global/av/ae-vat-frequently-asked-questions.pdf — fetched; text extracted.
 - S40. ADCB, *e-Statements: How to view & download online*. https://www.adcb.com/en/tools-resources/e-statement/ — search extract (fetch 403).
 - S41. Emirates NBD, *businessONLINE: How to access your statements* (February 2022, PDF). https://www.emiratesnbd.com.sa/-/media/enbd/ksa/pdf/businessonline/ksa_how_to_access_your_statements.pdf — search extract; Emirates NBD, *E-Statements*. https://www.emiratesnbd.com/en/ways-of-banking/e-statements — fetched (navigation only).
@@ -581,7 +696,7 @@ Access dates are 2026-11-02 unless stated; "fetched" means the page or PDF was r
 - S48. Techpoint Africa, "Risevest acquires Chaka", 26 September 2023. https://techpoint.africa/2023/09/26/risevest-acquires-chaka — search extract.
 - S49. ShareSaver, *CSCS account number in Nigeria: meaning and how to find it* (third-party). https://sharessaver.com/blog/cscs-account-number-nigeria — search extract.
 - S50. National Pension Commission (PenCom), *Frequently Asked Questions 2023* (PDF), Part on RSA statements ("at least once every three months"). https://www.pencom.gov.ng/wp-content/uploads/2023/09/FREQUENTLY-ASKED-QUESTIONS-2023.pdf — fetched; text extracted.
-- S51. Plaid, *Personal Finance Category taxonomy* (v1 CSV). https://plaid.com/documents/transactions-personal-finance-category-taxonomy.csv ; *PFC taxonomy v1/v2 comparison* (CSV). https://plaid.com/documents/pfc-taxonomy-all.csv ; *Personal Finance Category migration guide* (PFCv2, December 2025). https://plaid.com/docs/transactions/pfc-migration/ ; *Transactions API reference* (confidence_level, counterparties). https://plaid.com/docs/api/products/transactions/ — all fetched.
+- S51. Plaid, *Personal Finance Category taxonomy* (v1 CSV). https://plaid.com/documents/transactions-personal-finance-category-taxonomy.csv ; *PFC taxonomy v1/v2 comparison* (CSV). https://plaid.com/documents/pfc-taxonomy-all.csv ; *Personal Finance Category migration guide* (PFCv2, December 2025). https://plaid.com/docs/transactions/pfc-migration/ ; *Transactions API reference* (confidence_level, counterparties). https://plaid.com/docs/api/products/transactions/ — all fetched; `pfc-taxonomy-all.csv` re-downloaded and parsed 2026-11-04 (18 primary, 127 detailed; codes in §4.3.5 taken from it).
 - S52. Plaid, *Recurring transactions* (blog). https://plaid.com/blog/recurring-transactions/ — search extract; Plaid, *Bank Income* documentation. https://plaid.com/docs/income/bank-income/ — fetched.
 - S53. Firefly III documentation, *Architecture* and *Transactions*. https://docs.firefly-iii.org/explanation/more-information/architecture/ ; https://docs.firefly-iii.org/explanation/financial-concepts/transactions/ — search extracts quoting the docs (fetch 403).
 - S54. Actual Budget documentation, *Transfers* and *Importing transactions*. https://actualbudget.org/docs/transactions/transfers/ ; https://actualbudget.org/docs/transactions/importing/ — fetched.
@@ -593,7 +708,7 @@ Access dates are 2026-11-02 unless stated; "fetched" means the page or PDF was r
 
 **Academic references (checked against OpenAlex by DOI, 2026-11-02)**
 - S60. J. E. Grable, R. H. Lytton, "Financial risk tolerance revisited: the development of a risk assessment instrument", *Financial Services Review* 8(3), 1999. https://doi.org/10.1016/S1057-0810(99)00041-4 [verified]
-- S61. P. Kuzniak, A. Rabbani, W. Heo, J. Ruiz-Menjivar, J. E. Grable, "The Grable and Lytton risk-tolerance scale: a 15-year retrospective", *Financial Services Review* 24, 2015. [unverified — not found in OpenAlex title search]
+- S61. P. Kuzniak, A. Rabbani, W. Heo, J. Ruiz-Menjivar, J. E. Grable, "The Grable and Lytton risk-tolerance scale: a 15-year retrospective", *Financial Services Review* 24(2), 177–192, 2015. https://doi.org/10.61190/fsr.v24i2.3240 [verified on Crossref 2026-11-04; v0.1 wrongly marked unverified]
 - S62. C. Heath, J. B. Soll, "Mental Budgeting and Consumer Decisions", *Journal of Consumer Research* 23(1), 1996. https://doi.org/10.1086/209465 [verified]
 - S63. R. H. Thaler, "Mental accounting matters", *Journal of Behavioral Decision Making* 12(3), 1999. https://doi.org/10.1002/(SICI)1099-0771(199909)12:3<183::AID-BDM318>3.0.CO;2-F [verified]
 - S64. C. Y. Zhang, A. B. Sussman, "Perspectives on mental accounting: An exploration of budgeting and investing", *Financial Planning Review* 1(1–2), 2018. https://doi.org/10.1002/cfp2.1011 [verified]
@@ -616,7 +731,7 @@ Access dates are 2026-11-02 unless stated; "fetched" means the page or PDF was r
 - S81. CRC Credit Bureau, *FAQ*. https://crccreditbureau.com/faq/ — fetched; WithinNigeria, "How to check your credit score in Nigeria using credit bureau", 10 June 2026. https://www.withinnigeria.com/2026/06/10/how-to-check-your-credit-score-in-nigeria-using-credit-bureau/ — search extract; "An Appraisal of the Nigerian Credit Reporting Act 2017", *Journal of African Law* (Cambridge). https://www.cambridge.org/core/journals/journal-of-african-law/article/appraisal-of-the-nigerian-credit-reporting-act-2017/BA239BBC8810186E0FA9A86BA8DB7F13 — search extract [unverified].
 - S82. Etihad Credit Bureau, *FAQs — Credit Report & Score* (AED 157.50 report; AED 10.50 score, incl. VAT). https://etihadbureau.ae/faqs/19 — search extract (fetched page rendered empty); Bayut, *A quick guide to Etihad Credit Bureau* (AED 84 individual report). https://bayut.com/mybayut/etihad-credit-bureau — search extract (page later returned HTTP 410).
 - S83. (merged into S51.)
-- S84. J. Sabat, E. Gallagher, "Rules of Thumb in Household Savings Decisions: Estimation Using Threshold Regression" (working paper, SSRN, 2019). [unverified — not found in OpenAlex]
+- S84. J. Sabat, E. Gallagher, "Rules of Thumb in Household Savings Decisions: Estimation Using Threshold Regression" (working paper, SSRN, 2019). https://doi.org/10.2139/ssrn.3455696 [found on Crossref 2026-11-04; working paper, not peer reviewed]
 - S85. J. M. Collins, L. Gjertson, "Emergency savings for low-income consumers", *Focus* 30(1), 2013. [unverified — not found in OpenAlex]
 - S86. J. Klement, *Investor Risk Profiling: An Overview*, CFA Institute Research Foundation, 2015. [unverified — not found in OpenAlex]
 - S87. World Bank, *Nigeria Development Update*, October 2026 (as reported by Nairametrics, S26). — not fetched.
@@ -626,5 +741,11 @@ Access dates are 2026-11-02 unless stated; "fetched" means the page or PDF was r
 - S91. Launchpad.ng, *Open banking in Nigeria in 2026: who's actually compliant* (undated; claims rules "now live"; contradicted by S2–S6). https://launchpad.ng/resources/open-banking-nigeria-2026 — search extract; low confidence.
 - S92. Afriex, *Nigeria bank transfer fees 2026*. https://afriex.com/post/nigeria-bank-transfer-fees-2026 — search extract; secondary.
 - S93. E. Warren, A. W. Tyagi, *All Your Worth: The Ultimate Lifetime Money Plan* (Free Press, 2005) — origin of the 50/30/20 rule; book, not verified.
+- S94. M. A. Jaro, "Advances in Record-Linkage Methodology as Applied to Matching the 1985 Census of Tampa, Florida", *Journal of the American Statistical Association* 84(406), 414–420, 1989. https://doi.org/10.1080/01621459.1989.10478785 [verified on Crossref 2026-11-04]
+- S95. T. Enamorado, B. Fifield, K. Imai, "Using a Probabilistic Model to Assist Merging of Large-Scale Administrative Records", *American Political Science Review* 113(2), 353–371, 2019. https://doi.org/10.1017/S0003055418000783 [verified on Crossref 2026-11-04]
+- S96. Central Bank of Nigeria, *Operational Guidelines for Open Banking in Nigeria* (approved March 2023, PDF). https://www.cbn.gov.ng/Out/2023/CCD/Operational%20Guidelines%20for%20Open%20Banking%20in%20Nigeria.pdf — read in primary text by Doc 7 (its S48, F7); not re-read here.
+- S97. Portfolio OS, `CANONICAL_CONTRACTS.md` v0.1 (2026-11-04), contracts C1, C3, C4, C5; worked examples in `research/scripts/contracts_checks.py`.
+- S98. Portfolio OS, Doc 6 (Accounting, Audit and Tax Framework) F21: reading of the Nigeria Tax Act 2025 s.123, Ninth Schedule item 48 and s.184(h)–(i). E2 via Doc 6; not re-read here.
+- S99. Portfolio OS, Review R04 (banking and ledger), 2026-11-04, including its re-fetches of S2, S6, S15, S20–S22, S29, S32, S36, S38 and S51.
 
-*Research artefacts (not sources):* worked-example script and OpenAlex verification log kept in the session scratchpad (`worked_example.py`, `openalex_results.txt`); CBN 2020 Guide, NBS rebasing, PenCom FAQ, SC VAT FAQ and FPAM standards PDF text extracts retained for reviewer inspection.
+*Research artefacts (not sources):* the worked example is reproduced by `docs/portfolio-os/research/scripts/doc04_ledger_worked_example.py` (v0.2, standard library only, `python3 -I`). The v0.1 OpenAlex verification log and the PDF text extracts (CBN 2020 Guide, NBS rebasing, PenCom FAQ, SC VAT FAQ, FPAM standards) were kept in the v0.1 session scratchpad and are not in the repository.

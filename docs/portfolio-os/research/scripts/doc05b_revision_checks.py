@@ -47,6 +47,21 @@ for name, s, stated in ROWS:
     wrong += flag != ""
     print(f"   {name:45s} {stated}  {q2(tot):>6}      {q2(tot5):>6}{flag}")
 print(f"   v0.1 totals wrong: {wrong} of {len(ROWS)}")
+# Phase rule (v0.2), applied to the 5-criterion score S5. Flags: outputs weights / needs an ESTIMATED expected return /
+# objective mismatch (sizing, leverage, orders, edge scores). Labelled assumptions (C6 overlay) are not estimates.
+FLAGS = {"Risk-budgeting / risk-parity display": "w", "Constrained min-variance alternative view": "w",
+         "Black-Litterman view tool": "w", "CVaR optimisation": "w", "Mean-variance (unconstrained)": "we",
+         "Resampled efficiency / robust MV": "we", "Hierarchical risk parity": "w", "Kelly / fractional Kelly": "weo",
+         "Student-t GARCH simulation (estimated)": "", "Regime-switching simulation": "", "DCC-GARCH": ""}
+def phase(name, s):
+    s5 = sum(w * x for w, x in zip(W[:5], s[:5])) / wsum5; f = FLAGS.get(name, "")
+    if "o" in f: return "Do not build (objective mismatch)"
+    if s5 >= F(325, 100) and "w" not in f and "e" not in f: return "Phase 1"
+    if s5 >= F(25, 10) and s[1] >= 2: return "Phase 2" + (" (behind stability gate)" if "w" in f else "")
+    return "Not yet"
+print("   phase rule: Do-not-build if objective mismatch; Phase 1 if S5 >= 3.25, no weight output and no estimated "
+      "expected return; Phase 2 if S5 >= 2.50 and data score >= 2; otherwise Not yet")
+for name, s, _ in ROWS: print(f"   {name:45s} -> {phase(name, s)}")
 
 # ---------------------------------------------------------------- [2] calibration feasibility
 def pmf(n, p): return [comb(n, k) * p**k * (1 - p)**(n - k) for k in range(n + 1)]

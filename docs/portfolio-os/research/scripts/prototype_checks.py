@@ -75,3 +75,15 @@ print(f"\n[8] PerformancePanel: P&L sequence {pnls} on a 10,000 account -> repor
 tr = rng.normal(0.01, 0.05, 20)
 print(f"[9] 20 trade returns mean 1% sd 5% (holding period unknown): panel 'Sharpe' = {tr.mean()/tr.std(ddof=1)*np.sqrt(252):.2f}; "
       f"Lo(2002) iid SE of the un-annualised ratio with n=20 ≈ {np.sqrt((1+0.5*(tr.mean()/tr.std(ddof=1))**2)/20):.2f} per sqrt(period)")
+
+# 10. (v0.2, R05b D21/N5) the same function on an all-loss P&L sequence: peak starts at 0 and never rises
+pnls2 = [-100, -200]
+eq = 0; peak = 0; mdd = 0
+for p in pnls2:
+    eq += p; peak = max(peak, eq); dd = (peak-eq)/peak if peak > 0 else 0; mdd = max(mdd, dd)
+print(f"[10] PerformancePanel: all-loss P&L {pnls2} on a 10,000 account -> reported max drawdown {mdd:.0%}; true equity drawdown {300/10000:.2%}")
+
+# 11. (v0.2, R05b D15) quantile index sorted[floor(N*p)] (0-based) vs the type-1 empirical quantile (order statistic ceil(N*p))
+N_ = 10000
+print("[11] quantile index floor(N*p) vs ceil(N*p)-1 at N=10,000: " +
+      ", ".join(f"p={p_}: {int(np.floor(N_*p_))} vs {int(np.ceil(N_*p_))-1}" for p_ in (0.01, 0.05, 0.25, 0.5, 0.95)))
