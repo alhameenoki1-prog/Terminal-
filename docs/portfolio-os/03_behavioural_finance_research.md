@@ -272,7 +272,7 @@ The catalogue is cut to constructs that inform a named decision (R03b §2a, §2b
 
 **Data-quality gate (replaces v0.1 §9.1–9.2; R03 §5.3, R03b M3).**
 - *Ground truth:* the founder's decisions in the review queue. There is no separate 200-label exercise.
-- *Transfer matching:* Doc 4's precision ≥ 0.98 and recall ≥ 0.95, measured on confirmed review-queue items.
+- *Transfer matching:* precision ≥ 0.98 and recall ≥ 0.95 on confirmed review-queue items. These are Doc 4 v0.1's targets, kept here as E5 thresholds. They are measured with Doc 4 v0.2's stratified labelled set and calibrated posteriors (Doc 4 §4.3.2; C4).
 - *Audit sample:* each month, 10 auto-applied classifications drawn with probability proportional to amount are inserted into the queue, unmarked.
 - *Value-weighted error:* the estimated misclassified value in the payday window must be ≤ 2% of window outflows (E5, to be calibrated). Value weighting matters because one misclassified ₦2.4m rent line moves the ratio more than a hundred small errors.
 - *Reporting:* the correction rate is the published quality metric.
@@ -529,7 +529,7 @@ Grades apply F12's one-notch discount to mechanism claims not replicated in fiel
 | Family (PDPL "directly or indirectly reveals a natural person's family") | Transfers to named kin; school fees for dependants | Construct 5 only, behind consent (b), with user-confirmed counterparties |
 | Gambling (not a statutory category; high stigma) | Betting merchants | No label; ordinary category total only |
 
-Doc 4's "Family & giving" group merges remittances, religious giving and school fees. We ask Doc 4 to split it into remittances/family, religious giving (sensitive) and school fees (scheduled), so the register can act on each (§6).
+Doc 4 v0.2's "Giving & family" group separates religious or charitable giving (a consumption category) from remittances to family (`TransferOut:Family`). We ask Doc 4 to flag religious giving as a sensitive category and to keep school fees as a scheduled category, so the register can act on each (§6).
 
 **4.9.6 Storage, retention and deletion** (reconciles Doc 6, Doc 8 and v0.1).
 - **Separate store.** Behavioural derivations are kept in a store separate from the tax vault. They comprise:
@@ -638,7 +638,7 @@ Conformance is tested in §9 item 5.
 - *System A / Doc 4 (data and personal finance):*
   - (1) The transfer-match precision and recall measured on review-queue decisions, and the PPS audit sample (§4.2 gate).
   - (2) Income streams with credit dates and a confirmed-anchor flag.
-  - (3) The taxonomy mapping below, including the split of "Family & giving".
+  - (3) The taxonomy mapping below, including a sensitive flag on religious giving.
   - (4) **Risk instrument:** Doc 4 §4.4.4 should replace "Grable–Lytton 13-item, annually" with the SOEP/GPS item asked just in time (F23, F23a). Grable–Lytton stays optional only after written permission. This disagreement is preserved as R15 until Doc 4 decides.
   - (5) Doc 4 §9 item 10 is answered here: instrument licensing is F23a and the budget-view experiment is §4.6.
   - (6) The R13 conflict is resolved on our side by removing in-product automation from Doc 3.
@@ -679,7 +679,7 @@ Conformance is tested in §9 item 5.
 |---|---|
 | Flexible spending | Consumption-expense categories in Doc 4 §4.3.5 that the user marks as flexible (none marked by default) |
 | Scheduled | Doc 4 recurring-outflow objects and `is_essential` |
-| Obligation / family | User-confirmed counterparties. "Family & giving" split into remittances/family (sensitive under the PDPL), religious giving (sensitive; excluded by default) and school fees (scheduled) |
+| Obligation / family | User-confirmed counterparties. Doc 4 v0.2's "Giving & family" rows: remittance to family (`TransferOut:Family`; sensitive under the PDPL) and religious or charitable giving (to be flagged sensitive; excluded by default). School fees are scheduled |
 | Currency conversion | C1 `exchange` entries, including Doc 4's purchase of FX into one's own domiciliary account (already a transfer) |
 | Investment contribution | Transfers to brokerage and pension accounts (Doc 4 §4.3.3) |
 | Fees and levies | `Expenses:BankCharges:*` |
@@ -1025,7 +1025,7 @@ Academic sources were verified by DOI against OpenAlex (with Crossref where note
 | §5.1 automation | V-025 | Fixed | §4.6 | — |
 | §5.2 risk instrument | V-026 | Fixed (Doc 3); Doc 4 side open | §6, R15 | — |
 | §5.3 data-quality gates | — | Fixed | §4.2 gate, §9.1 | Doc 4 precision/recall plus a value-weighted PPS audit |
-| §5.4 taxonomy | — | Fixed | §6 mapping table | "Family & giving" split requested from Doc 4 |
+| §5.4 taxonomy | — | Fixed | §6 mapping table | Sensitive flag on religious giving requested from Doc 4 |
 | §5.5 CBN 2026 charges | — | Fixed | F21 | — |
 | §5.6 budget-view experiment | — | Fixed | §4.6 | Infeasible for n = 1; about 392 per arm between-person (script §N) |
 | §5.7 core CPI | — | Deferred | F17, R9, §9.9 | NBS PDF not fetched. Owner: Doc 3 with Doc 5c (data) |
@@ -1071,7 +1071,7 @@ Academic sources were verified by DOI against OpenAlex (with Crossref where note
 ### Still open
 
 1. Doc 8 v0.2 already renders the specification. It still needs to adopt the v0.2 rung IDs and cycle-level range, and add the missing lint terms (§6 (a)–(e); V-007, Doc 8 side).
-2. Doc 4 must decide the risk instrument (R15), split "Family & giving", and adopt the value-weighted gate.
+2. Doc 4 must decide the risk instrument (R15), flag religious giving as sensitive, and adopt the value-weighted gate.
 3. Counsel review of §4.9, a DPIA, the PDPL primary text and licensing permissions are needed before any second user or any commercial use.
 4. The founder must confirm: pay cycles, shortfall cost, trading frequency, controller and processors, declared calendar events, and the pre-registration reviewer.
 5. Unverified magnitudes remain (S140, S148), along with NBS core CPI, S106 and S162.
