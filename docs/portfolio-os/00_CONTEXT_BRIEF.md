@@ -1,6 +1,6 @@
 # Portfolio OS — Shared Context Brief for All Specialist Teams
 
-**Version:** 0.1 · **Date:** 2026-11-02 · **Prepared by:** Programme coordinator (Claude) for the founder
+**Version:** 0.2 · **Date:** 2026-11-04 (v0.1 2026-11-02) · **Prepared by:** Programme coordinator (Claude) for the founder
 **Status:** Binding for every specialist assignment in Stage 1–3. Read it fully before researching.
 
 ---
@@ -23,8 +23,11 @@ deliverable that other departments will challenge. Write for a demanding investm
   able to search. **Do not invent prior decisions.** Where a prior decision would matter, write "unknown — founder to confirm".
 - **Lessons carried over (evidence from the founder and the repo):**
   1. The founder reports that a previous Nigerian equity research tracker produced outdated or inaccurate market figures.
-  2. The repo shows the stale-constant anti-pattern: the Central Bank of Nigeria policy rate is hardcoded (27.50) with a
+  2. The repo shows the unsourced-constant anti-pattern: the Central Bank of Nigeria policy rate is hardcoded (27.50) with a
      "next meeting" date in March 2026 inside `src/data/countryProfiles.ts`. Numbers with no source, timestamp or refresh path.
+     *Correction (v0.2, 2026-11-04, from review R05c):* the value was **wrong when committed** (commit d9ad9d5, 2026-03-02),
+     not merely stale later. CBN's decisions page shows 26.5% from February 2026, and no MPC met in March 2026. Expiry
+     controls alone would not have caught it; values must be checked against a primary source at the moment of entry.
   3. The repo's data layer relies on unofficial or fragile endpoints (Yahoo Finance v8 chart API, Stooq CSV, rss2json
      proxies, CBOE CDN JSON) with no provenance, licence or freshness metadata attached to any value.
   4. The repo's AI feature injects live numbers into a prompt for a Groq-hosted Llama model and lets the model restate them in
