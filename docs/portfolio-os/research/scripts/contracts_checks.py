@@ -57,7 +57,7 @@ def c1():
     print(f"implied rate (exact rational) {implied} = {dec(implied):.10f} NGN/USD")
 
     # (c) FX cost against a stated reference rate, with the residual-tolerance rule
-    ref = D("1352.00")       # synthetic CBN central rate, fixing date 30 Oct 2026 (conversion date)
+    ref = D("1352.00")       # synthetic CBN NFEM rate (nfem_vwap), fixing date 30 Oct 2026 (conversion date)
     dealer = D("1398.60")    # rate printed on the provider receipt (synthetic)
     cost_ref = G - R * ref
     markup = R * (dealer - ref)
@@ -330,6 +330,17 @@ def c3():
             verdict = "per-share calc allowed; shares outstanding badge 'ageing: corporate action pending'"
         print(f"{ca['id']} {ca['kind']} state={ca['state']}: price dated {price_date} -> F(shares)={f_state}; {verdict}")
 
+    # v0.2 (RT-A): independence is recorded per validation event and drives the label, not the eligibility
+    rank = ["simulated_agent", "self", "second_person", "licensed"]
+    label = {"self": "chip 'self-checked'", "simulated_agent": "chip 'checked by software'",
+             "second_person": "plain validated display", "licensed": "plain validated display"}
+    for events in (["self"], ["simulated_agent"], ["self", "second_person"], ["licensed"]):
+        best = max(events, key=rank.index)
+        print(f"validation events {events} -> independence {best}: {label[best]}; tier unchanged")
+    inputs = ["second_person", "self"]
+    print(f"total from inputs with independence {inputs} -> weakest {min(inputs, key=rank.index)}: "
+          f"'includes self-checked figures'")
+
     # v0.2 (CC-10): single-source sampling floor = max(ceil(n/20), min(n, 4)) human checks a year
     print("single-source sampling per series per year (editions -> human checks):")
     for name, n in (("daily FX or price, 250 editions", 250), ("monthly CPI, 12", 12), ("quarterly, 4", 4),
@@ -401,7 +412,7 @@ def c4():
 # ---------------------------------------------------------------- C5 FX decomposition
 RATES = {date(2026, 9, 30): D("1530.00"), date(2026, 10, 15): D("1505.00"), date(2026, 10, 16): D("1500.00"),
          date(2026, 10, 20): D("1495.00"), date(2026, 10, 26): D("1490.00"), date(2026, 10, 28): D("1485.00"),
-         date(2026, 10, 30): D("1480.00")}   # synthetic CBN central NGN per USD; fixing dates only
+         date(2026, 10, 30): D("1480.00")}   # synthetic CBN NFEM rate (nfem_vwap), NGN per USD; fixing dates only
 PEG = D("3.6725")
 
 

@@ -6,6 +6,9 @@ Run:  python3 -I research/scripts/doc05a_worked_examples.py
 
 Standard library only (decimal, datetime). It needs no third-party package and imports none.
 
+Consistency pass 2026-11-04 (revision-log V-031): fresh_5c() now implements Doc 5c v0.2 §4.3.2 (its fallback
+day counts, used while no registry filing deadline or calendar record exists). v0.1's thresholds are withdrawn.
+
 Sourced parameters (checked 2026-11-04):
   * Damodaran ctrypremJuly26.xlsx, sheet "ERPs by country" (re-downloaded and parsed 2026-11-04):
     mature ERP 4.20%; multiplier 1.5544955; Nigeria B3 rating default spread 5.17478%,
@@ -35,7 +38,9 @@ def pct(x, q="0.01"):
 AS_OF = date(2026, 11, 4)
 
 # --------------------------------------------------------------------------------------------
-# 1. Freshness: Doc 5c §4.3.2 thresholds (canonical per CANONICAL_CONTRACTS C3; computed at read time)
+# 1. Freshness: Doc 5c v0.2 §4.3.2 thresholds (Doc 5c governs data status; C3 governs the vocabulary;
+#    computed at read time). Fundamentals use 5c's fallback day counts because no NGX filing deadline is
+#    registered yet (synthetic example).
 # --------------------------------------------------------------------------------------------
 def busdays(d0, d1):
     n, d = 0, d0
@@ -47,15 +52,15 @@ def busdays(d0, d1):
 
 
 def fresh_5c(kind, as_of_date, now=AS_OF):
-    if kind == "eod_price":
+    if kind == "eod_price":  # 5c: fresh <= 1 trading day; ageing 2; stale 3-5; expired > 5
         n = busdays(as_of_date, now)  # holiday calendar omitted (synthetic)
-        return "fresh" if n <= 1 else "ageing" if n <= 3 else "stale" if n <= 20 else "expired"
+        return "fresh" if n <= 1 else "ageing" if n <= 2 else "stale" if n <= 5 else "expired"
     days = (now - as_of_date).days
-    if kind == "quarterly":
-        return "fresh" if days <= 135 else "ageing" if days <= 180 else "stale" if days <= 400 else "expired"
-    if kind == "annual":
-        return "fresh" if days <= 300 else "ageing" if days <= 400 else "stale" if days <= 550 else "expired"
-    if kind == "semiannual_edition":  # Doc 5a proposal to 5c: CRP edition, fresh <= 7 months
+    if kind == "quarterly":  # 5c interim fallback: ageing > 45 days after period end, stale > 120, expired > 200
+        return "fresh" if days <= 45 else "ageing" if days <= 120 else "stale" if days <= 200 else "expired"
+    if kind == "annual":  # 5c annual fallback: ageing > 120, stale > 270, expired > 450
+        return "fresh" if days <= 120 else "ageing" if days <= 270 else "stale" if days <= 450 else "expired"
+    if kind == "semiannual_edition":  # 5c country-risk edition row (from 5a's proposal): fresh <= 7 months
         return "fresh" if days <= 213 else "ageing" if days <= 396 else "stale"
     raise ValueError(kind)
 
@@ -80,9 +85,9 @@ def worst(states):
 print("== Freshness of the v0.1 Example 1 inputs on 2026-11-04 ==")
 fy25, h126 = date(2025, 12, 31), date(2026, 6, 30)
 print(f"FY2025 annual inputs: age {(AS_OF - fy25).days} days -> v0.1 5a table: {fresh_5a_v01('annual', fy25)}; "
-      f"5c table: {fresh_5c('annual', fy25)}")
+      f"5c v0.2 table: {fresh_5c('annual', fy25)}")
 print(f"H1-2026 interim inputs: age {(AS_OF - h126).days} days -> v0.1 5a table: {fresh_5a_v01('quarterly', h126)}; "
-      f"5c table: {fresh_5c('quarterly', h126)}")
+      f"5c v0.2 table: {fresh_5c('quarterly', h126)}")
 print("v0.1 header said 'current' and 'all inputs V2+' while carrying a V1 row -> gate failure (R05a B1)")
 
 # --------------------------------------------------------------------------------------------
