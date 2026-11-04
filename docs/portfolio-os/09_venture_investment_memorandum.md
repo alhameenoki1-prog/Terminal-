@@ -240,3 +240,233 @@ Stage-2 costs modelled at ~$290k over 18 months before acquisition spend (five p
 ### 4.7 Worked example (synthetic numbers): a diaspora subscriber in year 2
 
 A UK-based Nigerian with a Lagos salary account, a PiggyVest dollar plan, 2,000 Dangote Refinery shares from the IPO, and a UAE savings account pays $10/month. Monthly cost to serve: payments $0.39 (3.9%), LLM $1.03 (medium), support $0.25, infrastructure $0.10, other $0.05, data allocation $0.07 at 30,000 actives — $1.89, gross margin 81%. Acquired through a diaspora community at $8 CAC: payback under one month; at 5% monthly churn, LTV ≈ $162 and LTV/CAC ≈ 20. The same person priced at ₦2,500 while resident in Lagos yields $1.86 ARPU, $0.03 payment cost, the same $1.43 of other variable cost, gross margin 23% at medium LLM use — negative if she asks many deep questions. The product is identical; the economics are determined by where the subscriber lives and how she is acquired.
+
+---
+
+## 5. Alternatives considered and rejected (or deferred)
+
+| Alternative strategy | Case for it | Why rejected or deferred | Status |
+|---|---|---|---|
+| A1. Raise pre-seed now for the full nine-system consumer app | Vision is complete; AI makes building cheaper; Monarch shows post-Mint demand | No WTP evidence; Nigerian paid-PFM revenue ≈ nil [S62]; open banking not live [S34]; nine systems dilute a wedge; investors in Nigeria down 30% and seed-to-A conversion ~6% [S52] | **Rejected** at this stage |
+| A2. Become a regulated robo-adviser (Nigeria) | Advice is the monetisable layer; SEC rules exist [S28] | ₦100m capital by mid-2027 [S30], algorithm audits, suitability duties; assets, not software, drive revenue; Risevest's warning shows enforcement risk [S12] | **Do-not-build (yet)** |
+| A3. UAE-expat wealth product first | Highest ARPU; Sarwa shows a profitable path [S24] | Licensing (CMA/DFSA/FSRA), small Nigerian base (50–100k) [S20], crowded incumbents, founder's distribution is Nigerian | **Deferred**; pursue via partner |
+| A4. B2B tooling for PFAs, brokers and licensed advisers (white-label analytics, tax statements) | 11m RSAs [S2]; partners hold licences; CAC ≈ 0; tech providers exempt from SEC registration [S28] | Long sales cycles; founder has no enterprise sales track record; needs a product first | **Kept as the primary venture route from Stage 2** |
+| A5. Nigerian tax-preparation product (TurboTax-style) for the 2026 regime | Law changed 1 Jan 2026; Tax ID live; share gains newly taxable [S15]; nobody has software | State-level filing, low compliance culture, seasonal revenue, practitioner liability | **Kept as the wedge feature inside the ledger**, not standalone |
+| A6. Data/analytics API for NGX fundamentals with provenance | Pays for the pipeline; brokers and media need it; licence fees known [S66] | Small market; Stears and vendors exist; NGX licensing terms current schedule unknown | **Later**, as a by-product |
+| A7. Behavioural-AI coaching app (Cleo/Plum model) | Cleo's scale [S58] | Cleo monetises credit; evidence for nudges contested (F20); PiggyVest already owns the behaviour niche | **Rejected** |
+| A8. Remain a personal tool indefinitely | Zero regulatory exposure; founder's problem solved | Forecloses the option; but costs nothing to keep open | **Default if kill criteria trip** |
+
+---
+
+## 6. Cross-department dependencies
+
+**We need from other departments:** (i) Legal & Regulatory — a written opinion on whether analytics and research *without personalised recommendations* fall outside SEC "digital advisory services" [S28], the open-banking participation route for a non-licensed fintech [S33], NDPA tier at 20 and 1,000 users [S37], and the UAE marketing-to-residents perimeter; (ii) Tax Intelligence — confirmation of the NTA 2025 share-gain exemption text and state filing mechanics (F15), plus an estimate of a per-computation price a practitioner would co-sign; (iii) Data Architecture — a costed plan for statement ingestion without open banking and the real NGX/DFM/ADX data licence quotes (the 2018 schedule is stale); (iv) Behavioural Finance — which interventions survive the eight-question test so marketing never over-claims; (v) Product — a cohort instrumentation plan that produces the Stage-1 metrics in §4.6; (vi) Finance/Operations — Nigerian and UAE salary quotes to replace the E4 assumptions.
+
+**Other departments need from us:** the segment priority (S2 diaspora before S1 Nigeria-resident, B2B2C from Stage 2), the price-point hypotheses to test, the kill criteria (§8.3) to design experiments against, and the rule that no feature may introduce a regulated activity before Stage 3.
+
+---
+
+## 7. Risks, open uncertainties and disagreements
+
+### 7.1 Risk register (commercial and structural)
+
+| Risk | Likelihood | Impact | Evidence | Mitigation |
+|---|---|---|---|---|
+| Willingness to pay in NGN is near zero | High | Fatal to M1 | [S62][S1] | Test in Stage 1; price in USD for diaspora; B2B2C |
+| Open banking slips beyond 2027 | Medium–high | Degrades onboarding; higher support cost | [S34] | Statement upload + Mono; design for manual-first |
+| Personalised outputs deemed "digital advisory" | Medium | Registration, ₦50–100m capital, audits | [S28][S30] | Legal opinion; partner-held licence; information-only framing |
+| FX: USD costs (LLM, data, talent paid in USD) vs NGN revenue | High | Margin collapse on devaluation | [S36][S49] | USD revenue share ≥35%; naira-priced vendors where possible |
+| Incumbent copies the wedge free (PiggyVest, Kuda, banks) | Medium | Price to zero | [S11][S70] | Depth (tax, multi-market), B2B2C exclusivity |
+| LLM cost per heavy user exceeds ARPU | High at NGN prices | Negative gross margin | §4.4 | Usage tiers, caching, small models for routine tasks |
+| Data-vendor and LLM-provider dependency | Medium | Price shocks, deprecations | Mint's aggregator costs [S53]; Okra's cloud costs [S36] | Multi-vendor abstraction; cache; licence terms reviewed |
+| Fraud/social engineering against users of a "financial OS" | Medium | Trust loss, liability | [S51] | Read-only data, no money movement in Stages 0–2 |
+| Talent flight ("japa") and USD-indexed salaries | High | Cost base drifts to UAE levels | [S83] | Small senior team; equity; UAE lead only when funded |
+| Regulatory capital hikes (SEC 2026 circular) repeated | Medium | Raises Stage-3 cost | [S30] | Partner licences; keep advice out of scope |
+| Diaspora segment too dispersed to acquire cheaply | Medium | CAC > $25 | §4.4 | Community partnerships, employer and remittance-app channels |
+
+### 7.2 Open uncertainties
+1. Actual willingness to pay for *this* product (E5) — the single most important unknown.
+2. Nigerian diaspora headcount and income distribution (not verified).
+3. Current NGX, DFM and ADX data-licence pricing for redistribution to retail users (2018 schedule only).
+4. Whether SEC will issue updated robo-advisory rules under ISA 2025 (none found).
+5. CBUAE Open Finance third-party licensing cost and timeline for a non-bank.
+6. Exact NTA 2025 share-gain exemption wording and the 2026 state filing calendar.
+7. App-store naira pricing and payout mechanics (unverified) versus web billing.
+
+### 7.3 Preserved disagreements
+
+| Issue | VC partner | CEO / strategy | CFO | YC-style operator | Proposed resolution path |
+|---|---|---|---|---|---|
+| Fund now? | No. Pass at pre-seed for a consumer app; would re-open for a B2B/adviser or tax wedge with signed pilots | Build the wedge (ledger + tax) and prove WTP in 9 months before raising; raising now would set the wrong milestones | Numbers say no unless USD payers exceed ~35% of the base or CAC < $10 | Nigerians do not pay for "insight"; find a painful, time-bound job (tax deadline, IPO allotment, FX reconciliation) | Stage 1 metrics decide; revisit at month 9 |
+| Which first segment? | Diaspora/UAE (ARPU) | Nigeria-resident mass-affluent (founder's network, data access) | Diaspora (payment rails, margin) | Whoever answers a cold message and uploads a statement within 48 hours | Run both in the 20-user cohort (10/10); pick by retention and WTP |
+| Is the nine-system vision an asset or a liability? | Liability for fundraising; asset as architecture | Asset: it is the reason the product is different | Liability: fixed costs of C/D/G before revenue | Liability: ship the ledger and one wedge; everything else is a roadmap slide | Keep the architecture; sequence the build (Doc 1–8 owners to agree) |
+| Behavioural analytics as a selling point? | No; contested evidence invites regulator and press scrutiny | Yes, if "scientifically restrained" is the brand | Neutral; it costs little | No; nobody buys restraint | Position as trust/retention feature; never in acquisition copy |
+| Regulated advice eventually? | Only through partners | Own licence by Stage 3 to capture value | Partner first; own licence when revenue > $3m | Never, unless it is the business | Decision deferred to Stage-3 gate with legal opinion |
+
+---
+
+## 8. Recommendations, ranked
+
+Classification: *Personal-MVP must-have* / *Later* / *Do-not-build (yet)*. Each top item is subjected to the five-question test (Context Brief §6) **from a commercial standpoint**.
+
+### 8.1 Ranked recommendations
+
+1. **Build the provenance-first multi-currency ledger (System A) and prove it on the founder, then 20 users** — *Personal-MVP must-have*. It is the precondition for every monetisable feature and the only thing competitors in Nigeria do not do (F1, §4.3).
+2. **Build the Nigerian tax computation for individuals under the 2026 regime (System G) as the first paid feature, with a licensed practitioner reviewing every rule** — *Personal-MVP must-have*; paid launch *Later* (Stage 2). It is the strongest near-term differentiator and time-bound demand exists (F6, F15).
+3. **Build validated NGX/US/UAE holdings analytics (C/D) only to the depth needed to value and tax the user's own portfolio; license data for internal use, not redistribution** — *Personal-MVP must-have* for holdings; *Later* for research breadth.
+4. **Price in USD for diaspora/UAE users from the first paid cohort; keep NGN pricing as an annual prepaid plan** — *Later* (Stage 2); the unit economics (§4.4) make this the difference between a business and a hobby.
+5. **Pursue one B2B2C pilot (PFA, broker or employer) in Stage 2 before any priced round** — *Later*; the most credible venture route (A4).
+6. **Keep behavioural analytics (B) as an internal measurement and retention layer; do not market it** — *Later*; evidence contested (F20).
+7. **Do not offer personalised recommendations, portfolio management or money movement before Stage 3 and a legal opinion** — *Do-not-build (yet)* (F14).
+8. **Do not build a free tier with unmetered AI chat** — *Do-not-build (yet)*; heavy users are loss-making at NGN prices (§4.4).
+9. **Do not raise institutional capital before the Stage-1 signals** — governance recommendation; see §8.3.
+
+### 8.2 Five-question test on the top three capabilities (commercial lens)
+
+| Question | 1. Multi-currency, provenance-first ledger | 2. Nigerian tax computation (2026 regime) | 3. Validated multi-market holdings analytics |
+|---|---|---|---|
+| Real problem? | Fragmented NGN/AED/USD money with no aggregation rail (F1) | New Act, new Tax ID, share gains newly taxable, no consumer software (F15) | Stale or wrong market figures in existing tools (Context Brief §1); IPO cohort needs records (F6) |
+| Who needs it and why? | Multi-account mass-affluent and diaspora (S1, S2): decisions on FX, savings allocation, debt | Salaried and investing Nigerians, diaspora with Nigerian income; compliance and refunds | Retail shareholders (~0.6m active [S3], 2m+ IPO subscribers [S79]) and their advisers |
+| Evidence for the approach? | Kubera's paid multi-currency niche [S57]; Monarch's post-Mint growth [S54]; Mono's 8m linkages show demand for connectivity [S35] (E3) | Regulatory change is the demand driver (E2); tax software precedent is foreign, not Nigerian (E4) | Provenance requirements from the brief (E5); data vendors exist [S65][S66] (E3) |
+| Build and validate reliably? | Statement parsing + Mono + manual; reconciliation tests to the unit of currency; weakest link is bank-statement formats | Versioned rule engine; test cases signed by a licensed practitioner; weakest link is unverified Act text (F15) | Licensed EOD data; corporate-action tests against NGX notices; weakest link is DFM/ADX data access |
+| Measurable improvement to justify continuing? | ≥12/20 weekly-active at week 12; ≥99% reconciliation; users report a decision changed | ≥500 paid computations in first tax season at ≥₦10,000; error rate <1% on audited sample | ≥95% of holdings priced within one trading day with source and timestamp; zero unsourced figures |
+| Commercial verdict | Necessary, not sufficient; monetises only through 2 and 3 | Best wedge; seasonal; needs practitioner liability cover | Monetises better B2B (M5/M6) than B2C |
+
+### 8.3 Fund / no-fund recommendation and kill criteria
+
+**Recommendation: no-fund at pre-seed today; founder-financed Stages 0–1; re-evaluate at month 9.** Approach angels or a pre-seed fund only when **two of three wedge signals** are observed: (a) in the friendly cohort, ≥40% of users pay the NGN or USD price after a three-month free period and 90-day retention is ≥60%; (b) a signed B2B2C pilot or letter of intent from a PFA, broker, bank or employer, or ≥10 licensed advisers paying for seats; (c) a tax-season test sells ≥500 computations at ≥₦10,000 (or ≥100 at ≥$25 to diaspora users). At seed (Stage 3), fund only if ≥35% of subscription revenue is USD-denominated or B2B2C members exceed 250,000, CAC is below $15, and the legal opinion on the advisory perimeter is in hand.
+
+**Kill criteria (stop treating Portfolio OS as a company; keep it as a personal tool):**
+
+| Gate | Kill if | Rationale |
+|---|---|---|
+| End of Stage 0 (month 6) | Founder cannot reconcile own accounts to ≥99% with provenance within 6 months of effort | If the data problem is unsolved for one motivated user, it is unsolved for 1,000 |
+| End of Stage 1 (month 12) | <8 of 20 users weekly-active at week 12, or <5 would pay anything, or no diaspora user would pay $10 | Below this the SAM arithmetic (§4.2) has no bottom-up support |
+| Stage 2 (month 18) | <300 paying after 6 months of selling, or CAC > $40 per payer, or 90-day retention < 45% | LTV/CAC < 1 at Nigeria-heavy mix (§4.4) |
+| Stage 2 (month 24) | No B2B2C pilot signed and USD payers < 20% of base | Consumer-NGN-only business cannot carry fixed data/compliance costs |
+| Any time | Legal opinion concludes core outputs are regulated advice and no partner will hold the licence | Capital requirement and audit burden exceed Stage-2 funding |
+| Any time | Naira depreciates >40% in 12 months while USD revenue share < 25% | Okra's failure mode [S36] |
+
+**Alternative outcomes if killed as a venture:** keep the personal system; open-source the NGX corporate-action and tax-rule libraries to build reputation; license the tax engine to a practitioner firm; or sell the data pipeline to a broker.
+
+---
+
+## 9. Required validation before implementation
+
+1. **Legal opinion (Nigerian capital-markets counsel):** whether holdings analytics, research summaries and tax computations without recommendations fall outside SEC digital advisory rules [S28]; the implications of ISA 2025; the open-banking participation route [S33].
+2. **Licensed tax practitioner review:** NTA 2025 individual provisions used by the engine (bands, rent relief, residency, share-gain exemption, foreign-income relief), filing authority and 2026–27 deadlines; indemnity and engagement terms for paid computations.
+3. **Data-protection registration assessment (NDPC-licensed consultant):** tier under GAID at each stage, Compliance Audit Return obligations, cross-border transfer rules for UAE users [S37].
+4. **UAE counsel (free-zone and onshore):** marketing to UAE residents, Category-4-type licensing thresholds, PDPL status, Open Finance TPP route [S25–S27][S45][S46].
+5. **Market-data licence quotes:** current NGX, DFM, ADX and US redistribution/internal-use terms to replace the 2018 schedule [S66].
+6. **Cohort experiment design (with Product and Behavioural Finance):** pre-registered metrics for Stage 1 (§4.6), consented synthetic-then-real data, and a pricing test with real payment collection, not surveys.
+7. **Cost benchmarking (Finance):** salary quotes in Lagos and Dubai; LLM token measurement from the actual prototype to replace the E5 usage profiles; payment-processor and FX leakage measured on real NGN and USD charges.
+8. **Independent check of this memo's weakest inputs:** willingness to pay, smartphone share, diaspora headcount, CAC — all E5/E4 — before any number here enters a pitch.
+
+---
+
+## 10. Sources
+
+Access dates: 2026-11-02 to 2026-11-04 unless stated. "Search summary" means the page was located by WebSearch but a direct fetch failed; such figures are graded E4 unless corroborated.
+
+**Market, regulators and official data**
+- [S1] EFInA, *Access to Financial Services in Nigeria (A2F) 2023 Survey Report*, 2024. https://a2f.ng/wp-content/uploads/2024/07/A2F-2023-SURVEY-REPORT-1.pdf (PDF read in full). E2.
+- [S2] National Pension Commission, *Q4 2025 Pension Industry Information Dashboard*, 2026. https://www.pencom.gov.ng/wp-content/uploads/2026/08/Final-PenCom-Q4-2025-Dashboard.pdf. E2.
+- [S3] Nairametrics, "GTI Group CEO: Only 10% of 6 million CSCS accounts are active", 7 Dec 2025. http://nairametrics.com/2025/12/07/gti-group-ceo-only-10-of-6-million-cscs-accounts-are-active/. E3.
+- [S4] ThisDay/allAfrica, "CSCS: Reshaping Nigeria's Capital Market Infrastructure for Development", 29 Sep 2026. https://allafrica.com/stories/202609290700.html (search summary; fetch 403). E4.
+- [S5] Nairametrics, "NGX: Retail investors boost trading with N2.33 trillion in 8 months", 7 Oct 2025. http://nairametrics.com/2025/10/07/ngx-retail-investors-boost-trading-with-n2-33-trillion-in-8-months/. E3.
+- [S6] The Guardian (Nigeria), "NGX targets 30 million retail investors to deepen liquidity", 2026. https://guardian.ng/business-services/ngx-targets-30-million-retail-investors-to-deepen-liquidity/ (search summary; fetch 503). E4.
+- [S7] Blueprint, "Nigeria: Safe-haven demand pushes mutual funds to N5.98trn in H1 2025", 21 Jul 2025. https://blueprint.ng/nigeria-safe-haven-demand-pushes-mutual-funds-to-n5-98trn-in-h1-2025/. E3.
+- [S8] Nairametrics, "Best performing money market funds in Nigeria as of April 2026", 12 May 2026. https://nairametrics.com/2026/05/12/best-performing-money-market-funds-in-nigeria-as-of-april-2026/. E3.
+- [S9] Nairametrics, "Best performing equity mutual funds in Nigeria as of September 2026", 9 Oct 2026. https://nairametrics.com/2026/10/09/best-performing-equity-mutual-funds-in-nigeria-as-of-september-2026/. E3.
+- [S10] KudiCompass, "Mutual Funds in Nigeria: Your Complete Guide", updated 4 Sep 2026. https://kudicompass.com/mutual-funds-nigeria-guide/. E4.
+- [S11] Techpoint Africa, "PiggyVest reports ₦1.3 trillion in payouts and over 6 million users in 2025", 3 Jan 2026. https://techpoint.africa/news/piggyvest-2025-payouts/. E3.
+- [S12] BusinessDay, "Top fintech apps powering Nigeria's investment boom", 19 Feb 2026. https://businessday.ng/technology/article/top-fintech-apps-powering-nigerias-investment-boom/. E3.
+- [S13] TechCabal, "From Bamboo to Trove: Where Nigerians are investing their money in 2025", 4 Oct 2025. https://techcabal.com/2025/10/04/investment-platforms-in-nigeria/ (search summary; fetch 403). E4.
+- [S14] BusinessDay, "Nigeria's smartphone ownership rises to 75%, reshaping digital economy", 25 Sep 2026. https://businessday.ng/news/article/nigerias-smartphone-ownership-rises-to-75-reshaping-digital-economy/. E3.
+- [S15] KPMG Nigeria, *Nigeria Smartphone Study*, Sep 2026. https://kpmg.com/ng/en/insights/2026/09/nigeria-smartphone-study.html. E3.
+- [S16] Techeconomy, "Nigeria's internet subscribers rise to 153.15 million in March 2026 — NCC data" and later NCC figures (search summary). https://techeconomy.ng/nigerias-internet-subscribers-rise-to-153-15-million-in-march-2026-ncc-data/. E3.
+- [S17] Vanguard, "Diaspora remittances stabilises at $21.8bn in 2025 amid global pressures", 19 May 2026 (CBN Q4 2025 bulletin). https://www.vanguardngr.com/2026/05/diaspora-remittances-stabilises-at-21-8bn-in-2025-amid-global-pressures/. E3.
+- [S18] Intelpoint, "Personal remittance inflows to Nigeria increased 3.0% ... $22.8 billion in 2025" (World Bank series), 2026. https://intelpoint.co/insights/personal-remittance-inflows-to-nigeria-increased-3-0-year-on-year-from-22-1-billion-in-2024-to-22-8-billion-in-2025/. E3.
+- [S19] Global Media Insight, "UAE Population Statistics 2026", 19 Oct 2026. https://www.globalmediainsight.com/blog/uae-population-statistics/. E4.
+- [S20] Wikipedia, "Nigerians in the United Arab Emirates" (citing Business Insider Africa, 25 Aug 2024). https://en.wikipedia.org/wiki/Nigerians_in_the_United_Arab_Emirates. E4.
+- [S21] Vanguard, "Full list: UAE imposes fresh travel conditions on Nigerians, bans transit visa", Jul 2025. https://www.vanguardngr.com/2025/07/full-list-uae-imposes-fresh-travel-conditions-on-nigerians-bans-transit-visa-others/ (search summary). E3.
+- [S22] Forbes Middle East, "The Middle East's Fintech 50 2026 — Sarwa". https://www.forbesmiddleeast.com/lists/the-middle-easts-fintech-50-2026/sarwa/. E3.
+- [S23] GlobeNewswire, "Sarwa Reaches $1B in Client Assets", 8 May 2026. https://www.globenewswire.com/news-release/2026/05/08/3291359/0/en/sarwa-reaches-1b-in-client-assets-a-first-for-a-homegrown-uae-fintech.html (search summary; fetch 403). E4.
+- [S24] Fintech News UAE, "6 Homegrown Robo-Advisory Platforms in the Middle East to Watch in 2026", 3 Feb 2026. https://fintechnews.ae/11321/abudhabi/robo-advisory-platforms-in-the-middle-east/. E3.
+- [S25] The National, "UAE's federal regulation of robo-advisory services aimed to protect retail investors", 4 Jul 2025. https://www.thenationalnews.com/business/money/2025/07/04/uae-investing-robo-advisory/. E3.
+- [S26] Wikipedia, "Capital Market Authority (United Arab Emirates)"; UAE Legislation portal entry for Federal Decree-Law No. 32 of 2025. https://en.wikipedia.org/wiki/Capital_Market_Authority_(United_Arab_Emirates); https://uaelegislation.gov.ae/en/legislations/4001. E3/E4.
+- [S27] Zitadelle AG, "DFSA Category 4 Licence 2026"; 10 Leaves, "DIFC Category 4 License" (commercial guides). https://www.zitadelleag.com/services/investment-licensing/dubai-dfsa-category-4; https://10leaves.ae/publications/difc/category-4-difc-investment-advisory-license-difc-license-categories. E4 (unverified against DFSA rulebook).
+- [S28] SEC Nigeria, *Rules on Robo-Advisory Services*, executed 30 Aug 2021 (PDF read). https://sec.gov.ng/documents/1292/Rules-on-Robo-Advisory-Services_Executed-30-August-2021.pdf. E2.
+- [S29] SEC Nigeria, "SEC Rules for FinTechs". https://home.sec.gov.ng/our-mandate/regulation/rules-and-regulations/sec-rules-for-fintechs/. E2.
+- [S30] SEC Nigeria, "Revised Minimum Capital (MC) for Regulated Capital Market Entities", circular published 16 Jan 2026. https://sec.gov.ng/for-investors/keep-track-of-circulars/revised-minimum-capital-mc-for-regulated-capital-market-entities/. E2.
+- [S31] SEC Nigeria, "Investment Adviser (Corporate) Registration Requirements", 22 May 2025. https://sec.gov.ng/about/resources/checklists/individual-registration-requirements-for-each-cmo/investment-adviser-corporate-registration-requirements/ (search summary). E2.
+- [S32] SEC Nigeria, "Robo Adviser Registration Requirements". https://sec.gov.ng/about/resources/checklists/individual-registration-requirements-for-each-cmo/robo-adviser-registration-requirements/. E2.
+- [S33] Legal500 / Syntegral Legal Practice, "Legal insights on the Central Bank of Nigeria open banking initiative", 16 Sep 2025. https://www.legal500.com/intelligence/nigeria/finance-and-banking/legal-insights-on-the-central-bank-of-nigeria-open-banking-initiative. E3.
+- [S34] Open Banking Nigeria, "Open banking in Nigeria" (updated Jul 2026) and "Has Nigeria's open banking conversation lost momentum?", 28 Oct 2025. https://openbanking.ng/open-banking-in-nigeria/; https://openbanking.ng/has-nigerias-open-banking-conversation-lost-momentum/. E3.
+- [S35] TechCrunch, "Flutterwave buys Nigeria's Mono in rare African fintech exit", 5 Jan 2026. https://techcrunch.com/2026/01/05/flutterwave-buys-nigerias-mono-in-rare-african-fintech-exit. E3.
+- [S36] Techlabari, "Nigerian open banking startup Okra quietly shut down in May 2025", 2 Jul 2025. https://techlabari.com/nigerian-open-banking-startup-okra-quietly-shut-in-may-2025/. E3.
+- [S37] Andersen Nigeria, "GAID 2025 takes effect: a new data privacy compliance era", 2025. https://ng.andersen.com/gaid-2025-takes-effect-a-new-data-privacy-compliance-era-for-nigeria-businesses/. E3.
+- [S38] FCCPC, "Digital Lending Rule: FCCPC goes after violators", 21 Jan 2026. https://fccpc.gov.ng/digital-lending-rule-fccpc-goes-after-violators/. E2.
+- [S39] Legal500 (orig. Mondaq), "Understanding Personal Income Tax under the Nigerian Tax Act 2025", 2025. https://www.legal500.com/intelligence/nigeria/tax/understanding-personal-income-tax-under-the-nigerian-tax-act-2025. E3.
+- [S40] Tope Adebayo LP, *Nigeria Tax Act 2025: An Outlook of Income and Profit Taxation*, Jul 2025 (PDF read). https://topeadebayolp.com/wp-content/uploads/2025/07/Nigeria-Tax-Act-2025.pdf. E3.
+- [S41] EY, "Nigeria Tax Act, 2025 has been signed — highlights", 2025. https://www.ey.com/en_gl/technical/tax-alerts/nigeria-tax-act-2025-has-been-signed-highlights (search summary). E3.
+- [S42] FCT-IRS / Joint Revenue Board / Nigeria Revenue Service, "Nigerian Tax ID Portal goes live effective January 1, 2026". https://fctirs.gov.ng/nigerian-tax-id-portal-goes-live/. E2.
+- [S43] TechCabal, "How to file tax on the LIRS eTax portal", 2 Apr 2026. https://techcabal.com/2026/04/02/how-to-file-tax-on-the-lirs-etax-portal/ (search summary). E4.
+- [S44] UAE Government portal, "Taxation". https://u.ae/en/information-and-services/finance-and-investment/taxation. E2.
+- [S45] Morgan Lewis, "UAE establishes federal authority for artificial intelligence and data", Jun 2026. https://www.morganlewis.com/pubs/2026/06/uae-establishes-federal-authority-for-artificial-intelligence-and-data (search summary). E3.
+- [S46] Gulf Business, "Commercial Bank of Dubai becomes UAE's first bank live on Open Finance", Dec 2025; Gulf Today, "Pay10, FAB go live with UAE Open Finance plan", 30 Dec 2025. https://gulfbusiness.com/en/2025/finance/commercial-bank-of-dubai-becomes-uaes-first-bank-live-on-open-finance/; https://www.gulftoday.ae/business/2025/12/30/pay10-fab-go-live-with-uae-open-finance-plan (search summaries). E3.
+- [S47] Trading Economics, "Nigeria Inflation Rate" (NBS data; September 2026 = 14.63%). https://tradingeconomics.com/nigeria/inflation-cpi. E3.
+- [S48] Trading Economics, "Nigeria Interest Rate" (MPR 23% from 22 Sep 2026); ThisDay, "The CBN's rate reset", Oct 2026. https://tradingeconomics.com/nigeria/interest-rate; https://www.thisdaylive.com/2026/10/19/%C2%B7-the-cbns-rate-reset/. E3.
+- [S49] Nigerian Tribune, "Naira appreciates against dollar at official FX market" (NFEM ₦1,346.00, 30 Oct 2026; parallel ₦1,382/1,388). https://tribuneonlineng.com/naira-appreciates-against-dollar-at-official-fx-market-12/. E3.
+- [S50] World Factbooks (World Bank WDI 2025: GDP $290.79bn; $1,224 per capita; population 237.5m). https://www.worldfactbooks.com/country/nigeria/ (search summary). E4.
+- [S51] Techeconomy, "NIBSS: digital payment fraud drops 51% to ₦25.85bn in 2025", 2 Jun 2026. https://techeconomy.ng/nibss-digital-payment-fraud-drops-51-to-25-85b-in-2025. E3.
+- [S52] Partech, *2025 Africa Tech Venture Capital Report* (PDF read) and press release, 22 Jan 2026. https://partech-admin.prod.unomena.io/media/documents/2025_Partech-Africa-Tech-VC-Report.pdf; https://partechpartners.com/news/2025-partech-africa-tech-vc-report-african-tech-funding-rebounds-to-us41b-driven-by-record-debt-activity-and-disciplined-equity-growth. E3.
+
+**Companies, pricing and comparables**
+- [S53] Sacra, "Monarch at $100M ARR", 5 Oct 2026 (analyst estimates). https://sacra.com/research/monarch-money-at-100m-arr/. E4.
+- [S54] Tech Funding News, "Personal finance app Monarch rises with $75M at $850M valuation after Mint's meltdown", 26 May 2025. https://techfundingnews.com/personal-finance-app-monarch-rises-with-75m-after-mints-meltdown-a-soonicorn-on-cards/. E3.
+- [S55] Monarch, pricing page ($14.99/month; $99.99/year). https://www.monarch.com/pricing. E3.
+- [S56] YNAB, pricing page ($14.99/month; $109/year; 34-day trial). https://www.ynab.com/pricing. E3.
+- [S57] Kubera, home/pricing (Essentials $250/yr; Black $2,500/yr). https://www.kubera.com/. E3.
+- [S58] Cleo, *2025 Annual Report* (fetch 403); Sacra, "Cleo at $150M ARR"; ARR Club, "Cleo ARR hits $250M" (search summaries). https://web.meetcleo.com/2025-annual-report; https://sacra.com/research/cleo-at-150m-arr/. E4.
+- [S59] The Motley Fool, "The Largest Robo-Advisors by AUM, Users, and Returns", updated 12 Feb 2026 (Form ADV data). https://www.fool.com/money/research/largest-robo-advisors/. E3.
+- [S60] Forbes, "Fintech robo-advisor Wealthfront gets a tepid Wall Street reception for its IPO", 12 Dec 2025 (search summary; fetch 403). https://www.forbes.com/sites/jeffkauflin/2025/12/12/fintech-robo-advisor-wealthfront-gets-a-tepid-wall-street-reception-for-its-ipo/. E4.
+- [S61] RevenueCat, *State of Subscription Apps 2026*. https://revenuecat.com/report. E3.
+- [S62] Sensor Tower, "Top 5 Personal Finance Apps on Android in Nigeria, Q3 2025", Sep 2025 (vendor estimates). https://sensortower.com/blog/2025-q3-android-top-5-personal%20finance%20budgeting%20and%20planning-revenue-ng-63e363f0e1714cfff1979caa. E3.
+- [S63] Paystack, "Transactions pricing" (support article; search summary) — 1.5% + ₦100 capped ₦2,000; international 3.9% + ₦100. https://support.paystack.com/hc/en-us/articles/360009881920. E3.
+- [S64] Flutterwave Nigeria pricing as reported by comparison sites (2.0% local; 4.8% international) — unverified. E4.
+- [S65] EODHD, pricing page. https://eodhd.com/pricing. E3.
+- [S66] The Nigerian Stock Exchange, *Schedule 4 — Market Data Pricelist 2018* (PDF read; dated). https://doclib.ngxgroup.com/market_data-site/market-data-services-site/Data%20Policies/NSE%20Market%20Data%20Pricelist%202018.pdf. E3 (stale).
+- [S67] Anthropic Claude API pricing table (skill reference cached 2026-10-06): Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 per MTok; cache reads ~10%; batch −50%. E3.
+- [S68] TheCable, "After years of suspension, Nigerian banks resume international transactions on naira cards", 2025 (search summary; fetch 403). https://www.thecable.ng/after-years-of-suspension-nigerian-banks-resume-international-transactions-on-naira-cards/. E4.
+- [S69] Techloy / TheCondia on Netflix (₦8,500 Premium, 2025), Spotify (₦1,300, Nov 2024) and Apple Music (₦1,300) Nigerian prices (search summaries). https://thecondia.com/netflix-raises-prices-in-nigeria-2025/; https://www.techloy.com/apple-music-raises-subscription-prices-in-nigeria-by-30-percent/. E3.
+- [S70] BusinessDay, "Kuda cuts losses to $5.8m as fintech shifts focus to profitability", 14 Jan 2026. https://businessday.ng/technology/article/breaking-kuda-cuts-losses-to-5-8m-as-fintech-shifts-focus-to-profitability/. E3.
+- [S71] Nairametrics, "Kuda lays off hundreds of staff across departments", 27 Mar 2026 (search summary). https://nairametrics.com/2026/03/27/kuda-lays-off-hundreds-of-staff-across-departments-in-restructuring-move/. E3.
+- [S72] TechCabal, "Bento 'temporarily' shuts down after rehiring staff to handle backlog", 10 Feb 2025. https://techcabal.com/2025/02/10/bento-africa-temporarily-shut-down/ (search summary). E3.
+- [S73] CB Insights / Techpoint, Earnipay layoffs and pivot to business lending, Apr 2025 (search summary). https://www.cbinsights.com/company/earnipay. E4.
+- [S74] LaunchBase Africa and others, "LemFi raises $53m Series B", Jan 2025. https://launchbaseafrica.com/2025/01/14/lemfi-led-by-opay-alumni-raises-53m-in-series-b-to-tap-into-booming-remittance-market. E3.
+- [S75] Y Combinator, "The YC Deal". https://www.ycombinator.com/deal. E2.
+- [S76] Hub71 Access programme as described by commercial guides (official page returned 404). https://gulfpitch.com/programs/hub71/. E4.
+- [S77] Henley & Partners, *Africa Wealth Report 2025*. https://www.henleyglobal.com/publications/africa-wealth-report-2025/millionaire-momentum-powers-africas-rise. E3.
+- [S78] The Guardian (Nigeria), "How much to be considered rich in Nigeria?" (citing SEID Consumer Outlook), 2025 (search summary). https://guardian.ng/nigerian/how-much-to-be-considered-rich-in-nigeria/. E4.
+- [S79] CNBC Africa (Reuters), "Dangote refinery IPO draws three times target demand, sources say", 28 Oct 2026. https://www.cnbcafrica.com/2026/dangote-refinery-ipo-draws-three-times-target-demand-sources-say. E3.
+- [S80] Legit.ng, "Dangote Refinery closes $1.6bn IPO as investors from 119 countries rush for shares", 29 Oct 2026. https://www.legit.ng/business-economy/capital-market/1738555-dangote-refinery-closes-16bn-ipo-investors-119-countries-rush-shares/. E3.
+- [S81] Technext, "WhatsApp fintech Xara crosses ₦10 billion transaction milestone in first year", 5 Jun 2026 (search summary). https://technext24.com/2026/06/05/whatsapp-xara-crosses-%e2%82%a610-b-transaction/. E4.
+- [S82] Techpoint Africa, Xara founder profile (bootstrapped), 2025–26 (search summary). https://techpoint.africa/feature/nigerian-xara-founder-xai-offer/. E4.
+- [S83] Payscale, Life Indexed, Plane and Indeed UAE salary pages for software engineers (search summaries; wide ranges). https://www.payscale.com/research/NG/Job=Software_Engineer/Salary; https://plane.com/salaries/software-engineer/nigeria; https://ae.indeed.com/career/software-engineer/salaries/Remote. E4.
+- [S84] TheCable, "Registry of participants, customers' consent… CBN issues guidelines for open banking", 2023 (search summary; fetch 403). https://www.thecable.ng/registry-of-participants-customers-consent-cbn-issues-guidelines-for-open-banking/. E4.
+- [S85] Digital Policy Alert; Legal500/Balogun Harold on GAID 2025 DCPMI tiers and Schedule 10 fees (search summaries). https://digitalpolicyalert.org/change/13818-registration-as-a-data-controller-or-data-processor-of-major-importance-requirement-in-nigeria-data-protection-act-2023-general-application-and-implementation-directive-2025-ndpcndp-act-gaid012025. E4.
+
+**Academic references (checked against Crossref by DOI on 2026-11-02; OpenAlex/arXiv lookup tools unavailable)**
+- [A1] D'Acunto, F., Prabhala, N. & Rossi, A. G. (2019). "The Promises and Pitfalls of Robo-Advising". *Review of Financial Studies*. https://doi.org/10.1093/rfs/hhz014 **[verified]**.
+- [A2] Fernandes, D., Lynch, J. G. & Netemeyer, R. G. (2014). "Financial Literacy, Financial Education, and Downstream Financial Behaviors". *Management Science*. https://doi.org/10.1287/mnsc.2013.1849 **[verified]**.
+- [A3] Kaiser, T., Lusardi, A., Menkhoff, L. & Urban, C. (2022). "Financial education affects financial knowledge and downstream behaviors". *Journal of Financial Economics*. https://doi.org/10.1016/j.jfineco.2021.09.022 **[verified]**.
+- [A4] Mertens, S., Herberz, M., Hahnel, U. J. J. & Brosch, T. (2021/2022). "The effectiveness of nudging: A meta-analysis of choice architecture interventions across behavioral domains". *PNAS*. https://doi.org/10.1073/pnas.2107346118 **[verified]** (correction: 10.1073/pnas.2204059119).
+- [A5] Maier, M., Bartoš, F., Stanley, T. D., Shanks, D. R., Harris, A. J. L. & Wagenmakers, E.-J. (2022). "No evidence for nudging after adjusting for publication bias". *PNAS*. https://doi.org/10.1073/pnas.2200300119 **[verified]**.
+- [A6] Gargano, A. & Rossi, A. G. (2024). "Goal Setting and Saving in the FinTech Era". *Journal of Finance*. https://doi.org/10.1111/jofi.13339 **[verified]**.
+- [A7] Reher, M. & Sokolinski, S. (2024). "Robo advisors and access to wealth management". *Journal of Financial Economics*. https://doi.org/10.1016/j.jfineco.2024.103829 **[verified]**.
+- [A8] Karlan, D., McConnell, M., Mullainathan, S. & Zinman, J. "Getting to the Top of Mind: How Reminders Increase Saving". Working paper 2010, https://doi.org/10.2139/ssrn.1652784 **[partially verified: Crossref matched the working paper; the *Management Science* 2016 journal version was not retrieved]**.
+- [A9] Rossi, A. G. & Utkus, S. P. (2020). "Who Benefits from Robo-advising? Evidence from Machine Learning". SSRN working paper. https://doi.org/10.2139/ssrn.3552671 **[verified as working paper]**.
+- [A10] Levi, Y. & Benartzi, S. (2026). "Mind the App: Mobile Access to Financial Information and Consumer Behavior". *Journal of Finance*. https://doi.org/10.1111/jofi.70087 **[verified]**.
+
+*Calculation scripts:* `model.py` and `model2.py` (Python 3, no external dependencies) were run on 2026-11-02; inputs and outputs are reproduced in §4.2 and §4.4. Reviewers can re-run them by copying the assumptions listed there.

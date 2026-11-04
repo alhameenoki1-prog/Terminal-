@@ -369,3 +369,113 @@ sequenceDiagram
 | **ADR-7** Claude API via tool use + strict schemas + structured outputs; Sonnet 5.5 default, Opus 5.5 escalation, Haiku 5.5 batch; local Apache-2.0 models for quarantined extraction | Groq-hosted Llama (repository): prompt stuffing, no tool discipline; OpenAI/Gemini (not evaluated here); local-only (quality unmeasured) | Vendor dependency bounded by a provider adapter and the eval harness; privacy posture documented (F16) |
 | **ADR-8** Document ingestion: deterministic parsers first (pdfplumber, Camelot), Docling for layout/OCR, LLM extraction only as a quarantined proposer validated by reconciliation; PyMuPDF excluded unless commercially licensed | Commercial parsing APIs (data leaves device; cost); OCR-only pipelines | Permissive licences throughout; every extracted row traceable to page/bbox |
 | **ADR-9** Validation-first promotion of data (Pydantic schemas, pandera dataframe checks; Great Expectations later if needed) | Trust-then-correct | Exceptions queue is a first-class UI surface, not an afterthought |
+
+### 4.9 Testing strategy
+
+| Layer | What is tested | How | Gate |
+|---|---|---|---|
+| Ledger invariants | Zero-sum per currency; append-only (no UPDATE/DELETE on postings — enforced by DB rules and tested); idempotent import under replay; lot quantities never negative under STRICT booking; FX conversion path reproducibility | Property-based tests with Hypothesis [S75, S76]; database constraint tests | Mandatory in CI |
+| Calculations | TWRR/MWRR, drawdown, volatility, VaR/CVaR, concentration, tax computations | Golden datasets with hand-computed answers; cross-check oracles (empyrical-reloaded, quantstats, skfolio) with documented tolerance; tax goldens reviewed by a licensed practitioner | Mandatory |
+| Reconciliation | Statement closing balance = ledger balance; candidate duplicates | Fixture statements per institution (synthetic, founder-provided samples redacted); precision/recall thresholds | Mandatory per institution before enabling |
+| Model validation | Monte Carlo moments vs analytic GBM; GARCH unconditional variance; seeded determinism; Student-t scaling | Statistical tests with fixed seeds | Mandatory for module 8 |
+| AI | Golden Q&A, fidelity gate, refusals, injection suite | promptfoo/Inspect runs on every prompt/model change | Fabricated-number rate = 0 |
+| End-to-end | Upload → validate → ledger → dashboard → AI answer on synthetic data | Playwright; accessibility checks | Release gate |
+| CI | ruff, mypy (strict), pytest with coverage ≥ 85% on modules 1–3 and 8–10, migrations up/down, pip-audit/npm audit, Trivy, SBOM, licence allow-list | GitHub Actions on every PR | Required checks |
+
+### 4.10 Build / reuse / buy matrix and the "do not attempt yet" list (Part F)
+
+| Capability | Decision | Reason / precondition |
+|---|---|---|
+| Ledger core, provenance, validation rules | **Build** | Differentiating; no permissive library implements it; Beancount semantics as spec |
+| Statement parsing | **Reuse libraries + build validation** | pdfplumber/Camelot/Docling (permissive); institution adapters are ours |
+| Categorisation | **Build** rules engine (Actual's design) → **reuse** scikit-learn later | Needs labelled data first; E5 until measured |
+| Market/FX data | **Reuse** free official sources (CBN, SEC EDGAR, FRED); **buy** licensed NGX/DFM/ADX feeds when more than personal use | yfinance personal-use only (F8); vendor contracts needed for redistribution |
+| Portfolio optimisation, risk statistics | **Reuse** skfolio/Riskfolio/cvxpy/arch; own thin wrappers with golden tests | Mature BSD/Apache libraries; keep oracles for cross-checks |
+| Monte Carlo / scenarios | **Build** in Python (reference: repository code, defects fixed) | Needs seeds, estimation (arch), reproducibility |
+| Tax engine | **Build** rule sets with effective dates; **licensed practitioner review** | 2025 Nigerian reform (status unverified here) makes rule versioning essential |
+| Identity | **Reuse** py_webauthn / Authelia now; Keycloak for SaaS | Never custom password auth |
+| Secrets/keys | **Reuse** SOPS + age now; OpenBao/KMS later | BUSL Vault avoided |
+| Bank aggregation | **Buy later** (Mono, Lean) | Licensing/registration (F7); statement upload first |
+| Charts/grids | **Reuse** lightweight-charts (attribution), ECharts/Recharts, TanStack Table | Permissive |
+| Eval/observability | **Reuse** promptfoo/Inspect, Langfuse (optional), structlog/OpenTelemetry | Permissive |
+
+**Do not attempt yet:** real-time market data (licensing, cost, no decision needs it); bank-API aggregation at scale (registry/licence regimes; aggregator churn); automated tax filing (legal permission, liability, professional review first); multi-tenant SaaS (needs the security review, DPIA and legal entity); custom ML categorisation before rules + ≥5,000 labelled rows; microservices; TimescaleDB; a mobile app; our own OCR models; using Fable 5.1 for statement data (retention terms).
+
+### 4.11 Critique of the repository and migration note (Part G)
+
+**Salvageable:** the Tailwind theme tokens and dark terminal aesthetic; `react-resizable-panels` layout, `useBreakpoint`, `useKeyboardShortcuts`; the general panel/tab composition; the lightweight-charts wrapper pattern. **Reference only:** `MonteCarloPanel.tsx` model structure (defects in F28). **Do not port:** all `services/*` (unofficial endpoints, no provenance), `useStore.ts` persistence of secrets, `chatService.ts`/`ChatPanel.tsx` prompt stuffing, `countryProfiles.ts` constants, the Vite dev proxies as a data path. **Migration note:** start a new repository (or a `portfolio-os/` monorepo root with `backend/`, `frontend/`, `docs/`), keep `docs/portfolio-os/` as the research record, move NEXUS to a `legacy/` branch, port the theme into a design-token file, upgrade to React 19/Vite 8, and write the first ledger invariant tests before any UI.
+
+### 4.12 Worked examples (synthetic data)
+
+**(a) FX-chained transfer as balanced postings.** 10,000.00 AED sent from a UAE account, 25.00 AED fee, converted at 3.6725 AED/USD (illustrative peg rate) and 1,500.00 NGN/USD (illustrative NFEM-style rate; not a real quote):
+
+| Posting | Account | Amount | Currency | Price / cost annotation | Provenance |
+|---|---|---|---|---|---|
+| 1 | Assets:UAE:Bank-AED | −10,025.00 | AED | — | statement doc #… p.3 |
+| 2 | Expenses:Fees:Transfer | 25.00 | AED | — | same |
+| 3 | Assets:Transit:USD | 2,722.94 | USD | @ 3.6725 AED (prov: CBUAE rate, as_of …) | fx_rate #… |
+| 4 | Assets:Transit:USD | −2,722.94 | USD | @ 1,500.00 NGN (prov: CBN NFEM, as_of …) | fx_rate #… |
+| 5 | Assets:NG:Bank-NGN | 4,084,410.00 | NGN | — | statement doc #… |
+
+Computed with `Decimal` (prec 28, `ROUND_HALF_EVEN`): per-currency sums are exactly 0.00 in AED, USD and NGN; the USD rounding residual (0.000776… USD) is recorded as metadata on posting 3, not dropped. Weights: posting 3's weight is 2,722.94 × 3.6725 = 10,000.00 AED, balancing posting 1 + 2; posting 4's weight is 4,084,410.00 NGN, balancing posting 5.
+
+**(b) AI cost.** 300 questions/month × (20,000 input + 2,000 output tokens): Haiku 5.5 $0.90; Sonnet 5.5 $18.00 (≈ $10.02 with 70% cache hits at $0.10/MTok); Opus 5.5 $36.00 (≈ $20.04); Fable 5.1 $90.00 (≈ $49.05). Statement extraction (30k in / 5k out) via Batch: Haiku 5.5 ≈ $0.0027, Sonnet 5.5 ≈ $0.055 per statement. Prices from [S51]; arithmetic reproducible from these inputs.
+
+**(c) Numeric-fidelity gate smoke test.** Tool results: `max_drawdown = −0.2345 (as_of 2026-10-31)`, `twrr_1y = 0.0812`, `ngn_exposure_pct = 0.4167`. Answer A: "Your 1-year TWRR is 8.12% (as of 2026-10-31) and the max drawdown was −23.45%; NGN exposure is 41.67%." Answer B adds "you should expect 12% next year". A naïve regex gate returned `['10','31']` for A (date fragments — a false positive) and `['12%']` for B (a correct catch). Specification consequence: mask ISO dates/years/identifiers before extraction; treat percentages as fractions; match with tolerance; log both verdicts.
+
+## 5. Alternatives considered and rejected
+
+| Alternative | Why rejected (for now) |
+|---|---|
+| Adopt Ghostfolio/Firefly/Wealthfolio as the base | AGPL-3.0 conflicts with System I; float money (Ghostfolio); budgeting-centric models; none has NGX/UAE data or a validated-figure AI layer (F1, F2, F5) |
+| Beancount as the embedded ledger engine | GPL-2.0-only linking risk; text-file workflow unsuited to a multi-user product; but keep as export format and semantic reference (F4) |
+| TypeScript-only stack | Loses the Python methodology ecosystem (F9); the frontend engineer's objection is preserved in §7 |
+| Microservices from day one | Premium without benefit at one user; boundaries unknown [S87] |
+| Prompt-stuffing LLM (repository approach) | Cannot prevent fabricated or stale figures (F13, F26) |
+| Anthropic Citations as the sole provenance mechanism | Incompatible with structured outputs [S54]; used only in a secondary text pass |
+| TimescaleDB / Redis / Celery in the personal deployment | Unneeded complexity; TSL constraints for a later hosted service (ADR-3, ADR-4) |
+| Real-time feeds, bank APIs, automated filing | See "do not attempt yet" (§4.10) |
+
+## 6. Cross-department dependencies
+
+**We need:** System A — the canonical account taxonomy, transfer/income rules and reconciliation tolerances; a list of the founder's institutions and sample statements (redacted) to size the ingestion module. System B — pre-registered behavioural metric definitions with evidence grades (we will not implement an unmeasurable metric). System C — approved data sources per market with licence terms, and the FX source hierarchy (CBN NFEM, CBUAE, ECB/Fed). System D — formula specifications and reference values for performance/risk metrics and the optimisation method list. Systems E–F — scenario assumption schemas and the rule that outputs are ranges. Doc 6 — confirmation of NDPA commencement and GAID effective dates, UAE PDPL Executive Regulations status, the 2025 Nigerian tax Acts' effective dates, retention periods, lawful-basis analysis for personal versus SaaS use, counsel's view on GPL linking and on cross-border model inference. System I — whether a hosted tier is a near-term goal (drives ADR-3/ADR-6 details).
+
+**Others need from us:** the `Figure`/provenance schema (all teams); the module interface list (§4.3); the eval-harness format for golden Q&A (System H, D, G); the security requirements for any data vendor (System C); cost envelopes for AI usage (System I).
+
+## 7. Risks, open uncertainties and disagreements
+
+1. **Local-first vs hosted (unresolved).** Privacy engineer: data should never leave the founder's machine; prefer a Tauri/SQLCipher desktop build and local models. AI engineer and architect: hosted Claude models give measurably better tool discipline and the personal Compose deployment already keeps raw data local, sending only validated aggregates. *Resolution path:* run the eval harness on a local model for the extraction role; if fabricated-number rate is 0 and extraction F1 ≥ hosted − 2 pts, make local the default for extraction. The ledger design is identical in both cases.
+2. **TypeScript-only vs Python backend (unresolved).** Frontend engineer: one language, shared types, faster iteration for a solo founder. Backend/quant engineers: library gravity (F9). *Resolution path:* a two-week spike implementing TWRR, HRP and statement parsing in both stacks against the golden tests; decide on defect count and lines of code.
+3. **Licence exposure.** Mixed licences inside OpenBB (F2) and model licences (F18) can creep in through transitive dependencies; mitigated by the CI licence allow-list, but counsel must confirm the GPL linking position.
+4. **Regulatory facts unverified in this session:** GAID effective date, UAE Executive Regulations, Nigerian open-banking go-live, CBUAE Open Finance Regulation text, Nigeria Tax Act 2025 commencement — all flagged for Doc 6.
+5. **Statement formats unknown.** If the founder's banks provide only image PDFs, OCR quality becomes the critical path; mitigated by Docling plus human review, but effort estimates are uncertain by a factor of two.
+6. **Vendor change risk (Anthropic API).** Model IDs, prices and retention terms changed within 2025–2026 (F14–F16); mitigated by the provider adapter, pinned IDs, and re-running the eval harness on each migration.
+7. **Over-engineering risk.** Thirteen modules for one user can become ceremony; mitigated by the Personal-MVP ranking in §8 (only modules 1–4, 8, 11–13 in the first release).
+
+## 8. Recommendations, ranked
+
+| Rank | Recommendation | Class |
+|---|---|---|
+| 1 | Build the append-only decimal ledger with provenance and bitemporal dating first (modules 1, 3, 13 skeleton), with Hypothesis invariants before any UI | Personal-MVP must-have |
+| 2 | Statement ingestion for the founder's actual institutions via deterministic parsers + exceptions queue; LLM extraction only as a quarantined proposer | Personal-MVP must-have |
+| 3 | AI layer as tool-use with strict schemas and the numeric-fidelity gate; Sonnet 5.5 default; eval harness in CI from day one | Personal-MVP must-have |
+| 4 | Compose deployment with passkeys, envelope encryption, SOPS/age secrets, encrypted backups and a restore drill; security review checklist (§4.7) before loading real data | Personal-MVP must-have |
+| 5 | Analytics and risk modules (4, 8) with golden tests; rebuilt Monte Carlo with seeds and estimated parameters | Personal-MVP must-have |
+| 6 | Portfolio optimisation alternatives (7) via skfolio with uncertainty reporting | Later |
+| 7 | Tax computations (10) with versioned rule sets and practitioner review | Later (after Doc 6 confirms current law) |
+| 8 | Behavioural metrics (5) only after System B pre-registers definitions | Later |
+| 9 | Licensed NGX/DFM/ADX feeds and aggregator integration (Mono/Lean) | Later (precondition: multi-user intent, contracts) |
+| 10 | Multi-tenant SaaS, real-time data, automated filing, microservices | Do-not-build (yet) |
+
+Five-question test for ranks 1–3: see Table 4.1 (rows 3, 4 and 2 respectively); rank 4 answers (1) protects the most sensitive asset class the founder owns, (2) founder now and every future customer, (3) NIST/OWASP standards and documented breach-notification duties [S88, S89, S98], (4) checklist-driven review with drills, (5) zero critical findings and a successful restore.
+
+## 9. Required validation before implementation
+
+1. Founder confirms institutions, statement formats, markets held, and whether any hosted tier is planned within 12 months.
+2. System A signs off the posting model (§4.2) against at least ten real-world edge cases (reversals, multi-leg FX, fees in a third currency, dividends with withholding, opening balances).
+3. Golden datasets delivered by Systems A/D for ledger and risk metrics; tolerances agreed.
+4. Two-week dual-stack spike (§7.2) if the TypeScript-only objection is maintained.
+5. Local-model extraction evaluation on ≥50 synthetic statements (hosted vs local), reported with the harness.
+6. Counsel/Doc 6 review of: AGPL/GPL reuse boundaries; NDPA/PDPL obligations for personal use and for SaaS; cross-border inference; retention periods; tax-law effective dates.
+7. Security review (§4.7 checklist) executed on the Compose deployment with synthetic data before any real statement is uploaded.
+8. Re-verification of model IDs, prices and data-retention terms on the implementation start date (they were checked on 2026-11-02 and are time-sensitive).
