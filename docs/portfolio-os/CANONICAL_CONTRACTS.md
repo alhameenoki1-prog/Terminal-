@@ -1,7 +1,7 @@
 ```
 Document: Canonical Contracts (C1–C7)
 Department: Architecture and Accounting  ·  Lead role(s): principal architect; chief accounting officer; data-quality lead (all simulated, none licensed)
-Version: 0.1 draft  ·  Date: 2026-11-04  ·  Status: for cross-department review
+Version: 0.2  ·  Date: 2026-11-04 (v0.1 2026-11-04)  ·  Status: revised to resolve errata CC-1–CC-12
 Reviewers required: owners of Docs 4, 5a, 5b, 5c, 6, 7 and 8; a licensed Nigerian tax practitioner (C1 cost basis, C7); a chartered accountant (C1, C5)
 ```
 
@@ -18,13 +18,17 @@ Reviewers found that the department documents define the ledger, figure integrit
 - **C6 Goals.** The bootstrap is demeaned. Drift comes from a labelled capital-market-assumption overlay. The headline is a predictive count ("about 30 of 100"), shown with quantiles, the adjustment needed and drift sensitivity.
 - **C7 Tax rules.** Statuses run draft → sourced → reviewed-internal → practitioner-confirmed, with superseded and retired as end states. Draft rules never compute. Any output below practitioner-confirmed carries a watermark. Gains are assessed in the year after disposal (NTA s.26(3)).
 
+**v0.2 changes (errata CC-1 to CC-12; full table in "Errata resolution (v0.2)").** No contract is loosened. `superseded_at` is derived in a view, so soft state is strictly insert-only (C1). Doc 3's behavioural sentences enter the AI output as registered template segments whose slots the model cannot write (C2). Pending corporate actions, filing-calendar freshness, a sampling floor for low-cadence series and a once-per-table "auto-checked" chip are specified (C3). Auto-apply needs 35 error-free confirmations in a defined stratum, and sensitive tags always go to review (C4). Trades enter the FX decomposition as internal, with commissions as an investing-cost flow (C5). Drift includes devaluation jumps, and history-estimated drift is never a default (C6). Monitors get their own rule class, which never uses a draft rule's parameters. The investment-income basis period, an unsourced assumption, becomes a draft limb, so Example 1's YOA 2026 figures are refused. The C7 example is rebuilt to show those refusals (C7).
+
 **Biggest uncertainty.** The tax treatment of foreign-currency holdings: whether each foreign-currency spend is a disposal under NTA s.34(1)(b), which cost method applies, and which "official market rate" applies. These shape C1's lot engine and need a licensed practitioner.
 
 ## 2. Scope and method
 
-**Read:** Context brief; REVISION_LOG (V-003, V-004, V-008, V-010, V-011, V-017, V-018, V-019); Doc 4 §4.2–4.6; Doc 6 §3A, §4.1–4.3, §4.8; Doc 7 §4.2, §4.6, §4.8, §4.12; Doc 5c §4.1.4, §4.3, §4.4; Doc 5a §4.10 (status fields); Doc 5b §4.7, §4.9, §4.11; Doc 8 §4.1, §4.6; reviews R04, R05b, R05c, R06, R07, R08.
+**Read for v0.2:** REVISION_LOG errata CC-1 to CC-12; §11 "Revision history and response to review" of Docs 3, 4, 5a, 5b, 5c, 6, 7 and 8 (all v0.2), and the sections each cites (Doc 3 §4.0, §4.4, §4.10; Doc 4 §4.3.1, §4.6; Doc 5a §4.10; Doc 5c §4.3.2–4.3.4; Doc 6 F11, §4.2, §4.8 Ex. 1; Doc 7 §4.2 rule 3, §4.6; Doc 8 §4.1, §4.6). No new legal or web reading was done.
 
-**Checked:** `git log` dates the repo's `cbRate` file (commit d9ad9d5) to 2026-03-02. Selinger's tutorial on trading accounts was fetched on 2026-11-04 [1]. Every worked example below is reproduced by `research/scripts/contracts_checks.py` (standard library only; `python3 -I`; `Decimal`/`Fraction` for all money and rates). The outputs shown are verbatim.
+**Read for v0.1:** Context brief; REVISION_LOG (V-003, V-004, V-008, V-010, V-011, V-017, V-018, V-019); Doc 4 §4.2–4.6; Doc 6 §3A, §4.1–4.3, §4.8; Doc 7 §4.2, §4.6, §4.8, §4.12; Doc 5c §4.1.4, §4.3, §4.4; Doc 5a §4.10 (status fields); Doc 5b §4.7, §4.9, §4.11; Doc 8 §4.1, §4.6; reviews R04, R05b, R05c, R06, R07, R08.
+
+**Checked:** `git log` dates the repo's `cbRate` file (commit d9ad9d5) to 2026-03-02. Selinger's tutorial on trading accounts was fetched on 2026-11-04 [1]. Every worked example below is reproduced by `research/scripts/contracts_checks.py` (standard library only; `python3 -I`; `Decimal`/`Fraction` for all money and rates). The outputs shown are verbatim. In v0.2 the script keeps every v0.1 output line of C1–C6 unchanged and appends new lines. The C7 run lines are rebuilt (CC-5).
 
 **Not done:** No new legal reading. Tax and regulatory positions rest on Doc 6 and R06 and are flagged where a practitioner is needed. Evidence grade for the contracts themselves: **E4/E5** (design decisions, to be tested by the invariants listed). Normative words: MUST, MUST NOT, MAY. Invariant IDs (e.g. `C1-I3`) are test names.
 
@@ -75,8 +79,8 @@ Replace the three posting models (Doc 4 signed amount + base amount; Doc 6 `acco
 | `posting` | entry_id, seq, account_id, commodity_id, quantity, lot_id, cost_total, cost_commodity_id, evidence_id | Weight = (cost_commodity, sign(quantity) × cost_total) if `cost_total` is set; otherwise (commodity, quantity) |
 | `exchange` | entry_id, given_commodity, given_qty, received_commodity, received_qty, implied_num, implied_den, conversion_on, dealer_rate, dealer_rate_source, reference_rate_id, match_id | Written only for a confirmed match (C4) |
 | `lot` | id, commodity_id, owner_id, opened_entry_id, acquired_on, quantity_open, cost_total, cost_commodity_id, tax_cost_ngn, tax_rate_id, method_version | Relief preserves cost exactly (`C1-I8`) |
-| `classification` | id, entry_id, category_id, counterparty_id, kind, confidence, producer, rule_id, valid_from, recorded_at, superseded_at, actor | Bitemporal soft state; never touches `posting` |
-| `match` | id, out_entry_id, in_entry_id, posterior, status (`proposed`/`confirmed`/`rejected`), residual_test, confirmed_by, recorded_at | Feeds C4 |
+| `classification` | id, entry_id, lineage_key, kind, category_id, counterparty_id, income_stream_id, pay_period_start, pay_period_end, sensitivity_tags[], confidence, producer, rule_id, valid_from, recorded_at, actor | Bitemporal soft state. Insert-only; `superseded_at` is derived, not stored (C1.7; v0.2, CC-1). `lineage_key` = (entry_id, kind). `pay_period_*` is required on employment and pension income where the source states it (WPS, payslip), otherwise NULL with reason `not_stated` (Doc 4 W13; v0.2, CC-7); its first assignment is tax-weighted (C4). `income_stream_id` points to Doc 4's `income_stream`. `sensitivity_tags[]` come from the sensitive-inference register (C4). Never touches `posting` |
+| `match` | id, out_entry_id, in_entry_id, lineage_key, posterior, status (`proposed`/`confirmed`/`rejected`), residual_test, confirmed_by, recorded_at | Feeds C4. A status change is a new row with the same `lineage_key` = (out_entry_id, in_entry_id) |
 | `rate_set` | id, version, base_commodity, policy (C5 hierarchy), rate_ids[] | Every derived figure names one |
 
 ### C1.4 Invariants (each is a test)
@@ -84,7 +88,7 @@ Replace the three posting models (Doc 4 signed amount + base amount; Doc 6 `acco
 - **C1-I1** For every `journal_entry` and every commodity, Σ weight = 0 exactly (Decimal equality, no tolerance).
 - **C1-I2** Every `quantity` and `cost_total` is an integer multiple of 10^−scale of its commodity.
 - **C1-I3** Asset and liability accounts hold postings in exactly one commodity. `Equity:Conversion:<C>` and `Assets:InTransit:*` accounts hold one commodity each.
-- **C1-I4** No UPDATE or DELETE is possible on `journal_entry`, `posting`, `source_line`, `classification` or `match` (database grants plus a property test). Migrations are forward-only.
+- **C1-I4** No UPDATE or DELETE is possible on `journal_entry`, `posting`, `source_line`, `classification`, `match` or any status log (database grants plus a property test). No stored column records a later event: supersession is derived (C1.7). Migrations are forward-only.
 - **C1-I5** An `exchange` entry contains exactly two conversion postings with opposite commodities, and its `implied_num/implied_den` equals given_qty/received_qty exactly.
 - **C1-I6** Each `Assets:InTransit:<id>` nets to zero once both legs are confirmed. An open balance older than 10 business days raises a review item. At period end an open in-transit balance is reported as an asset, never as spending.
 - **C1-I7** `Suspense:*` = 0 at period close or the close is blocked. An unreversed bank double debit is not suspense: it is reclassified to `Assets:Receivable:BankDispute:<bank>` with an age (R04 W6).
@@ -112,6 +116,7 @@ Notation for one confirmed exchange: G = quantity given (source commodity), R = 
 2. If q is not printed: (G − R × ref)/G must fall inside a **one-sided band per pair**. Provisional values (E5, calibrate on the founder's confirmed history before reliance): NGN→USD or NGN→AED [−1.0%, +4.0%]; AED↔USD [0%, +1.5%]; USD/AED→NGN via an international money transfer operator [−3.0%, +4.0%], because a parallel-linked rate can beat the official one. Outside the band → review queue, and the credit stays in `Suspense:FXUnexplained:<commodity>`.
 3. Until confirmed (C4), the two legs sit in in-transit/suspense and **no** conversion cost appears in any total.
 4. The band is not a matching tolerance. Matching (Doc 4 §4.3.2) proposes candidates; this rule decides whether a candidate's economics are plausible. Doc 4's symmetric ±6% is withdrawn.
+5. **Calibration (v0.2, CC-7).** The band edges are versioned policy parameters (E5). Each match decision records the version it used. They may be recalibrated only from exchanges whose economics were verified **without the band**: a receipt with a printed dealer rate q that passes rule 1, or a provider statement the user confirms. Matches confirmed *because* they fell inside the band are excluded, because using them would be circular. A recalibration needs at least 30 such exchanges per pair and direction (E5). The proposed edge is the largest verified cost in the trailing 12 months, rounded up to the next 0.5 pp. Each change is a new version applied forward only, and past decisions keep the version that made them. Until then the NGN→USD ceiling stays at +4.0%. In a stressed month the failure mode is extra review, not a hidden spread (Doc 4 §11 point 3). The band may not be widened on judgement or on unverified history.
 
 ### C1.6 Cost basis for foreign currency and securities
 
@@ -124,7 +129,7 @@ Notation for one confirmed exchange: G = quantity given (source commodity), R = 
 - **Bank reversal** (an event in the world, printed on the statement): its own `bank_line` entry with `reverses_line_id`. Both originals and the reversal stay, so the statement reconciles, and the pair is netted in spending views.
 - **Correction** (our error): a `void` entry that exactly negates every posting of the wrong entry (`voids_entry_id`, reason, actor), then a `replacement` entry. A bank-leg posting can be voided only when the extraction was wrong (parser defect). A classification change is never a correction.
 - **Cut-off.** Allocation to a period uses `effective_on` (value date) in the account's time zone (WAT, GST, US/Eastern). Variances between booking date and value date are listed at close (Doc 6 §4.1). Transfers that span periods use two entries (D8).
-- **Bitemporal.** Business time: `effective_on`, `booked_on`. System time: `recorded_at`, plus `superseded_at` on soft-state rows. Every query takes `as_of_recorded`. Statuses, classifications and matches are append-only histories, which fixes R07 M4's mutable `entry_category`. Materialised views are caches keyed by (as_of_recorded, rate_set version, engine_version).
+- **Bitemporal (amended v0.2, CC-1).** Business time: `effective_on`, `booked_on`, `valid_from`. System time: `recorded_at` only. Soft-state tables (`classification`, `match`, status logs) are **insert-only**. A change is a new row with the same `lineage_key`. `superseded_at` is **not a stored column**. A view derives it as the `recorded_at` of the next row with the same lineage key, ordered by (`recorded_at`, `id`), so C1-I4 holds without exception (Doc 7 §4.2 rule 3 already does this). Every query takes `as_of_recorded` and selects rows with `recorded_at` ≤ as_of_recorded and either no derived `superseded_at` or `superseded_at` > as_of_recorded. This fixes R07 M4's mutable `entry_category`. Materialised views are caches keyed by (as_of_recorded, rate_set version, engine_version), and they may hold the derived column.
 - **Rounding.** Bank-printed amounts are facts and are never re-rounded. Derived conversions use ROUND_HALF_EVEN, once, at the final amount. Tax rounding follows the rule record (C7). Because the journal is exact, residuals exist only in derived views, where they appear as an explicit "display rounding" line (C5). No `Equity:FX-Rounding` account is needed.
 
 ### C1.8 Idempotent re-import and account identity
@@ -172,9 +177,12 @@ USD view of the NGN leg at 1/1352.00: -739.64 (computed from the exact rate, rou
 USD pool after E2: USD 2865.00, NGN cost 3857350.00, WA 1346.369983
 USD 701.00 spent: NGN proceeds 946350.00, relieved cost 943805.36, realised FX gain (tax view, NGN) 2544.64; pool left USD 2164.00, NGN 2913544.64
 ETF lot: relieved cost 250.36, gain USD 8.64, lot left 1.8 units cost 450.64; cost conserved=True
+classification view (derived superseded_at): [('cl-1', '2026-11-03T09:00'), ('cl-2', None)] ; stored rows have no superseded_at column: True
+as_of_recorded 2026-11-02T23:59 -> ['Investing:Funding'] ; as_of_recorded 2026-11-04T00:00 -> ['Investing:Contribution']
+postings byte-identical after reclassification (C1-I12): True
 ```
 
-A USD 700 or 750 credit would have passed Doc 4's ±6% band as spread; under C1.5 it goes to review. Money in transit is an asset at month-end. ₦33,320 is conversion cost (not tax); ₦2,544.64 is a potential chargeable currency gain, flagged ⚠ under s.34(1)(b).
+A USD 700 or 750 credit would have passed Doc 4's ±6% band as spread; under C1.5 it goes to review. Money in transit is an asset at month-end. ₦33,320 is conversion cost (not tax); ₦2,544.64 is a potential chargeable currency gain, flagged ⚠ under s.34(1)(b). The last three lines (v0.2, CC-1) reclassify E2 by inserting a second row. The view derives `superseded_at`, each `as_of_recorded` query returns the classification then in force, and the postings do not change.
 
 ### C1.10 Documents that must change
 
@@ -190,11 +198,13 @@ A USD 700 or 750 credit would have passed Doc 4's ±6% band as spread; under C1.
 | Doc 7 | §4.2 P1–P4, P7; §4.3 module 1 | `commodity_id VARCHAR(64)`, NUMERIC(38,18) + scale; conversion accounts; two-entry transfers; bitemporal soft state; line key and re-parse semantics; no `Equity:FX-Rounding` |
 | Doc 7 | §4.12(a) | Re-run as a C1 exchange (it balances exactly per commodity) and add the C1.5 cost measure |
 
+v0.2 follow-ups (CC-1, CC-7) are listed in "Errata resolution (v0.2)".
+
 ### C1.11 Open questions
 1. **Practitioner:** the four questions in C1.6.
 2. **Founder:** which banks and brokers are used? The scales of fractional units and the presence of bank references decide which line-key branch applies.
 3. **Accountant:** do trading accounts give an acceptable audit trail for an external reviewer, or must a base-currency subsidiary journal be produced as an export?
-4. **Data:** the one-sided bands are E5 until calibrated on confirmed history (R04 M4).
+4. **Data:** the one-sided bands are E5 until calibrated under C1.5 rule 5 (R04 M4). Owner: Doc 4 with the data-quality lead, once 30 receipt-backed exchanges per pair exist.
 
 ---
 
@@ -204,7 +214,7 @@ A USD 700 or 750 credit would have passed Doc 4's ±6% band as spread; under C1.
 Settle V-004. Doc 7's gate lets the model write digits and accepts any trace value within 0.5%, including raw statement text. That passes mislabelled, rounded and attacker-supplied numbers (R07 B1). Doc 5c's token design is adopted and tightened.
 
 ### C2.2 Specification
-1. **Output schema.** The model returns `{segments:[{t:"text",v}|{t:"tok",v}], assumption_ids[], limitation_ids[], refused, refusal_code}`. Only the renderer produces the visible string.
+1. **Output schema.** The model returns `{segments:[{t:"text",v}|{t:"tok",v}|{t:"tpl",v,bind}], assumption_ids[], limitation_ids[], refused, refusal_code}`. Only the renderer produces the visible string. A `tpl` segment (v0.2, CC-2) names a registered template `v` = `<template_id>@<version>` and binds it to a stored construct output `bind` (item 12).
 2. **Text segments MUST NOT contain:**
    - any Unicode decimal digit (category Nd, which covers Arabic-Indic digits);
    - fraction glyphs;
@@ -220,20 +230,32 @@ Settle V-004. Doc 7's gate lets the model write digits and accepts any trace val
 | `calc` | an output of a named registry formula | `calc_id.output` |
 | `date`, `period` | an as-of date or period label | figure metadata, controller clock (`today`) |
 | `count` | a count | a `count` formula in the calc registry |
-| `range` | a pair of quantiles (C6) | engine output |
+| `range` | a pair of interval bounds with its method label: C6 quantiles, or a Doc 3 interval such as the cycle-bootstrap range | engine output |
 | `dir` | "rose / fell / was unchanged", "gain / loss" | sign of the referenced figure |
 | `ref` | title of a legal instrument, source or rule | registry (e.g. "Nigeria Tax Act 2025") |
 | `quote` | text exactly as printed | `source_line` / document handle; display only |
 | `user` | a number the user typed | figure with `method=user_asserted` |
+| `name` | display name of an account, category or counterparty (v0.2) | registry, resolved locally at render. Never a figure, a `calc` input or an allow-list figure; the cloud model sees only the handle (V-028) |
 
 4. **Allow-list.** A token ID resolves only if a tool returned it in the current turn. An ID that is not on the list causes rejection.
-5. **Semantic check.** `as=` is mandatory for `fig` and `calc`. It must equal the figure's `field`, and the format's unit and currency must match the figure's. This stops misattribution such as presenting the TWRR as the drawdown. Signs and direction words come only from the renderer (`dir`, signed formats).
+5. **Semantic check.** `as=` is mandatory for `fig`, `calc`, `count`, `range` and `date` (v0.2 adds the last three, CC-2: a count, interval or date can be misattributed as easily as an amount). It must equal the figure's `field`, and the format's unit and currency must match the figure's. This stops misattribution such as presenting the TWRR as the drawdown. Signs and direction words come only from the renderer (`dir`, signed formats).
 6. **Calc registry, not free arithmetic.** `calc.derive` becomes a registry of named, typed formulas such as `ratio(money[c], money[c]) → fraction` or `convert(money[c1], rate_set, c2, date_rule)`. Each refuses unit or currency mismatch and records its input IDs.
 7. **Quoted documents.** Narrations, PDF text, notes and retrieved chunks are tainted (R07 M2). The privileged model gets them only as `quote` handles, with digits masked (`◊`) if it needs the wording. A quote is shown verbatim, styled "as printed on <document>, p.<n>". It can never be a figure, a `calc` input or an allow-list member. `documents.search` returns handles, never figure IDs.
 8. **User-typed numbers.** Before the model is called, the controller parses the user's message deterministically into `user` figures ("if I save {{user:u1}} a month"), and the model sees masked text. The figures are labelled "you entered".
 9. **Render-time status.** The renderer applies C3: badges, side-by-side values for `disputed`, "expired" with no value. A figure whose status has changed since generation shows its current badge. Its value stays pinned to the vintage cited.
 10. **Backstop.** In the final string, every digit must fall inside a span the renderer emitted (a span map). This keeps Doc 7's gate as a second layer with zero tolerance.
 11. **Failure path.** On rejection, one regeneration with the violations listed. On a second failure, the refusal template "I do not have a validated figure for {{ref:…}}" is shown, a review item is raised, and the trace is logged (prompt hash, figure IDs supplied and cited, verdict). Determinism does not rely on temperature, which may be unavailable when thinking is on (R05c B3). The temperature rule in Doc 5c is deleted.
+12. **Behavioural templates (v0.2, CC-2; resolves C2.6 Q3).** A behavioural sentence reaches the user **only** as a `tpl` segment. Doc 3 owns the template registry. It is versioned and insert-only, and each entry holds: `template_id`, `version`, `status` (`draft`/`approved`/`retired`), `rung`, `placement` (card headline, research context, not-tested-yet), fixed text with named slots, and a slot table (slot → token type, `as=` field, `fmt`).
+    - **The model writes no slot.** It chooses a template and a construct-output ID. The registry supplies each slot's type, `as=` and format, and the renderer fills it from the construct output. The model cannot insert text inside a template. Its own adjacent `text` segments stay under item 2 and Doc 7's behavioural lint: they may not compose a behavioural sentence.
+    - **Registration gate.** A template's fixed text, with slots removed, must pass item 2 (no digits, number words, month or weekday names) and the Doc 3/Doc 8 forbidden-form lint before it can be `approved`. Every slot must declare `as=` and `fmt`. A template that fails is refused registration, not waived.
+    - **Render checks**, each a rejection under item 11:
+      - (a) the template version is `approved`;
+      - (b) the construct output was returned by a tool this turn (item 4);
+      - (c) the template's rung is at or below the construct output's current rung (L0a < L0b < L1 < L2b), where L2a appears only attached to an L1-or-higher card and never raises the rung, and L3 appears only under "not tested yet";
+      - (d) the template is listed in that construct's specification (`templates`, `context_template`);
+      - (e) each slot's figure `field` equals the slot's `as=`, with matching unit;
+      - (f) the construct output meets its C3.4 tier: conclusion-driving for L1 and above, descriptive for L0a/L0b. If it does not, the specification's withheld variant (e.g. `L1.too_early`) or a refusal is shown.
+    - The inline form `{{type:id|as=…|fmt=…}}` inside template text is a notation for the slot table, and the same grammar applies.
 
 ### C2.3 Tests (CI; adversarial suite runs on every prompt, tool or model change)
 - **T2-01** A free digit is rejected.
@@ -248,6 +270,10 @@ Settle V-004. Doc 7's gate lets the model write digits and accepts any trace val
 - **T2-10** The sign comes from the renderer.
 - **T2-11** The refusal template fires after two failures.
 - **T2-12** False-positive rate on legitimate answers: report it, with "no one" and "one of" counted.
+- **T2-13** (v0.2) A `tpl` segment renders only through registry slots. A model-supplied value or text inside a template is rejected.
+- **T2-14** (v0.2) A template above the construct's current rung, or one not listed in its specification, is rejected.
+- **T2-15** (v0.2) A template whose fixed text contains a digit, number word or date word is refused registration.
+- **T2-16** (v0.2) A `count`, `range` or `date` token without `as=` is rejected.
 
 Report fidelity as a bound, not a zero: 0 failures in 200 cases gives a 95% upper bound ≈ 1.5% (R07 M9).
 
@@ -265,8 +291,18 @@ C number words -> ('REJECT', ["number/date word in text: 'twelve'"])
 D mislabelled -> ('REJECT', ['semantic mismatch: fig_7a1 is perf.twrr_1y, model claimed risk.max_drawdown'])
 E invented id -> ('REJECT', ['token id not returned by a tool this turn: fig_9zz'])
 F free date -> ('REJECT', ["number/date word in text: 'October'"])
+G template -> ('PASS', 'Over 6 pay cycles, spending in categories you marked as flexible during the 7 days after salary arrived averaged 1.6× the rate on other days (approximate range 1.5× to 1.8×). This held in 5 of 6 cycles.')
+H rung above construct -> ('REJECT', ["template rung L2b above construct's current rung L1"])
+I construct not returned -> ('REJECT', ['construct output not returned by a tool this turn: co_pay6'])
+J missing as= on date -> ('REJECT', ['missing as= on date token date_7a'])
+template registration: L4.no_anchor (Doc 3 v0.2 wording) -> ('REFUSE REGISTRATION', ["number/date word in text: 'one'"])
+template registration: L4.no_anchor (proposed) -> REGISTER
+template registration: L3 stem (Doc 3 v0.2 wording) -> ('REFUSE REGISTRATION', ["number/date word in text: 'One'"])
+template registration: L3 stem (proposed) -> REGISTER
 ```
-Case D would pass Doc 7's gate; case B is Doc 7's own §4.12(c) example. Display precision (−23.45% → −23.4%, half-even) is a format property, not the model's choice.
+Case D would pass Doc 7's gate; case B is Doc 7's own §4.12(c) example. Display precision (−23.45% → −23.4%, half-even) is a format property, not the model's choice. In v0.2 case A's date token carries `as=asof`, and its output is unchanged.
+
+Cases G–J and the registration lines are new in v0.2 (CC-2). G renders a shortened form of Doc 3's `L1.after_income`, using synthetic placeholder values (not Doc 3's figures), entirely from registry slots. Two of Doc 3's v0.2 templates fail registration on the word "one". The proposed rewordings ("a single regular income date"; "A possible explanation is …") pass and keep the meaning.
 
 ### C2.5 Documents that must change
 - **Doc 7 §4.6:** the binding contract is C2. The numeric gate becomes the span-map backstop. `calc.derive` becomes the registry. Retrieval returns quote handles. Delete "the privileged answering model never sees raw document text" (R07 M2).
@@ -275,11 +311,12 @@ Case D would pass Doc 7's gate; case B is Doc 7's own §4.12(c) example. Display
 - **Doc 8 Component B:** "the model may paraphrase" → "the model writes connecting text only; values, dates, counts and directions are tokens".
 - **Doc 6 §4.3:** `steps[]` are rendered through `calc` tokens.
 - **Doc 3 templates:** filled through tokens.
+- **v0.2 (CC-2):** Doc 3 §4.10 publishes the registry fields of item 12 and adds `as=` to every `count` and `range` slot. Doc 3 §4.1 and §4.4 reword `L4.no_anchor` and the `L3.*` stem. Doc 7 §4.6 "Qualitative claims" points to item 12 instead of the open change request. Doc 8 Component B renders `tpl` segments.
 
 ### C2.6 Open questions
 1. How often does the number-word rule reject legitimate prose (e.g. "no one")? To be measured (T2-12).
 2. Will the UI offer Yoruba, Hausa or Arabic? The word lists would then need translation.
-3. Template enforcement for qualitative behavioural claims (R07 M7) is Doc 3's contract, not this one. Both must apply.
+3. ~~Template enforcement for qualitative behavioural claims (R07 M7) is Doc 3's contract, not this one.~~ Resolved in v0.2 by C2.2 item 12. Doc 3 owns the template registry and its wording; this contract owns the segment form, the registration gate and the render checks.
 
 ---
 

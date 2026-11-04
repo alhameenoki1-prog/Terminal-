@@ -1,5 +1,9 @@
 """Canonical Contracts (CANONICAL_CONTRACTS.md) -- verification of every worked example.
 
+v0.2 (2026-11-04): adds the checks for errata CC-1 to CC-12 (bitemporal view, behavioural templates,
+corporate-action and sampling rules, Wilson minimum, trades in the FX decomposition, C7 chains and monitors).
+Every v0.1 output line of C1-C6 is unchanged and new lines are appended; the C7 run lines are rebuilt (CC-5).
+
 All inputs are SYNTHETIC unless a line says otherwise. Standard library only; run with:
     python3 -I docs/portfolio-os/research/scripts/contracts_checks.py
 Money and rates use decimal.Decimal (or fractions.Fraction for exact rates); no floats touch money.
@@ -7,6 +11,8 @@ Money and rates use decimal.Decimal (or fractions.Fraction for exact rates); no 
 from decimal import Decimal as D, getcontext, ROUND_HALF_EVEN, ROUND_DOWN
 from fractions import Fraction as F
 from datetime import date, timedelta
+import hashlib
+import math
 import re
 import unicodedata
 
@@ -87,6 +93,37 @@ def c1():
     print(f"ETF lot: relieved cost {rel}, gain USD {sell_net - rel}, lot left {lot_q} units cost {lot_cost}; "
           f"cost conserved={rel + lot_cost == D('701.00')}")
 
+    # (e) v0.2, CC-1: soft state is insert-only; superseded_at is derived in a view, never stored or updated
+    postings_before = hashlib.sha256(repr(E2).encode()).hexdigest()
+    classification = []                                          # insert-only table (C1-I4)
+    classification.append({"id": "cl-1", "entry_id": "E2", "kind": "category", "category": "Investing:Funding",
+                           "recorded_at": "2026-11-02T10:00"})
+    classification.append({"id": "cl-2", "entry_id": "E2", "kind": "category", "category": "Investing:Contribution",
+                           "recorded_at": "2026-11-03T09:00"})
+
+    def with_superseded_at(rows):
+        """View: superseded_at = recorded_at of the next row with the same lineage key (entry_id, kind)."""
+        out = []
+        for r in rows:
+            later = [s["recorded_at"] for s in rows if (s["entry_id"], s["kind"]) == (r["entry_id"], r["kind"])
+                     and (s["recorded_at"], s["id"]) > (r["recorded_at"], r["id"])]
+            out.append({**r, "superseded_at": min(later) if later else None})
+        return out
+
+    def as_of(rows, t):
+        live = [r for r in with_superseded_at(rows) if r["recorded_at"] <= t and
+                (r["superseded_at"] is None or r["superseded_at"] > t)]
+        return [r["category"] for r in live]
+
+    view = with_superseded_at(classification)
+    print("classification view (derived superseded_at):",
+          [(r["id"], r["superseded_at"]) for r in view], "; stored rows have no superseded_at column:",
+          all("superseded_at" not in r for r in classification))
+    print("as_of_recorded 2026-11-02T23:59 ->", as_of(classification, "2026-11-02T23:59"),
+          "; as_of_recorded 2026-11-04T00:00 ->", as_of(classification, "2026-11-04T00:00"))
+    print("postings byte-identical after reclassification (C1-I12):",
+          hashlib.sha256(repr(E2).encode()).hexdigest() == postings_before)
+
 
 # ---------------------------------------------------------------- C2 figure tokens
 STORE = {
@@ -101,7 +138,8 @@ NUMBER_WORDS = re.compile(
     r"thousand|million|billion|trillion|half|third|thirds|quarter|quarters|double|doubled|triple|tripled|"
     r"dozen|January|February|March|April|June|July|August|September|October|November|December|"
     r"Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b", re.IGNORECASE)
-TOKEN = re.compile(r"\{\{(fig|date|dir|quote):([a-z0-9_]+)(?:\|as=([a-z0-9_.]+))?(?:\|fmt=([a-z0-9_]+))?\}\}")
+TOKEN = re.compile(r"\{\{(fig|calc|count|range|date|dir|quote):([a-z0-9_.]+)(?:\|as=([a-z0-9_.]+))?(?:\|fmt=([a-z0-9_]+))?\}\}")
+AS_REQUIRED = {"fig", "calc", "count", "range", "date"}     # v0.2 (CC-2): as= is mandatory for every value-bearing type
 
 
 def render_value(f, fmt):
@@ -112,19 +150,38 @@ def render_value(f, fmt):
         return f"{f['ccy']} {q2(v):,}"
     if fmt == "date_long":
         return f"{v.day} {v.strftime('%B %Y')}"
+    if fmt == "int":
+        return f"{int(v)}"
+    if fmt == "times1":
+        return f"{v.quantize(D('0.1'), rounding=ROUND_HALF_EVEN)}\u00d7"
+    if fmt == "range_times1":
+        lo, hi = v
+        return (f"{lo.quantize(D('0.1'), rounding=ROUND_HALF_EVEN)}\u00d7 to "
+                f"{hi.quantize(D('0.1'), rounding=ROUND_HALF_EVEN)}\u00d7")
     raise ValueError(fmt)
+
+
+def lint_text(payload):
+    errors = []
+    if any(unicodedata.category(ch) == "Nd" for ch in payload) or any(ch in "\u00bd\u00bc\u00be\u2153" for ch in payload):
+        errors.append(f"free digit in text: {payload!r}")
+    m = NUMBER_WORDS.search(payload)
+    if m:
+        errors.append(f"number/date word in text: {m.group(0)!r}")
+    return errors
 
 
 def validate_and_render(segments, allow):
     out, errors = [], []
     for kind, payload in segments:
         if kind == "text":
-            if any(unicodedata.category(ch) == "Nd" for ch in payload) or any(ch in "½¼¾⅓" for ch in payload):
-                errors.append(f"free digit in text: {payload!r}")
-            m = NUMBER_WORDS.search(payload)
-            if m:
-                errors.append(f"number/date word in text: {m.group(0)!r}")
+            errors += lint_text(payload)
             out.append(payload)
+            continue
+        if kind == "tpl":
+            text, errs = render_template(*payload, allow)
+            errors += errs
+            out.append(text or "")
             continue
         m = TOKEN.fullmatch(payload)
         if not m:
@@ -135,6 +192,9 @@ def validate_and_render(segments, allow):
             errors.append(f"token id not returned by a tool this turn: {fid}")
             continue
         f = STORE[fid]
+        if typ in AS_REQUIRED and not as_field:
+            errors.append(f"missing as= on {typ} token {fid}")
+            continue
         if as_field and as_field != f["field"]:
             errors.append(f"semantic mismatch: {fid} is {f['field']}, model claimed {as_field}")
             continue
@@ -145,6 +205,60 @@ def validate_and_render(segments, allow):
     return ("PASS", "".join(out)) if not errors else ("REJECT", errors)
 
 
+# v0.2 (CC-2): behavioural sentences come only from registered Doc 3 templates. The model selects a template
+# id and binds it to a stored construct output; slot types, as= fields and formats live in the registry.
+RUNG_ORDER = ["L0a", "L0b", "L1", "L2b"]          # L2a (context) and L3 (hypothesis) never raise the rung
+TEMPLATES = {
+    "L1.after_income@0.2": {
+        "rung": "L1", "status": "approved",
+        "text": ("Over {cyc_n} pay cycles, spending in categories you marked as flexible during the {win_days} "
+                 "days after salary arrived averaged {ratio} the rate on other days (approximate range {ci}). "
+                 "This held in {cyc_held} of {cyc_n} cycles."),
+        "slots": {"cyc_n": ("count", "behav.cycles_n", "int"), "win_days": ("count", "behav.window_days", "int"),
+                  "ratio": ("calc", "behav.after_income_ratio", "times1"),
+                  "ci": ("range", "behav.after_income_ratio_ci", "range_times1"),
+                  "cyc_held": ("count", "behav.cycles_held", "int")}},
+    "L2b.result@0.2": {"rung": "L2b", "status": "approved", "text": "(not used here)", "slots": {}},
+}
+CONSTRUCT_OUTPUTS = {   # synthetic construct output (placeholder values, not Doc 3's figures)
+    "co_pay6": {"construct": "spending_after_income", "rung": "L1", "tier_ok": True,
+                "templates": ["L1.after_income@0.2"],
+                "figures": {"cyc_n": {"value": D(6), "field": "behav.cycles_n"},
+                            "win_days": {"value": D(7), "field": "behav.window_days"},
+                            "ratio": {"value": D("1.64"), "field": "behav.after_income_ratio"},
+                            "ci": {"value": (D("1.51"), D("1.80")), "field": "behav.after_income_ratio_ci"},
+                            "cyc_held": {"value": D(5), "field": "behav.cycles_held"}}},
+}
+
+
+def render_template(tpl_id, co_id, allow):
+    t = TEMPLATES.get(tpl_id)
+    if t is None or t["status"] != "approved":
+        return None, [f"template not approved: {tpl_id}"]
+    if co_id not in allow:
+        return None, [f"construct output not returned by a tool this turn: {co_id}"]
+    co = CONSTRUCT_OUTPUTS[co_id]
+    if RUNG_ORDER.index(t["rung"]) > RUNG_ORDER.index(co["rung"]):
+        return None, [f"template rung {t['rung']} above construct's current rung {co['rung']}"]
+    if tpl_id not in co["templates"]:
+        return None, [f"template {tpl_id} not listed in the {co['construct']} specification"]
+    if not co["tier_ok"]:
+        return None, ["inputs fail the C3 conclusion-driving tier: statistic withheld"]
+    vals = {}
+    for slot, (typ, field, fmt) in t["slots"].items():
+        f = co["figures"][slot]
+        if f["field"] != field:
+            return None, [f"slot {slot} expects {field}, construct output has {f['field']}"]
+        vals[slot] = render_value(f, fmt)
+    return t["text"].format(**vals), []
+
+
+def register_template(text):
+    """Registration-time lint of a template's fixed text (slots removed): same rules as model text."""
+    errs = lint_text(re.sub(r"\{[a-z_]+\}", "", text))
+    return "REGISTER" if not errs else ("REFUSE REGISTRATION", errs)
+
+
 def c2():
     print("\n=== C2 Figure-integrity contract ===")
     allow = {"fig_7a1", "fig_7a2", "fig_7a3", "date_7a"}
@@ -152,7 +266,7 @@ def c2():
         "A good": [("text", "Your time-weighted return over the past year was "),
                    ("tok", "{{fig:fig_7a1|as=perf.twrr_1y|fmt=pct1}}"), ("text", " and the largest drawdown was "),
                    ("tok", "{{fig:fig_7a2|as=risk.max_drawdown|fmt=pct1}}"), ("text", ", as of "),
-                   ("tok", "{{date:date_7a|fmt=date_long}}"), ("text", ".")],
+                   ("tok", "{{date:date_7a|as=asof|fmt=date_long}}"), ("text", ".")],
         "B free digits": [("text", "You should expect 12% next year.")],
         "C number words": [("text", "Expect roughly twelve percent.")],
         "D mislabelled": [("text", "Drawdown was "), ("tok", "{{fig:fig_7a1|as=risk.max_drawdown|fmt=pct1}}")],
@@ -161,6 +275,23 @@ def c2():
     }
     for k, segs in cases.items():
         print(k, "->", validate_and_render(segs, allow))
+    # v0.2 template cases (CC-2)
+    allow_b = allow | {"co_pay6"}
+    tcases = {
+        "G template": [("tpl", ("L1.after_income@0.2", "co_pay6"))],
+        "H rung above construct": [("tpl", ("L2b.result@0.2", "co_pay6"))],
+        "I construct not returned": [("tpl", ("L1.after_income@0.2", "co_pay6"))],
+        "J missing as= on date": [("text", "As of "), ("tok", "{{date:date_7a|fmt=date_long}}")],
+    }
+    for k, segs in tcases.items():
+        print(k, "->", validate_and_render(segs, allow if k.startswith("I") else allow_b))
+    for name, text in (("L4.no_anchor (Doc 3 v0.2 wording)", "This view needs one regular income date; your income "
+                        "arrives on several dates, so it is not shown."),
+                       ("L4.no_anchor (proposed)", "This view needs a single regular income date; your income "
+                        "arrives on several dates, so it is not shown."),
+                       ("L3 stem (Doc 3 v0.2 wording)", "One possibility is {hypothesis}; this could be checked when {data}."),
+                       ("L3 stem (proposed)", "A possible explanation is {hypothesis}; this could be checked when {data}.")):
+        print("template registration:", name, "->", register_template(text))
 
 
 # ---------------------------------------------------------------- C3 data status
@@ -184,6 +315,27 @@ def c3():
                   ("validated", "fresh", "superseded", "licence_active", "two_independent"),
                   ("validated", "fresh", "current", "licence_expired", "single_source")]:
         print("  ", combo, "->", eligibility(*combo))
+
+    # v0.2 (CC-3): a pending corporate action is a CA-record lifecycle plus freshness, not a validation state;
+    # per-share calculations refuse when their inputs carry different corporate-action set versions.
+    ca = {"id": "CA-0907", "kind": "bonus 1 for 10", "ex_date": date(2026, 11, 9), "state": "announced",
+          "applied_ca_set": "cas-4"}
+    shares = {"value": D("29000000000"), "ca_set_version": "cas-3"}
+    for price_date, price_ca in ((date(2026, 11, 6), "cas-3"), (date(2026, 11, 10), "cas-4")):
+        f_state = "ageing (open CA lifecycle)"
+        if price_ca != shares["ca_set_version"]:
+            verdict = (f"REFUSE per-share calc: ca_set_version {shares['ca_set_version']} (shares) vs {price_ca} "
+                       f"(price on/after ex-date {ca['ex_date']})")
+        else:
+            verdict = "per-share calc allowed; shares outstanding badge 'ageing: corporate action pending'"
+        print(f"{ca['id']} {ca['kind']} state={ca['state']}: price dated {price_date} -> F(shares)={f_state}; {verdict}")
+
+    # v0.2 (CC-10): single-source sampling floor = max(ceil(n/20), min(n, 4)) human checks a year
+    print("single-source sampling per series per year (editions -> human checks):")
+    for name, n in (("daily FX or price, 250 editions", 250), ("monthly CPI, 12", 12), ("quarterly, 4", 4),
+                    ("semi-annual country-risk edition, 2", 2), ("annual, 1", 1)):
+        new = max(math.ceil(n / 20), min(n, 4))
+        print(f"   {name}: v0.1 1-in-20 expects {D(n) / 20}; v0.2 -> {new}")
 
 
 def eligibility(v, fr, lc, lic, corr):
@@ -232,6 +384,18 @@ def c4():
         print(f"{name}: band {band(c)}, producer {producer}, tax-weighted {tax} -> "
               f"{'auto-apply (reversible)' if auto else 'review queue'}; priority {q2(ngn * (1 - c))}"
               f"{' [tax first]' if tax else ''}")
+    # v0.2 (CC-8): the Wilson condition alone sets the minimum; with no errors it needs 35 confirmations
+    for k, n in ((30, 30), (34, 34), (35, 35)):
+        print(f"rule precision {k}/{n}: Wilson 95% lower bound {wilson_lower(k, n):.4f} -> "
+              f"{'may auto-apply' if wilson_lower(k, n) >= D('0.90') else 'provisional: outputs go to review'}")
+    n_min = next(n for n in range(1, 200) if wilson_lower(n, n) >= D("0.90"))
+    print(f"smallest error-free track record with lower bound >= 0.90: {n_min} confirmations")
+    # v0.2 (CC-11): sensitivity weight routes to review like tax weight
+    for name, c, producer, ngn, tax, sensitive in (("Family transfer 150,000", D("0.99"), "counterparty_memory",
+                                                    D("150000"), False, "family"),):
+        auto = c >= D("0.90") and producer != "model" and not tax and not sensitive
+        print(f"{name}: band {band(c)}, producer {producer}, tax-weighted {tax}, sensitivity {sensitive} -> "
+              f"{'auto-apply (reversible)' if auto else 'review queue; never bulk-accepted'}; priority {q2(ngn * (1 - c))}")
 
 
 # ---------------------------------------------------------------- C5 FX decomposition
@@ -301,6 +465,30 @@ def c5():
                 got = 1 if fx[c] > 0 else -1 if fx[c] < 0 else 0
                 print(f"   sign check FX on {c}: rate move {'up' if dx > 0 else 'down'}, long position -> "
                       f"expected {'+' if expected > 0 else '-'}, got {'+' if got > 0 else '-'}: {'OK' if got == expected else 'FAIL'}")
+
+    # v0.2 (CC-7): a security trade inside the period. The cash leg and the security leg at execution price are
+    # internal and cancel; the commission is an external flow (an "investing costs" sub-line) even though C1.6
+    # capitalises it into tax cost.
+    print("trade inside the period (synthetic): 26 Oct buy 2.8 ETF @ 252.00 + commission 1.00 USD")
+    d_tr = date(2026, 10, 26)
+    cash0, n0, n_buy, p_exec, fee = D("3000.00"), D("10"), D("2.8"), D("252.00"), D("1.00")
+    gross = n_buy * p_exec
+    cash1, n1 = cash0 - gross - fee, n0 + n_buy
+    for base in ("NGN", "USD"):
+        def x(c, d):
+            return ngn_per(c, d) / ngn_per(base, d)
+        W0 = (F(cash0) + F(n0 * p0)) * x("USD", t0)
+        W1 = (F(cash1) + F(n1 * p1)) * x("USD", t1)
+        investing_costs = -F(fee) * x("USD", d_tr)
+        trade_internal = (-F(gross) + F(n_buy * p_exec)) * x("USD", d_tr)
+        market = F(n1 * p1 - n0 * p0 - n_buy * p_exec) * x("USD", t1)
+        fx = (F(cash0) + F(n0 * p0)) * (x("USD", t1) - x("USD", t0)) \
+            + (-F(gross) - F(fee) + F(n_buy * p_exec)) * (x("USD", t1) - x("USD", d_tr))
+        exact = investing_costs + trade_internal + market + fx == W1 - W0
+        wrong = trade_internal + market + fx == W1 - W0     # commission treated as capitalised (no flow)
+        print(f"   [{base} base] change {q2(W1 - W0):,} = investing costs {q2(investing_costs):,} | trade (internal) "
+              f"{q2(trade_internal):,} | market {q2(market):,} | FX on USD {q2(fx):,}; identity exact={exact}; "
+              f"identity if the commission is left out={wrong}")
 
 
 # ---------------------------------------------------------------- C6 goal engine
@@ -389,25 +577,79 @@ def yoa_for(kind, event_date):
     return event_date.year + 1 if kind == "chargeable_gain" else event_date.year
 
 
+# Rule statuses as derived in Doc 6 v0.2 §4.2 (2026-11-04), plus the investment-income basis limb that v0.2 of
+# this contract splits out of NG-BASIS-PERIOD-2026 (CC-6). Statuses are inputs here, not claims about the law.
+RULES = {"NG-PIT-BANDS-2026": "reviewed_internal", "NG-PIT-DEDUCTIONS-2026": "reviewed_internal",
+         "NG-RESIDENCY-2026": "reviewed_internal", "NG-INT-DEPOSIT-2026": "reviewed_internal",
+         "NG-BASIS-PERIOD-2026": "sourced", "NG-BASIS-INVESTMENT-2026": "draft",
+         "NG-PAYE-CREDIT-2026": "draft", "NG-CGT-FOREIGN-ASSETS-2026": "reviewed_internal",
+         "NG-FX-OFFICIAL-RATE-2026": "draft", "US-ESTATE-NRA-60K": "draft", "US-W8BEN-VALIDITY": "draft"}
+
+
+def run(label, chain, value, rules=RULES, disputes_siblings=()):
+    """Watermark or refuse a run. A dispute's branches are shown together or not at all (C7 v0.2)."""
+    statuses = [rules[r] for r in chain]
+    blocked = [r for r in chain if rules[r] in ("draft", "superseded", "retired")]
+    sib_blocked = [r for sib in disputes_siblings for r in sib if rules[r] in ("draft", "superseded", "retired")]
+    if blocked or sib_blocked:
+        why = ", ".join(sorted(set(blocked))) if blocked else "sibling branch refused (" + ", ".join(sorted(set(sib_blocked))) + ")"
+        return f"{label}: REFUSE ({why}); SANDBOX - not an output: {value:,}"
+    return f"{label}: {value:,} [{watermark(statuses)}]"
+
+
 def c7():
     print("\n=== C7 Tax rule lifecycle and basis period (Doc 6 Example 1 inputs) ===")
     print("June 2026 disposal assessed in YOA", yoa_for("chargeable_gain", date(2026, 6, 15)),
           "; 2026 salary assessed in YOA", yoa_for("employment", date(2026, 10, 26)))
     salary, interest, wht, paye_tax = D("18000000"), D("600000"), D("60000"), D("2802600")
     ded, gain = D("1940000"), D("8500000")
-    for t, inc in (("A (interest aggregated, WHT credited)", salary + interest), ("B (interest WHT final)", salary)):
-        ci = inc - ded
-        tax = pit(ci)
-        credit = wht if t.startswith("A") else D(0)
-        print(f"YOA 2026 Treatment {t}: chargeable {ci:,} PIT {tax:,} balance {max(tax - credit - paye_tax, D(0)):,}")
+    base = ["NG-PIT-BANDS-2026", "NG-PIT-DEDUCTIONS-2026", "NG-RESIDENCY-2026", "NG-INT-DEPOSIT-2026",
+            "NG-BASIS-PERIOD-2026"]
+    chain_a = base + ["NG-BASIS-INVESTMENT-2026"]       # Treatment A aggregates 2026 interest into a YOA
+    chain_b = base                                      # Treatment B: interest WHT final, no YOA allocation
+    pit_a, pit_b = pit(salary + interest - ded), pit(salary - ded)
+    print(run("YOA 2026 gross PIT, Treatment A (interest aggregated, WHT credited)", chain_a, pit_a))
+    print(run("YOA 2026 gross PIT, Treatment B (interest WHT final)", chain_b, pit_b, disputes_siblings=[chain_a]))
+    print(run("YOA 2026 balance after PAYE, Treatment A", chain_a + ["NG-PAYE-CREDIT-2026"],
+              max(pit_a - wht - paye_tax, D(0))))
+    print(run("YOA 2026 balance after PAYE, Treatment B", chain_b + ["NG-PAYE-CREDIT-2026"],
+              max(pit_b - paye_tax, D(0)), disputes_siblings=[chain_a]))
     ci27 = salary + interest - ded
-    print(f"YOA 2027 marginal tax of the gain if 2027 income equals 2026 (Treatment A): {pit(ci27 + gain) - pit(ci27):,}")
+    print(run("YOA 2027 marginal tax of the gain if 2027 income equals 2026 (Treatment A)",
+              chain_a + ["NG-CGT-FOREIGN-ASSETS-2026", "NG-FX-OFFICIAL-RATE-2026"], pit(ci27 + gain) - pit(ci27)))
+    what_if = dict(RULES, **{"NG-BASIS-INVESTMENT-2026": "sourced"})
+    print("status what-if, NG-BASIS-INVESTMENT-2026 sourced:")
+    print("  ", run("gross PIT A", chain_a, pit_a, rules=what_if), "|",
+          run("gross PIT B", chain_b, pit_b, rules=what_if, disputes_siblings=[chain_a]))
     print("watermark examples:")
-    for s in (["practitioner_confirmed", "reviewed_internal", "sourced"], ["practitioner_confirmed"] * 3,
-              ["reviewed_internal", "reviewed_internal"], ["practitioner_confirmed", "draft"]):
-        print("  ", s, "->", watermark(s))
+    for st in (["practitioner_confirmed", "reviewed_internal", "sourced"], ["practitioner_confirmed"] * 3,
+               ["reviewed_internal", "reviewed_internal"], ["practitioner_confirmed", "draft"]):
+        print("  ", st, "->", watermark(st))
     tests = [(D("800000"), D("0")), (D("800001"), D("0.15")), (D("3000000"), D("330000")), (D("25160000"), D("4716800"))]
     print("PIT band boundary tests:", all(pit(a) == b for a, b in tests))
+
+    # v0.2 (CC-4): monitors. Presence mode runs on data facts only while the rule is draft; threshold or date
+    # mode needs the rule at sourced or above and carries the run's watermark. No mode ever says "no action".
+    print("monitors (rule_class = monitor; never a tax amount, liability or filing field):")
+    us_situs_usd = D("20000.00")      # Doc 6 Example 1: US-domiciled shares held before the sale (synthetic)
+    w8_signed = date(2024, 5, 10)     # synthetic questionnaire answer
+    for rules in (RULES, dict(RULES, **{"US-ESTATE-NRA-60K": "sourced", "US-W8BEN-VALIDITY": "sourced"})):
+        st_e, st_w = rules["US-ESTATE-NRA-60K"], rules["US-W8BEN-VALIDITY"]
+        if st_e == "draft":
+            e = ("presence mode: holdings of US-domiciled securities exist (data fact) -> reminder 'US estate tax may "
+                 "apply to US assets of non-US persons; the rule is not yet sourced here, so no threshold is applied'")
+        else:
+            threshold = D("60000")    # stands in for the sourced rule record's parameter (Doc 6 F31; Form 706-NA)
+            e = (f"threshold mode [{watermark([st_e])}]: US-situs value {us_situs_usd:,} vs rule threshold "
+                 f"{threshold:,} -> {'ALERT' if us_situs_usd > threshold else 'watching (below threshold)'}")
+        if st_w == "draft":
+            w = (f"presence mode: W-8BEN recorded as signed {w8_signed} -> reminder 'validity rule not yet sourced "
+                 f"here; confirm with the broker'")
+        else:
+            expiry = date(w8_signed.year + 3, 12, 31)   # end of the third succeeding calendar year (rule record)
+            w = f"date mode [{watermark([st_w])}]: valid to {expiry}; reminder from {expiry - timedelta(days=90)}"
+        print(f"   rules {st_e}/{st_w}: estate -> {e}")
+        print(f"   rules {st_e}/{st_w}: W-8BEN -> {w}")
 
 
 if __name__ == "__main__":
