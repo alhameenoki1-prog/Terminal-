@@ -11,11 +11,11 @@ Reviewers required: Data Architecture & Market Data (provenance, NGX/DFM/ADX fee
 
 ## 1. Executive summary
 
-**Conclusions.** (1) For a single individual holding a handful of positions across NGN, AED and USD, the quantitative problem is *measurement under bad data*, not optimisation. Descriptive risk analytics (exposure by currency and asset, volatility with a stated base currency, drawdown tables, concentration, correlation under stress) and a correct performance ledger (time-weighted *and* money-weighted return with cash flows) deliver almost all of the decision value and carry almost none of the estimation risk. (2) Mean–variance optimisation and its relatives are not justified in the Personal MVP: with few assets and short, break-ridden histories, the inputs they need (expected returns above all) cannot be estimated to useful precision; the literature on estimation error is unambiguous [S2, S3, S5, S9, S10] and our own synthetic experiment reproduces it (§4.9). The one optimisation component we endorse early is the **Ledoit–Wolf shrinkage covariance** as a *risk-measurement* input [S15–S17], and even that must be shielded from structural-break days, which we show push its shrinkage intensity to the cap. (3) Simulation for the Goal Reality Engine should be a **block-bootstrap/scenario engine that reports ranges with an explicit estimation-uncertainty band**, not a parametric GBM/GARCH engine that prints percentiles to one decimal. In our worked example the point estimate "54% chance of reaching $150k" sits inside a 10th–90th percentile estimation band of **11%–94%**; the drift of a 5-year series has a standard error of ±6.5 percentage points a year. Percentile precision that ignores this is false precision. (4) The existing prototypes (`MonteCarloPanel.tsx`, `PerformancePanel.tsx`) are demonstration code, not validated infrastructure: 23 concrete defects are listed in §4.8, including unscaled Student-t innovations (a 60% volatility input is simulated as ≈77.5%), a "max drawdown" that is not a drawdown, a Cholesky mode whose second asset is discarded, a drawdown denominator that reports 200% on a 1% loss, and non-seeded `Math.random`.
+**Conclusions.** (1) For one individual holding a handful of positions across NGN, AED and USD, the quantitative problem is *measurement under bad data*, not optimisation. Descriptive risk analytics and a correct performance ledger deliver most of the decision value with little estimation risk. (2) Mean–variance optimisation and its relatives are not justified in the Personal MVP: the expected returns they need cannot be estimated from short, break-ridden histories [S2, S3, S5, S9, S10] (replicated in §4.9). We endorse only the Ledoit–Wolf shrinkage covariance as a *risk-measurement* input [S15–S17], with structural-break days isolated (they push its shrinkage intensity to the cap). (3) The Goal Reality Engine should be a block-bootstrap/scenario engine reporting ranges with an estimation-uncertainty band: a "54% chance of reaching $150k" in our example sits inside a 10th–90th percentile band of 11%–94%, because a 5-year drift has a standard error of ±6.5 points a year. (4) The existing prototypes are demonstration code: 23 defects (§4.8) include unscaled Student-t innovations, a "max drawdown" that is not a drawdown, a Cholesky mode that discards its second asset, a drawdown denominator reporting 200% on a 1% loss, and non-seeded `Math.random`.
 
-**Biggest uncertainty.** Whether *any* optimiser belongs in the product at all. The optimisation specialist argues that a constrained minimum-variance or risk-budgeting view is a useful *alternative to display* (never a recommendation); the statistician argues that showing optimised weights to a lay user invites action on noise. We preserve the disagreement (§7) and propose a resolution path: ship no optimiser in Phase 1; in Phase 2, run the "optimisation alternatives" module only behind an out-of-sample stability gate that the module must pass on the user's own data before anything is shown.
+**Biggest uncertainty.** Whether *any* optimiser belongs in the product. The optimisation specialist wants a constrained risk-based view shown as an alternative; the statistician holds that optimised weights invite action on noise (§7). Proposed resolution: none in Phase 1; Phase 2 only behind an out-of-sample stability gate.
 
-**Headline recommendations.** Personal-MVP must-have: exposure decomposition (asset × currency × issuer), risk descriptives with confidence intervals, drawdown statistics, Ledoit–Wolf covariance with break handling, historical and hypothetical stress scenarios (2008, 2016 and 2023 naira devaluations, 2014–16 and 2020 oil shocks), TWR/MWR performance, bootstrap goal-feasibility ranges with uncertainty bands, and calibration logging from day one. Later: Black–Litterman as a *view-expression* tool, risk-budgeting display, CVaR views, regime-conditional stress. Do-not-build (yet): unconstrained mean–variance, resampled efficiency, Kelly sizing, DCC-GARCH, HRP, point forecasts of returns.
+**Headline recommendations.** Must-have: exposure decomposition, risk descriptives with confidence intervals, drawdowns, Ledoit–Wolf covariance with break handling, stress scenarios (2008, 2016 and 2023 naira devaluations, 2014–16 and 2020 oil shocks), TWR/MWR, bootstrap goal ranges with bands, calibration logging. Later: Black–Litterman as a view tool, risk-budgeting display, CVaR views. Do-not-build (yet): unconstrained mean–variance, resampled efficiency, Kelly, DCC-GARCH, HRP, point return forecasts.
 
 ## 2. Scope and method
 
@@ -459,3 +459,304 @@ Scores 1 (poor) – 5 (strong). Weights: validity 0.25, data requirements 0.20, 
 | "The chance of reaching the goal is somewhere between roughly 10% and 90%; the range is wide because five years of data cannot pin down average returns." | "Our model forecasts…" |
 | "This Sharpe ratio is not statistically different from zero with the data available." | "Strong edge — scale position size." |
 | "Assumptions used: … (editable)." | Any figure without source, as-of date, unit and currency |
+
+## 5. Alternatives considered and rejected
+
+| Alternative | Why rejected (for now) |
+|---|---|
+| Ship the existing Monte Carlo engine with fixes | The engine's purpose (single-asset price targets with stops) is not the product's purpose (multi-currency goals with cash flows); the defect list in §4.8 covers the model layer, the statistics layer and the UI. Rebuild from tests upward; reuse nothing but the Box–Muller idea. |
+| Parametric GBM/GARCH as the primary goal engine | Point parameters hide estimation uncertainty (F20); GARCH needs ≥ 1,000 clean daily observations per series, which NGX histories with stale prices and breaks do not provide (F3, F18). Kept only as a labelled benchmark path. |
+| Mean–variance "efficient frontier" screen | The frontier's shape is driven by unestimable expected returns (F1); showing it to a lay user communicates precision that does not exist. |
+| DCC-GARCH correlations | Model risk without benefit at N ≤ 10 (F4). |
+| HRP | No hierarchy to exploit with a handful of assets; contested advantage (F7). |
+| CVaR optimisation | Tail data insufficient (F9); CVaR *reporting* retained. |
+| Kelly sizing | Catastrophic under estimation error; wrong objective for most people (F10). |
+| Parametric (variance–covariance) VaR | Normal tails understate losses on NGN assets; historical/scenario VaR and ES retained (F12). |
+| Security-level Brinson attribution | Statistically meaningless and noisy for < 20 holdings; asset-class × currency level retained (F24). |
+| A single "risk score" (1–10) | Hides base currency, horizon and uncertainty; conflicts with the brief's accuracy standard. The decomposed table is the product. |
+| Using LLM prose to restate numbers | Lesson 4 in the brief; all figures must come from the calculation layer with provenance. |
+
+## 6. Cross-department dependencies
+
+**We need from others.**
+- *Data architecture / market data:* daily closes with venue, timestamp, currency, zero-volume and limit-day flags for NGX, DFM, ADX and US holdings; total-return indices with documented methodology; official FX series (CBN/FMDQ) and a way to store the user's transacted rates; NGX ASI history for 2008–09 and an S&P 500 2007–09 series from a licensed source; confirmation of the current NGX rulebook (price limits, tiered price-movement thresholds, trading hours, settlement cycle — 2026 press reports cite T+1 from 1 June 2026 and changed hours; unverified) [S156]; licence status of every benchmark.
+- *Personal-finance ledger (System A):* reconciled positions and dated external cash flows; identification of inter-account transfers so they are not counted as flows.
+- *Tax:* after-tax return inputs (withholding on NGX dividends, capital-gains treatment) so that the goal engine can run pre- and post-tax.
+- *Behavioural finance:* how to display probability ranges without inducing over- or under-reaction; evidence on whether showing drawdown tables changes behaviour.
+- *Product/UX:* plain-language templates for every metric in §4.3; a mandatory "assumptions" panel.
+- *Engineering:* a Web Worker/CI-testable calculation layer; seedable RNG; golden-test harness.
+- *Compliance/legal:* review of §4.11; confirmation that scenario and range outputs are not "investment advice" under Nigerian SEC and UAE SCA/DFSA rules (unknown — must be checked by counsel).
+- *Founder:* base currency; cash-rate benchmark; whether any NGN hedging instrument is accessible to them.
+
+**Others need from us.** The metric definitions and provenance schema (§4.1, §4.3); the scenario library with sources (§4.4); the validation protocol (§9); the list of permitted statements (§4.11); the data-quality floors per model (§4.6) that the data team must enforce upstream.
+
+## 7. Risks, open uncertainties and disagreements
+
+**Disagreement 1 — any optimiser in the MVP?** *Optimisation specialist:* a constrained minimum-variance or risk-budgeting view, labelled "one alternative, not a recommendation", helps the user see the trade-off between naira carry and dollar stability; withholding it is paternalistic. *Statistician:* weights with 25–30-point standard deviations (§4.9) are noise dressed as advice; a lay user will act on them; the product's credibility rests on not doing this. *Quantitative portfolio researcher (tie-breaker proposal):* no optimiser in Phase 1; in Phase 2, enable the "alternative views" module only when the user's own data pass a stability gate — weights from two halves of the history within 10 points of each other and a bootstrap weight SD below 10 points — and show it with the band, never a point. Unresolved; founder to decide after seeing Phase 1 data.
+
+**Disagreement 2 — bootstrap versus parametric simulation.** *Financial econometrician:* the bootstrap cannot produce a devaluation that is not in the sample, so a parametric or regime model with a crisis state is more honest for NGN. *Statistician:* a regime model's crisis parameters are themselves assumptions; make them explicit as scenario overlays on the bootstrap instead of hiding them in a transition matrix. Resolution adopted: bootstrap + explicit, user-visible scenario overlays (§4.7); revisit if calibration tests fail.
+
+**Disagreement 3 — which FX rate is "true".** Official, NAFEM/interbank and parallel rates have diverged by large margins in Nigeria. *Financial data scientist:* use the official series for history and the user's own transacted rate for their flows. *Risk analyst:* risk should be measured at the rate at which the user could actually convert, which may be the parallel rate. Resolution: store both, label both, let the user choose the valuation rate, and show the gap.
+
+**Open uncertainties.** (a) Real NGX zero-return-day fractions and their effect sizes are unmeasured; our thin-trading numbers are synthetic. (b) Whether retail access to naira hedges exists. (c) Current NGX microstructure rules (changed in 2026; sources conflict). (d) GIPS text not re-read; the TWR/MWR provisions are stated from the standard's known structure. (e) The 97.5% ES level in the BIS standard was not re-read in this session. (f) Regulatory classification of range-based goal outputs. (g) Whether the founder's holdings include instruments (private funds, fixed deposits, real estate) whose valuations are appraisal-smoothed; if so, unsmoothing (F18) applies to them too.
+
+**Risks.** False precision is the dominant product risk; the mitigations are bands, rounding, sensitivity lines and calibration logging. The second risk is silent data corruption (stale prices, mixed FX sources) producing fictitious returns; the mitigation is provenance on every figure and the floors in §4.6. The third is scope creep toward sophisticated models because they are available; the mitigation is the founder's rule, applied through the gate in Disagreement 1.
+
+## 8. Recommendations, ranked
+
+| Rank | Recommendation | Class |
+|---|---|---|
+| 1 | Exposure decomposition by asset, issuer, sector, country and currency (denomination and economic), with provenance on every row | Personal-MVP must-have |
+| 2 | TWR and MWR performance ledger with currency decomposition and the TWR–MWR gap explained | Personal-MVP must-have |
+| 3 | Descriptive risk analytics with confidence intervals and base-currency switch (vol, downside, drawdown table, HHI, DR, risk contributions, stress-conditional correlation) | Personal-MVP must-have |
+| 4 | Scenario library (2008, 2014–16 oil/2016 float, 2020, 2022, 2023 unification) + hypothetical and reverse stress tests, each with sources | Personal-MVP must-have |
+| 5 | Ledoit–Wolf covariance with EWMA cross-check and break isolation, used only as an input to 3 and 6 | Personal-MVP must-have (internal) |
+| 6 | Goal Reality Engine: stationary-block-bootstrap ranges with estimation-uncertainty band, drift sensitivity, scenario overlays, sequence-risk view, and the statement contract of §4.11 | Personal-MVP must-have |
+| 7 | Calibration logging and PIT/coverage tests from the first forecast | Personal-MVP must-have |
+| 8 | Sharpe/Sortino/Calmar display rules (Lo SE; "not distinguishable from zero" wording) | Personal-MVP must-have |
+| 9 | Rebuild simulation engine from tests upward (seedable RNG, golden values, Web Worker); retire `MonteCarloPanel.tsx` and `PerformancePanel.tsx` as they stand | Personal-MVP must-have (engineering) |
+| 10 | Risk-budgeting display (risk contributions and the volatility-balanced weights as one labelled alternative) | Later |
+| 11 | Constrained minimum-variance and Black–Litterman "alternative views" behind the stability gate | Later |
+| 12 | Estimated Student-t GARCH and regime-switching research engines, offered only if they pass calibration tests against the bootstrap | Later |
+| 13 | Asset-class × currency Brinson attribution once licensed benchmarks exist | Later |
+| 14 | CVaR optimisation, DCC-GARCH, HRP, resampled/robust mean–variance, point return forecasts | Do-not-build (yet) |
+| 15 | Kelly sizing; any "edge score" or sizing advice | Do-not-build |
+
+**Five-question test on the top items.**
+
+*Recommendation 1–3 (exposure, performance, descriptive risk).* (1) Problem: the founder cannot currently see what they own in one currency, what it has actually earned after cash flows, or where the risk sits. (2) Who: the founder now; every multi-currency retail user later. (3) Evidence: measurement standards (GIPS/Dietz, Brinson/Karnosky–Singer decomposition) and the concentration/diversification literature [S69–S71, S78, S79, S95–S97] — E1/E3; the numbers require no forecasting. (4) Build/validate: deterministic calculations with analytic unit tests and golden ledgers (§9); the main risk is data quality, handled by floors and badges. (5) Improvement metric: fraction of positions with complete provenance; reconciliation error between ledger value and sum of priced positions < 0.1%; user-reported decisions changed after seeing currency exposure (behavioural team to measure).
+
+*Recommendation 4 (stress library).* (1) Problem: the dominant risk for a naira-based investor is a regime event that volatility statistics do not capture. (2) Who: anyone with NGN assets and USD goals. (3) Evidence: the devaluation and oil series themselves [S84–S88]; the crisis-correlation literature [S73–S77] — E2. (4) Build/validate: deterministic shock application; test by re-applying each scenario to a portfolio that existed at the time and comparing to realised P&L (data team to supply). (5) Improvement: scenario loss vs realised loss error in future events; user comprehension tests.
+
+*Recommendation 5 (Ledoit–Wolf).* (1) Problem: sample covariances on short windows are noisy, and portfolio risk needs a covariance. (2) Who: the risk module. (3) Evidence: [S15–S18], scikit-learn reference implementation [S157], our experiment — E1. (4) Build/validate: golden test against `sklearn.covariance.LedoitWolf`; break-day exclusion test (§4.9). (5) Improvement: out-of-sample portfolio-variance forecast error (QLIKE) vs sample and EWMA, evaluated monthly.
+
+*Recommendation 6–7 (goal engine + calibration).* (1) Problem: goals like "$100k targeting x%" are currently judged by intuition or by false-precision calculators. (2) Who: the founder (System E), later retail users. (3) Evidence: bootstrap theory [S121–S124], parameter-uncertainty results [S128–S133], weak predictability [S110–S113], calibration methods [S136–S141] — E1. (4) Build/validate: unit tests on bootstrap moments; coverage tests on synthetic data with known truth; then live PIT logging. (5) Improvement: coverage of the 50%/90% bands within ±10 points after 24 monthly outcomes; the engine is withdrawn from display if it fails twice in succession.
+
+*Recommendation 9 (rebuild engine).* (1) Problem: current code produces wrong numbers (§4.8). (2) Who: everyone downstream. (3) Evidence: direct replication of defects — E2. (4) Build/validate: §9. (5) Improvement: 100% of displayed statistics covered by analytic or golden tests; reproducibility of any result from (inputs, seed, version).
+
+## 9. Required validation before implementation
+
+1. **Analytic unit tests** (must pass before any UI): GBM moments; scaled-t variance; GARCH unconditional variance and persistence; Merton compensator; OU stationary variance; barrier-hit probability vs closed form; max drawdown on hand-built paths; HHI/DR/risk contributions on 2-asset cases with closed-form answers; TWR/MWR on hand-computed ledgers (including a case with a mid-period flow where TWR and MWR differ in sign); multicurrency decomposition identity R_B = R_L + R_FX + R_L·R_FX to 1e-12; Lo SE formula against a Monte Carlo of iid Sharpe ratios.
+2. **Golden datasets:** frozen synthetic ledger and price panel (the §4.9 generator, versioned) with stored outputs; Ledoit–Wolf cross-checked against scikit-learn to 1e-8; bootstrap engine checked for reproducibility by seed and for mean/variance preservation.
+3. **Out-of-sample tests:** rolling-origin evaluation of covariance estimators (sample, EWMA, LW) by realised portfolio variance and QLIKE; rolling evaluation of any "alternative view" weights by turnover and realised volatility against 1/N — a module that does not beat 1/N on realised risk out of sample is not shown.
+4. **Calibration tests:** PIT histogram and Berkowitz test on synthetic data with known DGP (must pass), on misspecified DGP (must fail), then live.
+5. **Sensitivity analysis:** every displayed figure gets a sensitivity table over window length (60/250/500 d), estimator, base currency, FX source and inclusion/exclusion of break days; figures whose sign or decile changes across these settings are shown with a "fragile" badge.
+6. **Data-quality gates:** the floors in §4.3/§4.6 enforced in code; a metric below its floor is suppressed or badged, never silently computed.
+7. **Thin-trading tests:** Dimson vs OLS beta on real NGX names once data exist; vol at daily vs weekly frequency; results documented before any beta is displayed.
+8. **Human review:** a regulated financial adviser and counsel review §4.11 before anything leaves personal use; a statistician signs off the calibration protocol.
+
+## 10. Sources
+
+Verification key: **[verified]** = DOI resolved on OpenAlex/Crossref with matching title, first author and year (print year given; "online year n" noted where OpenAlex records an earlier online date); **[unverified]** = could not be checked in this session. Access dates: academic checks 2026-11-02 and 2026-11-04; web pages as stated.
+
+**Portfolio construction and estimation error**
+- S1. Markowitz, H. (1952). Portfolio Selection. *Journal of Finance* 7(1), 77–91. doi:10.2307/2975974 [verified]
+- S2. Michaud, R. O. (1989). The Markowitz Optimization Enigma: Is "Optimized" Optimal? *Financial Analysts Journal* 45(1), 31–42. doi:10.2469/faj.v45.n1.31 [verified]
+- S3. Jobson, J. D. & Korkie, B. (1980). Estimation for Markowitz Efficient Portfolios. *JASA* 75(371), 544–554. doi:10.1080/01621459.1980.10477507 [verified]
+- S4. Jobson, J. D. & Korkie, B. (1981). Putting Markowitz Theory to Work. *Journal of Portfolio Management* 7(4), 70–74. doi:10.3905/jpm.1981.408816 [verified]
+- S5. DeMiguel, V., Garlappi, L. & Uppal, R. (2009). Optimal Versus Naive Diversification: How Inefficient is the 1/N Portfolio Strategy? *Review of Financial Studies* 22(5), 1915–1953. doi:10.1093/rfs/hhm075 [verified; online 2007]
+- S6. Kritzman, M., Page, S. & Turkington, D. (2010). In Defense of Optimization: The Fallacy of 1/N. *FAJ* 66(2), 31–39. doi:10.2469/faj.v66.n2.6 [verified]
+- S7. Tu, J. & Zhou, G. (2011). Markowitz meets Talmud. *Journal of Financial Economics* 99(1), 204–215. doi:10.1016/j.jfineco.2010.08.013 [verified; online 2010]
+- S8. Kirby, C. & Ostdiek, B. (2012). It's All in the Timing. *JFQA* 47(2), 437–467. doi:10.1017/S0022109012000117 [verified]
+- S9. Chopra, V. K. & Ziemba, W. T. (1993). The Effect of Errors in Means, Variances, and Covariances on Optimal Portfolio Choice. *JPM* 19(2), 6–11. doi:10.3905/jpm.1993.409440 [verified]
+- S10. Best, M. J. & Grauer, R. R. (1991). On the Sensitivity of Mean-Variance-Efficient Portfolios to Changes in Asset Means. *RFS* 4(2), 315–342. doi:10.1093/rfs/4.2.315 [verified]
+- S11. Jagannathan, R. & Ma, T. (2003). Risk Reduction in Large Portfolios: Why Imposing the Wrong Constraints Helps. *Journal of Finance* 58(4), 1651–1683. doi:10.1111/1540-6261.00580 [verified]
+- S12. Frost, P. A. & Savarino, J. E. (1988). For Better Performance: Constrain Portfolio Weights. *JPM* 15(1), 29–34. doi:10.3905/jpm.1988.409181 [verified]
+- S13. Jorion, P. (1986). Bayes-Stein Estimation for Portfolio Analysis. *JFQA* 21(3), 279–292. doi:10.2307/2331042 [verified]
+- S14. Kan, R. & Zhou, G. (2007). Optimal Portfolio Choice with Parameter Uncertainty. *JFQA* 42(3), 621–656. doi:10.1017/S0022109000004129 [verified]
+
+**Covariance estimation**
+- S15. Ledoit, O. & Wolf, M. (2003). Improved estimation of the covariance matrix of stock returns with an application to portfolio selection. *Journal of Empirical Finance* 10(5), 603–621. doi:10.1016/S0927-5398(03)00007-0 [verified]
+- S16. Ledoit, O. & Wolf, M. (2004). A well-conditioned estimator for large-dimensional covariance matrices. *Journal of Multivariate Analysis* 88(2), 365–411. doi:10.1016/S0047-259X(03)00096-4 [verified; online 2003]
+- S17. Ledoit, O. & Wolf, M. (2004). Honey, I Shrunk the Sample Covariance Matrix. *JPM* 30(4), 110–119. doi:10.3905/jpm.2004.110 [verified]
+- S18. Ledoit, O. & Wolf, M. (2017). Nonlinear Shrinkage of the Covariance Matrix for Portfolio Selection: Markowitz Meets Goldilocks. *RFS* 30(12), 4349–4388. doi:10.1093/rfs/hhx052 [verified]
+- S19. Elton, E. J. & Gruber, M. J. (1973). Estimating the Dependence Structure of Share Prices—Implications for Portfolio Selection. *Journal of Finance* 28(5), 1203–1232. doi:10.1111/j.1540-6261.1973.tb01451.x [verified via Crossref]
+- S20. Chan, L. K. C., Karceski, J. & Lakonishok, J. (1999). On Portfolio Optimization: Forecasting Covariances and Choosing the Risk Model. *RFS* 12(5), 937–974. doi:10.1093/rfs/12.5.937 [verified]
+- S21. Fama, E. F. & French, K. R. (1993). Common risk factors in the returns on stocks and bonds. *JFE* 33(1), 3–56. doi:10.1016/0304-405X(93)90023-5 [verified]
+- S22. Fan, J., Fan, Y. & Lv, J. (2008). High dimensional covariance matrix estimation using a factor model. *Journal of Econometrics* 147(1), 186–197. doi:10.1016/j.jeconom.2008.09.017 [verified]
+- S23. J.P. Morgan/Reuters (1996). *RiskMetrics — Technical Document*, 4th ed. Decay factors λ = 0.94 (daily) and 0.97 (monthly) confirmed only from secondary sources (metricgate.com, acadifi.com, accessed 2026-11-04). [unverified primary]
+- S24. Engle, R. F. (1982). Autoregressive Conditional Heteroscedasticity with Estimates of the Variance of United Kingdom Inflation. *Econometrica* 50(4), 987–1007. doi:10.2307/1912773 [verified]
+- S25. Bollerslev, T. (1986). Generalized autoregressive conditional heteroskedasticity. *Journal of Econometrics* 31(3), 307–327. doi:10.1016/0304-4076(86)90063-1 [verified]
+- S26. Bollerslev, T. (1987). A Conditionally Heteroskedastic Time Series Model for Speculative Prices and Rates of Return. *Review of Economics and Statistics* 69(3), 542–547. doi:10.2307/1925546 [verified]
+- S27. Engle, R. (2002). Dynamic Conditional Correlation. *Journal of Business & Economic Statistics* 20(3), 339–350. doi:10.1198/073500102288618487 [verified]
+- S28. Caporin, M. & McAleer, M. (2013). Ten Things You Should Know about the Dynamic Conditional Correlation Representation. *Econometrics* 1(1), 115–126. doi:10.3390/econometrics1010115 [verified]
+- S29. Hansen, P. R. & Lunde, A. (2005). A forecast comparison of volatility models: does anything beat a GARCH(1,1)? *Journal of Applied Econometrics* 20(7), 873–889. doi:10.1002/jae.800 [verified]
+- S30. Poon, S.-H. & Granger, C. W. J. (2003). Forecasting Volatility in Financial Markets: A Review. *Journal of Economic Literature* 41(2), 478–539. doi:10.1257/002205103765762743 [verified]
+
+**Black–Litterman, risk parity, HRP, resampling, robust, CVaR, Kelly, costs, rebalancing**
+- S31. Black, F. & Litterman, R. (1992). Global Portfolio Optimization. *FAJ* 48(5), 28–43. doi:10.2469/faj.v48.n5.28 [verified]
+- S32. He, G. & Litterman, R. (1999/2002). The Intuition Behind Black-Litterman Model Portfolios. Goldman Sachs; SSRN 334304. doi:10.2139/ssrn.334304 [verified via Crossref; SSRN page returned 403]
+- S33. Idzorek, T. (2005; published 2007). A Step-by-Step Guide to the Black-Litterman Model. In Satchell (ed.), *Forecasting Expected Returns in the Financial Markets*. doi:10.1016/b978-075068321-0.50003-0 [verified via Crossref]
+- S34. Walters, J. (2011 rev.). The Black-Litterman Model in Detail. SSRN 1314585. doi:10.2139/ssrn.1314585 [verified via Crossref]
+- S35. Satchell, S. & Scowcroft, A. (2000). A demystification of the Black–Litterman model. *Journal of Asset Management* 1(2), 138–150. doi:10.1057/palgrave.jam.2240011 [verified]
+- S36. Maillard, S., Roncalli, T. & Teïletche, J. (2010). The Properties of Equally Weighted Risk Contribution Portfolios. *JPM* 36(4), 60–70. doi:10.3905/jpm.2010.36.4.060 [verified]
+- S37. Asness, C. S., Frazzini, A. & Pedersen, L. H. (2012). Leverage Aversion and Risk Parity. *FAJ* 68(1), 47–59. doi:10.2469/faj.v68.n1.1 [verified]
+- S38. Anderson, R. M., Bianchi, S. W. & Goldberg, L. R. (2012). Will My Risk Parity Strategy Outperform? *FAJ* 68(6), 75–93. doi:10.2469/faj.v68.n6.7 [verified]
+- S39. Inker, B. (2011). The Dangers of Risk Parity. *Journal of Investing* 20(1), 90–98. doi:10.3905/joi.2011.20.1.090 [verified]
+- S40. Lee, W. (2011). Risk-Based Asset Allocation: A New Answer to an Old Question? *JPM* 37(4), 11–28. doi:10.3905/jpm.2011.37.4.011 [verified]
+- S41. Roncalli, T. (2013). *Introduction to Risk Parity and Budgeting*. Chapman & Hall/CRC. doi:10.1201/b15151; SSRN 2272973 [verified via Crossref]
+- S42. López de Prado, M. (2016). Building Diversified Portfolios that Outperform Out of Sample. *JPM* 42(4), 59–69. doi:10.3905/jpm.2016.42.4.059 [verified]
+- S43. Raffinot, T. (2017). Hierarchical Clustering-Based Asset Allocation. *JPM* 44(2), 89–99. doi:10.3905/jpm.2018.44.2.089 [verified; online 2016]
+- S44. Jaeger, M., Krügel, S., Marinelli, D., Papenbrock, J. & Schwendner, P. (2021). Interpretable Machine Learning for Diversified Portfolio Construction. *Journal of Financial Data Science* 3(3), 31–51. doi:10.3905/jfds.2021.1.066 [verified]
+- S45. Michaud, R. O. & Michaud, R. (2008). *Efficient Asset Management*, 2nd ed. Oxford University Press. doi:10.1093/oso/9780195331912.001.0001 [verified]
+- S46. Scherer, B. (2002). Portfolio Resampling: Review and Critique. *FAJ* 58(6), 98–109. doi:10.2469/faj.v58.n6.2489 [verified]
+- S47. US Patent 6,003,018, "Portfolio optimization by means of resampled efficient frontiers", Michaud & Michaud, filed 1998-09-09, granted 1999-12-14, expired 2018-09-09. https://patents.google.com/patent/US6003018A/en (accessed 2026-11-04) [primary]
+- S48. Garlappi, L., Uppal, R. & Wang, T. (2007). Portfolio Selection with Parameter and Model Uncertainty. *RFS* 20(1), 41–81. doi:10.1093/rfs/hhl003 [verified; online 2006]
+- S49. Goldfarb, D. & Iyengar, G. (2003). Robust Portfolio Selection Problems. *Mathematics of Operations Research* 28(1), 1–38. doi:10.1287/moor.28.1.1.14260 [verified]
+- S50. Rockafellar, R. T. & Uryasev, S. (2000). Optimization of conditional value-at-risk. *Journal of Risk* 2(3), 21–41. doi:10.21314/JOR.2000.038 [verified]
+- S51. Rockafellar, R. T. & Uryasev, S. (2002). Conditional value-at-risk for general loss distributions. *JBF* 26(7), 1443–1471. doi:10.1016/S0378-4266(02)00271-6 [verified]
+- S52. Kelly, J. L. (1956). A New Interpretation of Information Rate. *Bell System Technical Journal* 35(4), 917–926. doi:10.1002/j.1538-7305.1956.tb03809.x [verified]
+- S53. MacLean, L. C., Thorp, E. O. & Ziemba, W. T. (2010). Long-term capital growth: the good and bad properties of the Kelly and fractional Kelly capital growth criteria. *Quantitative Finance* 10(7), 681–687. doi:10.1080/14697688.2010.506108 [verified]
+- S54. Samuelson, P. A. (1979). Why we should not make mean log of wealth big though years to act are long. *JBF* 3(4), 305–307. doi:10.1016/0378-4266(79)90023-2 [verified]
+- S55. Gârleanu, N. & Pedersen, L. H. (2013). Dynamic Trading with Predictable Returns and Transaction Costs. *Journal of Finance* 68(6), 2309–2340. doi:10.1111/jofi.12080 [verified]
+- S56. Donohue, C. & Yip, K. (2003). Optimal Portfolio Rebalancing with Transaction Costs. *JPM* 29(4), 49–63. doi:10.3905/jpm.2003.319894 [verified]
+- S57. Sun, W., Fan, A., Chen, L.-W., Schouwenaars, T. & Albota, M. A. (2006). Optimal Rebalancing for Institutional Portfolios. *JPM* 32(2), 33–43. doi:10.3905/jpm.2006.611801 [verified]
+- S58. Dichtl, H., Drobetz, W. & Wambach, M. (2014). Where is the value added of rebalancing? *Financial Markets and Portfolio Management* 28, 209–231. doi:10.1007/s11408-014-0231-3 [verified]
+- S59. Perold, A. F. & Sharpe, W. F. (1988). Dynamic Strategies for Asset Allocation. *FAJ* 44(1), 16–27. doi:10.2469/faj.v44.n1.16 [verified]
+- S60. Jaconetti, C., Kinniry, F. & Zilbering, Y. (2010). *Best practices for portfolio rebalancing*. Vanguard Research. https://personal1.vanguard.com/pdf/icrpr.pdf (fetch failed 2026-11-04 — service unavailable) [unverified]
+
+**Risk measurement, drawdown, diversification, crisis correlation, currency**
+- S61. Artzner, P., Delbaen, F., Eber, J.-M. & Heath, D. (1999). Coherent Measures of Risk. *Mathematical Finance* 9(3), 203–228. doi:10.1111/1467-9965.00068 [verified]
+- S62. Acerbi, C. & Tasche, D. (2002). On the coherence of expected shortfall. *JBF* 26(7), 1487–1503. doi:10.1016/S0378-4266(02)00283-2 [verified]
+- S63. Beder, T. S. (1995). VAR: Seductive but Dangerous. *FAJ* 51(5), 12–24. doi:10.2469/faj.v51.n5.1932 [verified]
+- S64. Basel Committee on Banking Supervision (2019). *Minimum capital requirements for market risk*, 14 Jan 2019 (corrected 25 Feb 2019). https://www.bis.org/bcbs/publ/d457.htm (accessed 2026-11-04; page confirms ES-based internal models approach) [primary page; standard text not re-read]
+- S65. Basel Committee on Banking Supervision (2009). *Principles for sound stress testing practices and supervision*. https://www.bis.org/publ/bcbs155.htm [unverified — not fetched]
+- S66. Magdon-Ismail, M., Atiya, A. F., Pratap, A. & Abu-Mostafa, Y. S. (2004). On the maximum drawdown of a Brownian motion. *Journal of Applied Probability* 41(1), 147–161. doi:10.1239/jap/1077134674 [verified]
+- S67. Chekhlov, A., Uryasev, S. & Zabarankin, M. (2005). Drawdown Measure in Portfolio Optimization. *IJTAF* 8(1), 13–58. doi:10.1142/S0219024905002767 [verified]
+- S68. Goldberg, L. R. & Mahmoud, O. (2017). Drawdown: from practice to theory and back again. *Mathematics and Financial Economics* 11, 275–297. doi:10.1007/s11579-016-0181-9 [verified; online 2016]
+- S69. Woerheide, W. & Persson, D. (1993). An Index of Portfolio Diversification. *Financial Services Review* 2(2), 73–85. doi:10.1016/1057-0810(92)90003-U [verified; online 1992]. (HHI itself: Hirschman 1964, *AER* — lookup failed; [unverified])
+- S70. Choueifaty, Y. & Coignard, Y. (2008). Toward Maximum Diversification. *JPM* 35(1), 40–51. doi:10.3905/JPM.2008.35.1.40 [verified]
+- S71. Meucci, A. (2009). Managing Diversification. *Risk* 22(5), 74–79. [unverified — not indexed]
+- S72. (withdrawn — DOI did not resolve to the intended paper)
+- S73. Longin, F. & Solnik, B. (2001). Extreme Correlation of International Equity Markets. *Journal of Finance* 56(2), 649–676. doi:10.1111/0022-1082.00340 [verified]
+- S74. Ang, A. & Chen, J. (2002). Asymmetric correlations of equity portfolios. *JFE* 63(3), 443–494. doi:10.1016/S0304-405X(02)00068-5 [verified]
+- S75. Forbes, K. J. & Rigobon, R. (2002). No Contagion, Only Interdependence. *Journal of Finance* 57(5), 2223–2261. doi:10.1111/0022-1082.00494 [verified]
+- S76. Chow, G., Jacquier, E., Kritzman, M. & Lowry, K. (1999). Optimal Portfolios in Good Times and Bad. *FAJ* 55(3), 65–73. doi:10.2469/faj.v55.n3.2273 [verified]
+- S77. Kritzman, M. & Li, Y. (2010). Skulls, Financial Turbulence, and Risk Management. *FAJ* 66(5), 30–41. doi:10.2469/faj.v66.n5.3 [verified]
+- S78. Ankrim, E. M. & Hensel, C. R. (1994). Multicurrency Performance Attribution. *FAJ* 50(2), 29–35. doi:10.2469/faj.v50.n2.29 [verified]
+- S79. Karnosky, D. S. & Singer, B. D. (1994). *Global Asset Management and Performance Attribution*. Research Foundation of the ICFA. doi:10.2470/rf.v1994.n3.4444 [verified via Crossref]
+- S80. Perold, A. F. & Schulman, E. C. (1988). The Free Lunch in Currency Hedging. *FAJ* 44(3), 45–50. doi:10.2469/faj.v44.n3.45 [verified]
+- S81. Black, F. (1989). Universal Hedging. *FAJ* 45(4), 16–22. doi:10.2469/faj.v45.n4.16 [verified]
+- S82. Campbell, J. Y., Serfaty-de Medeiros, K. & Viceira, L. M. (2010). Global Currency Hedging. *Journal of Finance* 65(1), 87–121. doi:10.1111/j.1540-6261.2009.01524.x [verified]
+- S83. Siegel, J. J. (1972). Risk, Interest Rates and the Forward Exchange. *QJE* 86(2), 303–309. doi:10.2307/1880565 [verified via Crossref]
+- S84. World Bank, Official exchange rate (LCU per US$, period average), Nigeria, indicator PA.NUS.FCRF. https://api.worldbank.org/v2/country/NGA/indicator/PA.NUS.FCRF?format=json (fetched 2026-11-02) [primary data]
+- S85. June 2023 naira unification: Nairametrics, "Exchange rate: Naira depreciates by 13.9% in one week", 24 Jun 2023, https://nairametrics.com/2023/06/24/exchange-rate-naira-depreciates-by-13-9-in-one-week ; Political Economist (Reuters report), "Nigeria allows naira to drop more than 36% on official market", https://www.politicaleconomistng.com/?p=146446 (both accessed 2026-11-04) [secondary]
+- S86. June 2016 float: Africanews, "Naira devalues against dollar after flexible forex policy takes off", 20 Jun 2016, https://africanews.com/2016/06/20/naira-devalues-against-dollar-after-flexible-forex-policy-takes-off ; Nairametrics, 20 Jun 2016, https://nairametrics.com/2016/06/20/results-are-in-nigerias-new-official-exchange-rate-after-currency-float/ (accessed 2026-11-04) [secondary]
+- S87. FRED series DCOILBRENTEU (Crude Oil Prices: Brent — Europe; source US EIA). https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILBRENTEU (fetched 2026-11-02) [primary data]
+- S88. FRED series SP500 (S&P Dow Jones Indices). https://fred.stlouisfed.org/graph/fredgraph.csv?id=SP500 (fetched 2026-11-02; 10-year window) [primary data]
+
+**Liquidity and reverse stress**
+- S89. Amihud, Y. (2002). Illiquidity and stock returns. *Journal of Financial Markets* 5(1), 31–56. doi:10.1016/S1386-4181(01)00024-6 [verified]
+- S90. Lesmond, D. A., Ogden, J. P. & Trzcinka, C. A. (1999). A New Estimate of Transaction Costs. *RFS* 12(5), 1113–1141. doi:10.1093/rfs/12.5.1113 [verified]
+- S91. Lesmond, D. A. (2005). Liquidity of emerging markets. *JFE* 77(2), 411–452. doi:10.1016/j.jfineco.2004.01.005 [verified]
+- S92. Bekaert, G., Harvey, C. R. & Lundblad, C. (2007). Liquidity and Expected Returns: Lessons from Emerging Markets. *RFS* 20(6), 1783–1831. doi:10.1093/rfs/hhm030 [verified]
+- S93. Roll, R. (1984). A Simple Implicit Measure of the Effective Bid-Ask Spread. *Journal of Finance* 39(4), 1127–1139. doi:10.1111/j.1540-6261.1984.tb03897.x [verified]
+- S94. Grundke, P. (2011). Reverse stress tests with bottom-up approaches. *Journal of Risk Model Validation* 5(1), 71–90. doi:10.21314/JRMV.2011.068 [verified]
+
+**Performance measurement**
+- S95. Dietz, P. O. (1966). *Pension Funds: Measuring Investment Performance*. Free Press. [unverified — book]
+- S96. CFA Institute (2019). *2020 Global Investment Performance Standards (GIPS) for Firms*. https://www.gipsstandards.org/wp-content/uploads/2021/03/2020_gips_standards_firms.pdf (fetched 2026-11-04; text extraction failed) [unverified text]
+- S97. Dichev, I. D. (2007). What Are Stock Investors' Actual Historical Returns? *AER* 97(1), 386–401. doi:10.1257/aer.97.1.386 [verified]
+- S98. Lo, A. W. (2002). The Statistics of Sharpe Ratios. *FAJ* 58(4), 36–52. doi:10.2469/faj.v58.n4.2453 [verified]
+- S99. Jobson, J. D. & Korkie, B. M. (1981). Performance Hypothesis Testing with the Sharpe and Treynor Measures. *Journal of Finance* 36(4), 889–908. doi:10.1111/j.1540-6261.1981.tb04891.x [verified]
+- S100. Ledoit, O. & Wolf, M. (2008). Robust performance hypothesis testing with the Sharpe ratio. *Journal of Empirical Finance* 15(5), 850–859. doi:10.1016/j.jempfin.2008.03.002 [verified]
+- S101. Opdyke, J. D. (2007). Comparing Sharpe ratios: So where are the p-values? *Journal of Asset Management* 8(5), 308–336. doi:10.1057/palgrave.jam.2250084 [verified]
+- S102. Sortino, F. A. & van der Meer, R. (1991). Downside risk. *JPM* 17(4), 27–31. doi:10.3905/jpm.1991.409343 [verified]
+- S103. Young, T. W. (1991). Calmar ratio: a smoother tool. *Futures* 20(1), 40. [unverified — trade magazine]
+- S104. Bailey, D. H. & López de Prado, M. (2014). The Deflated Sharpe Ratio. *JPM* 40(5), 94–107. doi:10.3905/jpm.2014.40.5.094 [verified]
+- S105. Bailey, D. H., Borwein, J. M., López de Prado, M. & Zhu, Q. J. (2014). Pseudo-Mathematics and Financial Charlatanism. *Notices of the AMS* 61(5), 458–471. doi:10.1090/noti1105 [verified]
+- S106. Bailey, D. H., Borwein, J. M., López de Prado, M. & Zhu, Q. J. (2017). The probability of backtest overfitting. *Journal of Computational Finance* 20(4), 39–69. doi:10.21314/JCF.2016.322 [verified; online 2016]
+- S107. Harvey, C. R., Liu, Y. & Zhu, H. (2016). … and the Cross-Section of Expected Returns. *RFS* 29(1), 5–68. doi:10.1093/rfs/hhv059 [verified; online 2015]
+- S108. Brinson, G. P., Hood, L. R. & Beebower, G. L. (1986). Determinants of Portfolio Performance. *FAJ* 42(4), 39–44. doi:10.2469/faj.v42.n4.39 [verified]
+- S109. Brinson, G. P. & Fachler, N. (1985). Measuring non-US equity portfolio performance. *JPM* 11(3), 73–76. doi:10.3905/jpm.1985.409005 [verified]
+
+**Forecasting, capital-market assumptions, simulation, parameter uncertainty, calibration**
+- S110. Welch, I. & Goyal, A. (2008). A Comprehensive Look at The Empirical Performance of Equity Premium Prediction. *RFS* 21(4), 1455–1508. doi:10.1093/rfs/hhm014 [verified; online 2007]
+- S111. Campbell, J. Y. & Thompson, S. B. (2008). Predicting Excess Stock Returns Out of Sample. *RFS* 21(4), 1509–1531. doi:10.1093/rfs/hhm055 [verified; online 2007]
+- S112. Rapach, D. E., Strauss, J. K. & Zhou, G. (2010). Out-of-Sample Equity Premium Prediction: Combination Forecasts and Links to the Real Economy. *RFS* 23(2), 821–862. doi:10.1093/rfs/hhp063 [verified; online 2009]
+- S113. Goyal, A., Welch, I. & Zafirov, A. (2024). A Comprehensive 2022 Look at the Empirical Performance of Equity Premium Prediction. *RFS* 37(11), 3490–3557. doi:10.1093/rfs/hhae044 [verified]
+- S114. Fama, E. F. & French, K. R. (2002). The Equity Premium. *Journal of Finance* 57(2), 637–659. doi:10.1111/1540-6261.00437 [verified]
+- S115. Arnott, R. D. & Bernstein, P. L. (2002). What Risk Premium Is "Normal"? *FAJ* 58(2), 64–85. doi:10.2469/faj.v58.n2.2524 [verified]
+- S116. Dimson, E., Marsh, P. & Staunton, M. (2002). *Triumph of the Optimists*. Princeton University Press. doi:10.1515/9781400829477 [verified via Crossref]
+- S117. J.P. Morgan Asset Management, *Long-Term Capital Market Assumptions*, 2027 edition (31st), data as of September 2026, 10–15-year horizon. https://am.jpmorgan.com/us/en/asset-management/adv/insights/portfolio-insights/ltcma/ (accessed 2026-11-04) [primary page]
+- S118. Hamilton, J. D. (1989). A New Approach to the Economic Analysis of Nonstationary Time Series and the Business Cycle. *Econometrica* 57(2), 357–384. doi:10.2307/1912559 [verified]
+- S119. Ang, A. & Bekaert, G. (2002). International Asset Allocation With Regime Shifts. *RFS* 15(4), 1137–1187. doi:10.1093/rfs/15.4.1137 [verified]
+- S120. Guidolin, M. & Timmermann, A. (2007). Asset allocation under multivariate regime switching. *JEDC* 31(11), 3503–3544. doi:10.1016/j.jedc.2006.12.004 [verified]
+- S121. Efron, B. (1979). Bootstrap Methods: Another Look at the Jackknife. *Annals of Statistics* 7(1), 1–26. doi:10.1214/aos/1176344552 [verified]
+- S122. Künsch, H. R. (1989). The Jackknife and the Bootstrap for General Stationary Observations. *Annals of Statistics* 17(3), 1217–1241. doi:10.1214/aos/1176347265 [verified]
+- S123. Politis, D. N. & Romano, J. P. (1994). The Stationary Bootstrap. *JASA* 89(428), 1303–1313. doi:10.1080/01621459.1994.10476870 [verified]
+- S124. Politis, D. N. & White, H. (2004). Automatic Block-Length Selection for the Dependent Bootstrap. *Econometric Reviews* 23(1), 53–70. doi:10.1081/ETC-120028836 [verified]
+- S125. Cont, R. (2001). Empirical properties of asset returns: stylized facts and statistical issues. *Quantitative Finance* 1(2), 223–236. doi:10.1080/713665670 [verified]
+- S126. Merton, R. C. (1976). Option pricing when underlying stock returns are discontinuous. *JFE* 3(1–2), 125–144. doi:10.1016/0304-405X(76)90022-2 [verified]
+- S127. Vasicek, O. (1977). An equilibrium characterization of the term structure. *JFE* 5(2), 177–188. doi:10.1016/0304-405X(77)90016-2 [verified]
+- S128. Pástor, Ľ. & Stambaugh, R. F. (2012). Are Stocks Really Less Volatile in the Long Run? *Journal of Finance* 67(2), 431–478. doi:10.1111/j.1540-6261.2012.01722.x [verified]
+- S129. Barberis, N. (2000). Investing for the Long Run when Returns Are Predictable. *Journal of Finance* 55(1), 225–264. doi:10.1111/0022-1082.00205 [verified]
+- S130. Avramov, D. & Zhou, G. (2010). Bayesian Portfolio Analysis. *Annual Review of Financial Economics* 2, 25–47. doi:10.1146/annurev-financial-120209-133947 [verified]
+- S131. Bodie, Z. (1995). On the Risk of Stocks in the Long Run. *FAJ* 51(3), 18–22. doi:10.2469/faj.v51.n3.1901 [verified]
+- S132. Samuelson, P. A. (1969). Lifetime Portfolio Selection by Dynamic Stochastic Programming. *REStat* 51(3), 239–246. doi:10.2307/1926559 [verified]
+- S133. Merton, R. C. (1969). Lifetime Portfolio Selection under Uncertainty: The Continuous-Time Case. *REStat* 51(3), 247–257. doi:10.2307/1926560 [verified]
+- S134. Milevsky, M. A. & Robinson, C. (2005). A Sustainable Spending Rate without Simulation. *FAJ* 61(6), 89–100. doi:10.2469/faj.v61.n6.2776 [verified]
+- S135. Bengen, W. P. (1994). Determining Withdrawal Rates Using Historical Data. *Journal of Financial Planning* 7(4), 171–180. [unverified — not indexed]
+- S136. Rosenblatt, M. (1952). Remarks on a Multivariate Transformation. *Annals of Mathematical Statistics* 23(3), 470–472. doi:10.1214/aoms/1177729394 [verified]
+- S137. Diebold, F. X., Gunther, T. A. & Tay, A. S. (1998). Evaluating Density Forecasts with Applications to Financial Risk Management. *International Economic Review* 39(4), 863–883. doi:10.2307/2527342 [verified]
+- S138. Berkowitz, J. (2001). Testing Density Forecasts, With Applications to Risk Management. *JBES* 19(4), 465–474. doi:10.1198/07350010152596718 [verified]
+- S139. Kupiec, P. H. (1995). Techniques for Verifying the Accuracy of Risk Measurement Models. *Journal of Derivatives* 3(2), 73–84. doi:10.3905/jod.1995.407942 [verified]
+- S140. Christoffersen, P. F. (1998). Evaluating Interval Forecasts. *International Economic Review* 39(4), 841–862. doi:10.2307/2527341 [verified]
+- S141. Gneiting, T., Balabdaoui, F. & Raftery, A. E. (2007). Probabilistic forecasts, calibration and sharpness. *JRSS-B* 69(2), 243–268. doi:10.1111/j.1467-9868.2007.00587.x [verified]
+
+**Emerging-market data pathologies**
+- S142. Scholes, M. & Williams, J. (1977). Estimating betas from nonsynchronous data. *JFE* 5(3), 309–327. doi:10.1016/0304-405X(77)90041-1 [verified]
+- S143. Dimson, E. (1979). Risk measurement when shares are subject to infrequent trading. *JFE* 7(2), 197–226. doi:10.1016/0304-405X(79)90013-8 [verified]
+- S144. Lo, A. W. & MacKinlay, A. C. (1990). An econometric analysis of nonsynchronous trading. *Journal of Econometrics* 45(1–2), 181–211. doi:10.1016/0304-4076(90)90098-E [verified; online 1989]
+- S145. Fisher, L. (1966). Some New Stock-Market Indexes. *Journal of Business* 39(1), 191–225. doi:10.1086/294848 [verified]
+- S146. Burns, P., Engle, R. & Mezrich, J. (1998). Correlations and Volatilities of Asynchronous Data. *Journal of Derivatives* 5(4), 7–18. doi:10.3905/jod.1998.408000 [verified via Crossref]
+- S147. Martens, M. & Poon, S.-H. (2001). Returns synchronization and daily correlation dynamics between international stock markets. *JBF* 25(10), 1805–1827. doi:10.1016/S0378-4266(00)00159-X [verified]
+- S148. Brown, S. J., Goetzmann, W., Ibbotson, R. G. & Ross, S. A. (1992). Survivorship Bias in Performance Studies. *RFS* 5(4), 553–580. doi:10.1093/rfs/5.4.553 [verified]
+- S149. Bai, J. & Perron, P. (2003). Computation and analysis of multiple structural change models. *Journal of Applied Econometrics* 18(1), 1–22. doi:10.1002/jae.659 [verified; online 2002]
+- S150. Pesaran, M. H. & Timmermann, A. (2007). Selection of estimation window in the presence of breaks. *Journal of Econometrics* 137(1), 134–161. doi:10.1016/j.jeconom.2006.03.010 [verified; online 2006]
+- S151. Getmansky, M., Lo, A. W. & Makarov, I. (2004). An econometric model of serial correlation and illiquidity in hedge fund returns. *JFE* 74(3), 529–609. doi:10.1016/j.jfineco.2004.04.001 [verified]
+- S152. Geltner, D. (1991). Smoothing in appraisal-based returns. *Journal of Real Estate Finance and Economics* 4, 327–345. doi:10.1007/BF00161933 [verified]
+- S153. Bekaert, G. & Harvey, C. R. (1997). Emerging equity market volatility. *JFE* 43(1), 29–77. doi:10.1016/S0304-405X(96)00889-6 [verified]
+- S154. Harvey, C. R. (1995). Predictable Risk and Returns in Emerging Markets. *RFS* 8(3), 773–816. doi:10.1093/rfs/8.3.773 [verified]
+- S155. Bekaert, G., Erb, C. B., Harvey, C. R. & Viskanta, T. E. (1998). Distributional Characteristics of Emerging Market Returns and Asset Allocation. *JPM* 24(2), 102–116. doi:10.3905/jpm.24.2.102 [verified]
+- S156. NGX market structure and 2026 rule changes: NGX, "Trading market structure", https://ngxgroup.com/exchange/trade/equities/trading-market-structure (page fetch failed 2026-11-04; search summary cites 10:00 continuous open, 14:20 pre-close, ±10% limit); Nairametrics, "NGX introduces new thresholds for share price changes", 18 Jun 2026, https://nairametrics.com/2026/06/18/ngx-introduces-new-thresholds-for-share-price-changes/ ; Leadership, "Nigerian Exchange postpones revised pricing rules hours before August 17 take-off", https://leadership.ng/nigerian-exchange-postpones-revised-pricing-rules-hours-before-august-17-take-off/ ; The Sun, "NGX returns to tiered price discovery system after SEC approval", https://thesun.ng/ngx-returns-to-tiered-price-discovery-system-after-sec-approval/ ; T+1 settlement from 1 June 2026 and changed trading hours reported in the same search (accessed 2026-11-04). **Conflicting; rulebook confirmation required.** [secondary]
+- S157. scikit-learn developers, `sklearn.covariance.LedoitWolf` documentation. https://scikit-learn.org/stable/modules/generated/sklearn.covariance.LedoitWolf.html (accessed 2026-11-04) [primary documentation]
+- S158. Clarke, R., de Silva, H. & Thorley, S. (2006). Minimum-Variance Portfolios in the U.S. Equity Market. *JPM* 33(1), 10–24. doi:10.3905/jpm.2006.661366 [verified]; and (2011) Minimum-Variance Portfolio Composition. *JPM* 37(2), 31–45. doi:10.3905/jpm.2011.37.2.031 [verified]
+- S159. NGX All-Share Index annual returns: ThisDay, "NGX ASI Closes 2024 With Impressive Annual Growth of 37.65%", 1 Jan 2025, https://www.thisdaylive.com/2025/01/01/ngx-asi-closes-2024-with-impressive-annual-growth-of-37-65/ ; Prime Business Africa, "NGX Records 37.65% Growth, Ends 2024 On High Note" (2023: +45.90% to 74,773.77; 2024: +37.65% to 102,926.40, naira terms). No source found for USD-terms returns (accessed 2026-11-04). [secondary]
+
+*Scripts (this repository):* `docs/portfolio-os/research/scripts/worked_example_5b.py`, `prototype_checks.py`, `thin_trading_demo.py` — run on 2026-11-04 with numpy 2.5.3, pandas 3.0.5, scipy 1.18.1; outputs quoted verbatim in §4.
+
+## Appendix A. Verbatim output of `scripts/prototype_checks.py` (2026-11-04)
+
+```
+numpy 2.5.3
+
+[1] Student-t(5): sample variance = 1.6651; theory nu/(nu-2) = 1.6667; sigma inflation factor = 1.2904 (so a user-entered 60% vol is simulated as ~77.5%)
+
+[2] Prototype 'Max DD P50/P95' (1-P25/P50, 1-P5/P50 of terminal prices) vs true path max drawdown, GBM mu=5%, sigma=60%
+     5d: prototype P50=  5.4% P95= 13.0% | true path MDD median=  5.7% 95th pct= 14.4%
+    21d: prototype P50= 11.0% P95= 24.9% | true path MDD median= 14.8% 95th pct= 29.9%
+    63d: prototype P50= 18.3% P95= 38.8% | true path MDD median= 26.9% 95th pct= 48.2%
+   252d: prototype P50= 34.1% P95= 63.3% | true path MDD median= 50.5% 95th pct= 75.5%
+
+[3] P(stop) terminal-only vs path-barrier (stop at -10%), GBM sigma=60%
+     5d: terminal-only 10.9% | path (any day) 14.7% | under-count x1.35
+    21d: terminal-only 29.3% | path (any day) 48.9% | under-count x1.67
+    63d: terminal-only 40.3% | path (any day) 70.6% | under-count x1.75
+   252d: terminal-only 52.4% | path (any day) 87.1% | under-count x1.66
+[4] GARCH(0.08,0.85) sigma=60%, clamp=False: realised ann. vol 0.601 (target 0.600), excess kurtosis of daily returns 0.30
+[4] GARCH(0.08,0.85) sigma=60%, clamp=True: realised ann. vol 0.601 (target 0.600), excess kurtosis of daily returns 0.30
+
+[5] OU kappa=2.0: half-life = ln2/kappa = 0.3466 years = 87 trading days = 126 calendar days (code comments say '≈130 days' and '≈127 days')
+
+[6] Prototype 'Sharpe' = mean/std of terminal simple returns * sqrt(252/h), GBM mu=0.05 hardcoded:
+   sigma=0.18 h=  5d: 'Sharpe'=0.300  vs mu/sigma=0.278 (no risk-free rate, no data)
+   sigma=0.18 h=252d: 'Sharpe'=0.270  vs mu/sigma=0.278 (no risk-free rate, no data)
+   sigma=0.60 h=  5d: 'Sharpe'=0.059  vs mu/sigma=0.083 (no risk-free rate, no data)
+   sigma=0.60 h=252d: 'Sharpe'=0.076  vs mu/sigma=0.083 (no risk-free rate, no data)
+
+[7] MC noise at N=10,000 (50 independent runs, 21d, sigma 60%): P5 price sd=0.316 on mean 74.40 (≈0.43%); P(profit) sd=0.0057
+
+[8] PerformancePanel: P&L sequence [50, -100, 30] on a 10,000 account -> reported max drawdown 200%; true equity drawdown 1.00%
+[9] 20 trade returns mean 1% sd 5% (holding period unknown): panel 'Sharpe' = 2.34; Lo(2002) iid SE of the un-annualised ratio with n=20 ≈ 0.22 per sqrt(period)
+```
