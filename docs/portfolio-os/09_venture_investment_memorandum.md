@@ -11,11 +11,11 @@ Reviewers required: Legal & Regulatory (incl. CITN Act opinion); Tax Intelligenc
 
 ## 1. Executive summary
 
-**Conclusion.** Do not fund Portfolio OS today and do not raise outside capital yet. The committee keeps **"build-to-learn, no-fund-yet"**: build the personal system, then run priced tests with *non-friend* users, and approach angels only if two of three signals that can be read by month 9 (August 2027) pass (§8.3). The wedge is narrower than v0.1 claimed. Mass-retail holders of Nigerian shares, including the IPO cohort, have no tax to compute: gains are exempt below ₦150m proceeds **and** ₦10m gains (NTA s.34(1)(a)), and dividends bear final withholding (Doc 6 F12–F13). The tax pain sits with **cross-border investors**: foreign shares (no threshold), foreign currency as a chargeable asset (s.34(1)(b)) and diaspora residency under the disjunctive s.201 definition. The candidate wedge is a cross-border tax-and-records pack that Portfolio OS prepares and a CITN-registered practitioner co-signs; the taxpayer files (NTAA s.33). B2B2C stays the main venture route, priced as flat licences.
+**Conclusion.** Do not fund Portfolio OS today and do not raise outside capital yet. The committee keeps **"build-to-learn, no-fund-yet"**: build the personal system, then run priced tests with *non-friend* users, and approach angels only if two of three signals readable by month 9 (August 2027) pass (§8.3). The wedge is narrower than v0.1 claimed: mass-retail holders of Nigerian shares, including the IPO cohort, have no tax to compute: gains are exempt below ₦150m proceeds **and** ₦10m gains (NTA s.34(1)(a)), and dividends bear final withholding (Doc 6 F12–F13). Tax pain sits with **cross-border investors**: foreign shares (no threshold), foreign currency as a chargeable asset (s.34(1)(b)) and diaspora residency under the disjunctive s.201 definition. The candidate wedge is a cross-border tax-and-records pack that Portfolio OS prepares and a CITN-registered practitioner co-signs; the taxpayer files (NTAA s.33). B2B2C stays the main venture route, priced as flat licences.
 
 **Why.** The ₦2,500 Basic plan is $1.86 gross and $1.73 after 7.5% VAT. After payment, aggregation and support costs it contributes $0.49 a month (29% margin), and LTV/CAC is 0.3 at a $25 CAC and 7% monthly churn. A 65/20/15 Nigeria-heavy mix earns 42% margin and LTV/CAC 0.9; a $10 USD plan earns 59% and 3.2. With one churn input, a USD-only product breaks even near 30,000 payers and a diaspora-heavy mix near 71,000; a Nigeria-heavy mix never does at a $25 CAC. The USD-payer share needed for LTV/CAC ≥ 3 depends on measured churn: 62% at 5% and 92% at 7% for a $25 CAC, or 31% and 49% for a $15 CAC (§4.4).
 
-**Biggest uncertainty.** Willingness to pay and monthly churn, for which no direct evidence exists. Second, whether selling tax computations for a fee is "practice of taxation" under CITN Act s.16 and s.19. We have read the Act's text but have no legal opinion.
+**Biggest uncertainty.** Willingness to pay and monthly churn, for which no direct evidence exists. Second, whether selling tax computations for a fee is "practice of taxation" under CITN Act s.16 and s.19. We read the Act; no legal opinion exists yet.
 
 ---
 
@@ -23,7 +23,7 @@ Reviewers required: Legal & Regulatory (incl. CITN Act opinion); Tax Intelligenc
 
 **Questions addressed.** (A) Who has the problem and how do they cope today; (B) market size with sourced assumptions; (C) competitive landscape in Nigeria, the UAE/MENA and globally; (D) business models, pricing and unit economics; (E) regulatory and structural risk; (F) defensibility; (G) staged plan and capital; (H) bear case, kill criteria, alternatives and a fund/no-fund recommendation.
 
-**What we searched.** Primary and institutional sources where available: EFInA Access to Financial Services (A2F) 2023 survey report (full PDF extracted and read) [S1]; National Pension Commission (PenCom) Q4 2025 industry dashboard (PDF) [S2]; SEC Nigeria rules on robo-advisory services (2021, PDF), the SEC FinTech rules page and the January 2026 revised minimum-capital circular [S28–S32]; Central Bank of Nigeria (CBN) open-banking framework commentary and Open Banking Nigeria status pages [S33][S34]; Nigeria Tax Act 2025 commentaries (Legal500, Tope Adebayo LP, EY) [S39–S41]; the Nigerian Tax ID portal notice [S42]; UAE government taxation page [S44]; Partech 2025 Africa Tech VC report (PDF extracted) [S52]; NGX (then NSE) market-data price list 2018 (PDF extracted) [S66]; vendor pricing pages (YNAB, Monarch, Kubera, EODHD, Paystack) [S55–S57][S63][S65]; Y Combinator deal page [S75]; RevenueCat State of Subscription Apps 2026 [S61]; Sensor Tower Nigeria app-revenue blog [S62]; company and regulator announcements reported by TechCabal, Techpoint, BusinessDay, Nairametrics, Vanguard, The National, Fintech News UAE, Forbes Middle East, TechCrunch and others. Academic claims were checked against Crossref by DOI (the OpenAlex-based reference-lookup tools timed out and OpenAlex's free quota was exhausted on 2026-11-02; Crossref returned DOIs for all ten references, nine to journal versions and one to a working-paper version — marked accordingly in §10).
+**What we searched.** Primary and institutional sources where available: EFInA Access to Financial Services (A2F) 2023 survey report (full PDF extracted and read) [S1]; National Pension Commission (PenCom) Q4 2025 industry dashboard (PDF) [S2]; SEC Nigeria rules on robo-advisory services (2021, PDF), the SEC FinTech rules page and the January 2026 revised minimum-capital circular [S28–S32]; Central Bank of Nigeria (CBN) open-banking framework commentary and Open Banking Nigeria status pages [S33][S34]; Nigeria Tax Act 2025 commentaries (Legal500, Tope Adebayo LP, EY) [S39–S41]; the Nigerian Tax ID portal notice [S42]; UAE government taxation page [S44]; Partech 2025 Africa Tech VC report (PDF extracted) [S52]; NGX (then NSE) market-data price list 2018 (PDF extracted) [S66], superseded in v0.2 by the 2026 schedule via Doc 5c [S86]; vendor pricing pages (YNAB, Monarch, Kubera, EODHD, Paystack) [S55–S57][S63][S65]; Y Combinator deal page [S75]; RevenueCat State of Subscription Apps 2026 [S61]; Sensor Tower Nigeria app-revenue blog [S62]; company and regulator announcements reported by TechCabal, Techpoint, BusinessDay, Nairametrics, Vanguard, The National, Fintech News UAE, Forbes Middle East, TechCrunch and others. Academic claims were checked against Crossref by DOI (the OpenAlex-based reference-lookup tools timed out and OpenAlex's free quota was exhausted on 2026-11-02; Crossref returned DOIs for all ten references, nine to journal versions and one to a working-paper version — marked accordingly in §10; in v0.2 A8 was upgraded to its 2016 journal version).
 
 **Tools.** WebSearch (extended mode for Nigerian/UAE facts), WebFetch for primary pages, `pdftotext` for PDFs, Crossref API via curl for citations. Python 3: `research/scripts/doc09_unit_economics_mix.py` (per-subscriber model) and `research/scripts/doc09_sizing_and_unit_economics.py` (funnel, segment, P&L, breakeven, capital, signals). Both run under `python3 -I` with the standard library only.
 
@@ -76,7 +76,7 @@ Each finding states the claim, the evidence grade, and sources. "Checked" dates 
 
 **F12. In Nigeria, no venture-backed personal-finance-management (PFM) company has succeeded as software, and the data-infrastructure layer consolidated.** Okra (~$16 million raised) shut down in May 2025, citing the delayed open-banking regime, dollar-priced cloud costs after the 2023–24 devaluation and competition [S36]; Mono (~$17.5 million raised; $50 million post-money in 2021) was sold to Flutterwave for $25–40 million in stock in January 2026 [S35]; Bento (payroll) collapsed in February 2025 amid unremitted-pension allegations [S72]; Earnipay (financial wellness) cut staff and pivoted to business lending in 2025 [S73, E4]. Xara, a bootstrapped WhatsApp AI finance assistant launched June 2025, monetises on bill payments and airtime, not subscriptions [S81][S82, E4]. *E3.*
 
-**F13. Open banking in Nigeria has not gone live.** The CBN's 1 August 2025 go-live "did not materialize"; industry workstreams delivered the Open Banking Registry requirements, consent framework and API specifications by September 2025; the CBN's February 2026 fintech report set a phased rollout "through mid-2026"; Open Banking Nigeria's page (updated July 2026) says the industry "awaits the next directive"; NIBSS is to operate the registry and consent system; participation requires registration and CBN licensing [S33][S34]. *E3 (checked 2026-11-04).*
+**F13. Open banking in Nigeria has not gone live.** The CBN's 1 August 2025 go-live "did not materialize"; industry workstreams delivered the Open Banking Registry requirements, consent framework and API specifications by September 2025; the CBN's February 2026 fintech report set a phased rollout "through mid-2026"; Open Banking Nigeria's page (shown as updated July 2026; R09's re-fetch found its latest *dated* status entry is September 2025) says the industry "awaits the next directive"; NIBSS is to operate the registry and consent system; participation requires registration and CBN licensing [S33][S34]. *E3 (checked 2026-11-04).*
 
 ### 3D. Regulatory and macro facts
 
@@ -513,7 +513,7 @@ The product is identical. The economics are set by where the subscriber lives, h
 | Issue | VC partner | CEO / strategy | CFO | YC-style operator | Proposed resolution path |
 |---|---|---|---|---|---|
 | Fund now? | No. Pass at pre-seed for a consumer app; would re-open for a B2B/adviser or cross-border tax wedge with a *paid* pilot (an LOI costs the signer nothing) | Build the wedge (ledger + cross-border pack) and prove WTP by month 9 before raising | Numbers say no unless the USD-payer share exceeds U\*(measured churn), e.g. 49% at 7% churn and a $15 CAC | Nigerians do not pay for "insight"; find a painful, time-bound job (cross-border tax, FX reconciliation) | Pre-registered signals at month 9; confirmation at month 15 |
-| Which first segment? | Diaspora/UAE (ARPU) | Nigeria-resident mass-affluent (founder's network, data access) | Diaspora (payment rails, margin) | Whoever answers a cold message and uploads a statement within 48 hours | Run both in the 20-user cohort (10/10); pick by retention and WTP |
+| Which first segment? | Diaspora/UAE (ARPU) | Nigeria-resident mass-affluent (founder's network, data access) | Diaspora (payment rails, margin) | Whoever answers a cold message and uploads a statement within 48 hours | Run both in signal S-a (stratified recruitment, ≥ 75 prospects per segment); pick by paid conversion and month-15 retention. S6 cross-border users are tested separately in S-b |
 | Is the nine-system vision an asset or a liability? | Liability for fundraising; asset as architecture | Asset: it is the reason the product is different | Liability: fixed costs of C/D/G before revenue | Liability: ship the ledger and one wedge; everything else is a roadmap slide | Keep the architecture; sequence the build (Doc 1–8 owners to agree) |
 | Behavioural analytics as a selling point? | No; contested evidence invites regulator and press scrutiny | Yes, if "scientifically restrained" is the brand | Neutral; it costs little | No; nobody buys restraint | Position as trust/retention feature; never in acquisition copy |
 | Regulated advice eventually? | Only through partners | Own licence by Stage 3 to capture value | Partner first; own licence when revenue > $3m | Never, unless it is the business | Decision deferred to Stage-3 gate with legal opinion |
@@ -691,7 +691,7 @@ Access dates: 2026-11-02 to 2026-11-04 unless stated. "Search summary" means the
 - [S52] Partech, *2025 Africa Tech Venture Capital Report* (PDF read) and press release, 22 Jan 2026. https://partech-admin.prod.unomena.io/media/documents/2025_Partech-Africa-Tech-VC-Report.pdf; https://partechpartners.com/news/2025-partech-africa-tech-vc-report-african-tech-funding-rebounds-to-us41b-driven-by-record-debt-activity-and-disciplined-equity-growth. E3.
 
 **Companies, pricing and comparables**
-- [S53] Sacra, "Monarch at $100M ARR", 5 Oct 2026 (analyst estimates). https://sacra.com/research/monarch-money-at-100m-arr/. E4.
+- [S53] Sacra, "Monarch at $100M ARR", 5 Oct 2026 (analyst estimates). https://sacra.com/research/monarch-money-at-100m-arr/. E4. Reports no subscriber count (R09 m8); v0.1's "~1m paying" was our derivation.
 - [S54] Tech Funding News, "Personal finance app Monarch rises with $75M at $850M valuation after Mint's meltdown", 26 May 2025. https://techfundingnews.com/personal-finance-app-monarch-rises-with-75m-after-mints-meltdown-a-soonicorn-on-cards/. E3.
 - [S55] Monarch, pricing page ($14.99/month; $99.99/year). https://www.monarch.com/pricing. E3.
 - [S56] YNAB, pricing page ($14.99/month; $109/year; 34-day trial). https://www.ynab.com/pricing. E3.
@@ -721,7 +721,7 @@ Access dates: 2026-11-02 to 2026-11-04 unless stated. "Search summary" means the
 - [S80] Legit.ng, "Dangote Refinery closes $1.6bn IPO as investors from 119 countries rush for shares", 29 Oct 2026. https://www.legit.ng/business-economy/capital-market/1738555-dangote-refinery-closes-16bn-ipo-investors-119-countries-rush-shares/. E3.
 - [S81] Technext, "WhatsApp fintech Xara crosses ₦10 billion transaction milestone in first year", 5 Jun 2026 (search summary). https://technext24.com/2026/06/05/whatsapp-xara-crosses-%e2%82%a610-b-transaction/. E4.
 - [S82] Techpoint Africa, Xara founder profile (bootstrapped), 2025–26 (search summary). https://techpoint.africa/feature/nigerian-xara-founder-xai-offer/. E4.
-- [S83] Payscale, Life Indexed, Plane and Indeed UAE salary pages for software engineers (search summaries; wide ranges). https://www.payscale.com/research/NG/Job=Software_Engineer/Salary; https://plane.com/salaries/software-engineer/nigeria; https://ae.indeed.com/career/software-engineer/salaries/Remote. E4.
+- [S83] Payscale, Life Indexed, Plane and Indeed UAE salary pages for software engineers (search summaries; wide ranges). https://www.payscale.com/research/NG/Job=Software_Engineer/Salary; https://plane.com/salaries/software-engineer/nigeria; https://ae.indeed.com/career/software-engineer/salaries/Remote. E4. v0.2: inputs derived from these ranges are graded E5 (R09 evidence audit).
 - [S84] TheCable, "Registry of participants, customers' consent… CBN issues guidelines for open banking", 2023 (search summary; fetch 403). https://www.thecable.ng/registry-of-participants-customers-consent-cbn-issues-guidelines-for-open-banking/. E4.
 - [S85] Digital Policy Alert; Legal500/Balogun Harold on GAID 2025 DCPMI tiers and Schedule 10 fees (search summaries). https://digitalpolicyalert.org/change/13818-registration-as-a-data-controller-or-data-processor-of-major-importance-requirement-in-nigeria-data-protection-act-2023-general-application-and-implementation-directive-2025-ndpcndp-act-gaid012025. E4.
 
@@ -746,3 +746,81 @@ Access dates: 2026-11-02 to 2026-11-04 unless stated. "Search summary" means the
 - [S91] Portfolio OS internal documents (v0.1–v0.2, 2026-11-02 to 2026-11-04): Doc 4 (F2, F8, R10), Doc 5c (F1–F4, F7, §4.6, N14–N15), Doc 6 (F8–F19, F30–F31, F34–F38, R3, R7), `CANONICAL_CONTRACTS.md` (C1.6, C3, C5.1, C7), reviews R05c, R06, R09, revision log V-012, V-023, V-028. Competitors named only by R09 (Sharesight, Getquin, Snowball, Delta, Grey, Nala, Afriex, Cleva, Personetics, Meniga, Moneyhub, Stanbic IBTC, ARM, United Capital) were not re-fetched in this pass (E4 via reviewer).
 
 *Calculation scripts (v0.2):* `research/scripts/doc09_unit_economics_mix.py` (per-subscriber model; `legacy=True` reproduces the v0.1 table) and `research/scripts/doc09_sizing_and_unit_economics.py` (funnel, cross-border segment, steady-state P&L and breakeven, capital plan, B2B2C, signals). Both use the standard library only and run under `python3 -I`; outputs quoted in §4.2–§4.7 and §8.3 are verbatim from a run on 2026-11-04. Reviewer recomputation: `research/scripts/r09_unit_economics_sensitivity.py`. v0.1's `model.py`/`model2.py` were moved into the repository as the doc09 scripts (V-002, commit 593543c) and have now been revised in place.
+
+---
+
+## 11. Revision history and response to review
+
+**v0.1** (2026-11-02 to 2026-11-04): first draft for cross-department review. **v0.2** (2026-11-04): revised after red-team review R09 (verdict: major revision) and revision-log items V-012 and V-023. Numbers were recomputed with `research/scripts/doc09_unit_economics_mix.py` and `doc09_sizing_and_unit_economics.py`, revised in place. With `legacy=True` or the "v0.1" rows, they reproduce the v0.1 tables and the reviewer's `r09_unit_economics_sensitivity.py` outputs (60/72/78% margins; 37/58/91% USD shares) before the v0.2 changes are applied.
+
+Finding IDs are the reviewer's (R09 §2, §2A–2C, §3, §4, §5, §6). "RL" is the revision-log ID.
+
+| Finding | RL | Action | Where | Note |
+|---|---|---|---|---|
+| B1 Tax wedge targets users with nothing to compute | V-023 | Fixed | §1, F6, F15, F21, §4.1 S6, §4.2 Table C, §4.4 M8, §5 A5/A5b, §8.1 R2, §8.2 | Wedge re-scoped to cross-border investors (foreign shares, FX, s.201 residency), practitioner co-signed; sized at 99k–463k people (E5). "Nobody has a tax engine" withdrawn. CITN Act read (s.16, s.19) and the opinion added to §9. Correction to the reviewer: residency is s.201, not s.202 (R06) |
+| B2 Month-9 signals unreadable and unfalsifiable | — | Fixed | §4.6, §8.3 | Signals replaced with S-a/S-b/S-c, each readable by month 9 with a single cutoff; retention moved to a month-15 confirmation; calendar dated from 2026-11-04; founder time cap |
+| M1 ARPU conflation | — | Fixed | §1, §4.4 | Basic-only economics now lead the executive summary ($0.49 contribution, 29%, LTV/CAC 0.3). v0.1's 23% in §4.7 recomputes to 21.5% |
+| M2 Churn inconsistency; 1m row | — | Fixed | §4.4 P&L | One churn input; steady-state acquisition = payers × churn × 12 × CAC; breakeven counts shown; 1m row removed (coherence check only). The reviewer's "Nigeria-heavy breaks even ~190k" is right on v0.1 costs but no longer holds once M3's costs are added: see §7.3 |
+| M3 Omitted costs | V-012 | Fixed | §4.4 cost table, sensitivities, P&L fixed costs | VAT, Paystack ₦100 at ₦2,500 and on international cards, Mono aggregation, agentic token profile with disclosed counts, NGX 2026 schedule incl. non-display, professional lines (practitioner, indemnity, NDPC audit, opinions). **Partial disagreement:** the base case gates LLM use by plan; the reviewer's uniform 2.5× stress is kept as a sensitivity (§7.3) |
+| M4 35% USD gate as a constant | — | Fixed | §4.4 U\* table, §8.3 | Replaced by U\*(measured churn, CAC); the reviewer's 37/58/91% are reproduced; v0.2 base 62/92/not reachable at $25 CAC |
+| M5 Funnel independence | — | Fixed | F2, F9, §4.2 Table B | Conditional funnel 1.38–4.32m (2.7–4.7× v0.1). SOM and recommendation unchanged, because WTP binds (§7.3) |
+| M6 Sensor Tower as WTP | — | Fixed | F5, §5 A1, [S62] | Graded E4 for WTP; units and the 17.7K peak corrected; "≈ nil" removed |
+| M7 Competitors missing | — | Fixed | §4.3, §4.1 S4/S5, §7.1 | Global trackers, PIT calculators, state pre-fill, diaspora apps, integrated groups, bank PFM vendors, Mansa/Kobo, PiggyVest toggle added. Those named only by R09 are marked "not re-fetched" (E4) |
+| M8 UAE perimeter understated | — | Fixed | F17, §4.1 S3, §4.4 M2, §5 A3, §7.1, §8.1 R7, §9 item 4 | UAE consumer lines partner-only until counsel opines; "UAE premium only" row removed |
+| M9 NDPA framed as threshold-gated | — | Fixed | F16, §4.6 Stage 1, §7.1, §8.1 R9, §9 item 3 | DPIA and transfer instrument before the second user; GAID tiers graded E4 (S85 only); S37 corrected |
+| M10 B2B2C per-member pricing; 250k-member gate | — | Fixed | §4.2, §4.4 M4, §4.6 Stage 3, §8.3 | Flat licences at an unknown price (two quotes); PFA per-RSA arithmetic shown; seed gated on revenue, not members |
+| M11 Capital plan and hiring realism | — | Fixed | §4.6 | Founder salary, growth/BD hire, USD-benchmarked case: Stage 2 $0.54–0.84m; Stage 3 ≈ $1.9m before acquisition; salary inputs regraded E5 |
+| m1 Scripts not in repository | V-002 | Fixed (already closed) | §2, §10 | Scripts now under `research/scripts/` and revised in place |
+| m2 KPMG "2025 study" | — | Fixed | F9 | Page dated Sep 2026; fieldwork year not stated |
+| m3 EFInA 93% vs 87.9% | — | Fixed | F2 | Inconsistency inside the source noted; smartphone 26.6% |
+| m4 Lagos deadline | — | Fixed | F15 | 14 April, then 21 April (Doc 6 F17) |
+| m5 ISA 2025 citation | — | Fixed | F14 | Assent 31 March 2025 via Doc 6 F35 |
+| m6 A8 journal version | — | Fixed | [A8] | *Management Science* 62(12) 2016, verified on Crossref |
+| m7 Mono figures | — | Fixed | F1, §8.2 | Graded E4 (company claim) |
+| m8 Monarch subscribers | — | Fixed | §4.2, [S53] | Labelled as our derivation |
+| m9 Stage-1 kill gaps | — | Fixed | §8.3 | Single cutoffs; real payment in every gate |
+| 2A Stage 0 "≥99%" undefined | — | Fixed | §4.6, §8.3 | All 12 periods, zero unexplained difference, Suspense = 0 (Doc 6 Gate 1; C1-I7) |
+| 2A Stage 1 friendly cohort | — | Fixed | §8.3 S-a | ≥ 150 non-friend prospects, ≥ 30 payers; Wilson interval stated |
+| 2A Stage 2 CAC > $40 rationale | — | Fixed | §4.4, §8.3 | Kill CAC = LTV/CAC < 1.5 at measured churn and mix; v0.1's 1.14 shown |
+| 2A FX > 40% kill | — | Fixed | §7.1, §8.3 | Converted to a repricing rule; removed from the kill list |
+| 2A Three USD thresholds | — | Fixed | §4.4, §8.3 | One threshold, U\* |
+| 2A Missing founder cap, legal deadline, LOI | — | Fixed | §4.6, §8.3 | 20 h/week cap; opinions by month 6; paid pilot ≥ $5k by month 18; LOIs do not count |
+| 2B Bull case | — | Fixed (kept) | §7.4 | Strengthened. **Rejected (number):** "USD-only breaks even near 10k payers". On v0.2 costs the figure is ~30k at 7% churn (~23k at 5%), because of VAT, aggregation, the agentic token profile and professional fixed costs |
+| 2C Bear case | — | Fixed (kept) | §7.4 | Strengthened with v0.2 figures (92% U\* at 7% churn and $25 CAC) |
+| §3 grade: "nobody has it" | — | Fixed | §4.3, §4.5 | Withdrawn |
+| §3 grade: share-gain exemption | — | Fixed | F15 | E2 via Doc 6 |
+| §3 grade: Sensor Tower / Mono / GAID tiers | — | Fixed | F5, F1, F16 | E4 |
+| §3 grade: unit economics / LLM profiles | — | Fixed | §4.4 | E5; token counts disclosed in the cost table |
+| §3 grade: B2B2C "most credible route" | — | Fixed | §4.2, §4.4 M4 | Revenue lines graded E6; the committee view is kept as a view |
+| §3 grade: Hub71/DFSA | — | No change | F17, F19 | Reviewer agrees (E4) |
+| §3 grade: Stage-2 salaries | — | Fixed | §4.6, [S83] | E5 |
+| §3 unsourced facts (PFAs/banks count; 1–3% conversion; Big-4; app-store 15–30%) | — | Fixed | §4.1 S5, §4.4 M3, §4.5, §4.4 cost table | Count marked unsourced (E4); conversion and Big-4 claims withdrawn; Play fee sourced [S88] |
+| §4 S63 Paystack waiver | — | Fixed | §4.4, [S63] | Re-fetched 2026-11-04 |
+| §4 S37 tiers not in source | — | Fixed | F16, [S37] | |
+| §4 S34 open-banking status date | — | Fixed | F13 | Reviewer's latest dated entry (Sep 2025) noted |
+| §4 other spot-checks (S30, S3, S17, S14/S15, S2, S1, S75, S25, S35, S57, S79, S20, S11, S53) | — | No change needed | — | Confirmed by reviewer; S1 smartphone and S53 notes applied |
+| §5 Contradictions: exemption, filing, residency, Lagos, NGX cost, data APIs, aggregation, UAE perimeter, UAE Open Finance, NDPA | V-012, V-023 | Fixed | F15, F16, F17, F21, §4.3, §4.4 | Doc 6, Doc 5c and Doc 4 now govern and are cited (UAE Open Finance cites Doc 4 F8) |
+| §6 Q1 foreign-share holders with realised gains | — | Deferred | §7.2 item 4, Table C | Owner: Venture Strategy, with a data request to Bamboo/Risevest/Trove and to SEC; by month 6 |
+| §6 Q2 what PFAs/brokers pay | — | Deferred | §7.2 item 7, §9 item 7 | Owner: CEO role; two quotes by month 9 |
+| §6 Q3 CITN Act | V-023 | Partly fixed; opinion deferred | F21, §9 item 2 | Act text read; opinion owned by Legal & Regulatory, due month 6 |
+| §6 Q4 state pre-fill of investment income | — | Deferred | §6 item 2 | Owner: Tax Intelligence (Doc 6) |
+| §6 Q5 realistic churn | — | Deferred | §7.2 item 2, §8.3 month 15 | Measured in S-a/S-b payers; owner: Product |
+| §6 Q6 tokens per research run | — | Deferred | §7.2 item 3, §9 item 7 | Owner: Technology (Doc 7), on the prototype |
+| §6 Q7 diaspora centre of gravity | — | Partly fixed; rest deferred | F4, §7.2 item 8 | UN DESA total added (E4); destinations and income deferred to Venture Strategy |
+| §6 Q8 founder earnings and equity | — | Deferred | §7.2 item 12 | **Founder to confirm** |
+| V-012 NGX non-display fee | V-012 | Fixed | §4.4 cost table and P&L, §4.6 Stage 0, §8.1 R3, §9 item 5 | ≈ $104/month local or ≈ $792/month international for the MVP; ₦1.25m non-display inside the ₦5–8m commercial floor. NGX's written answer is still outstanding (Doc 5c owner) |
+| V-023 Tax-practice regulation and liability | V-023 | Fixed in this document; opinion deferred | F21, §7.1, §9 item 2 | Doc 6 §9 owns the sign-off list; this memo carries the commercial consequence |
+
+**Disagreements preserved.**
+- **With the reviewer:** plan-gated versus uniform LLM costs (§7.3); the "~10k payers" USD-only breakeven (rejected on v0.2 costs); the claim that the larger funnel is a reason for optimism (accepted as a sizing correction, not as a reason to change the call).
+- **Inside the committee:** the CEO's dissent that the mass-affluent still need a year-round PIT view (§7.3).
+- **With the contracts:** none. The memo uses a press-reported NFEM close (₦1,346/$) as a *planning* rate, which is not a C3-validated figure. Any figure that reaches a user follows C5.1, and tax outputs follow C7. Doc 9 has no contract of its own to dispute.
+
+**What remains open.**
+1. The CITN Act and SEC-perimeter opinions (month 6). Until they arrive, no tax or analytics output is sold.
+2. The practitioner's answers to C1.6 (FX disposals in particular), which decide whether the S6 segment includes every FX holder.
+3. NGX's written answer on non-display use and the fee basis (V-012).
+4. Measured tokens, churn and CAC, which replace the E5 inputs that drive U\* and every margin in §4.4.
+5. Two B2B price quotes and two practitioner review quotes.
+6. A DPIA, a transfer instrument and a privacy design before any second user (V-028).
+7. Founder inputs: salary needs, equity, banks used, time available.

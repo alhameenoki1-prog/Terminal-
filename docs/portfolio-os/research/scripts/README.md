@@ -10,8 +10,8 @@ All inputs are synthetic or are dated assumptions stated in the script header. R
 | `worked_example_5b.py` | Document 5b worked example: covariance shrinkage, drawdowns, bootstrap goal range |
 | `prototype_checks.py` | Document 5b §F checks on the NEXUS Monte Carlo and performance prototypes |
 | `thin_trading_demo.py` | Document 5b thin-trading beta bias and Dimson correction |
-| `doc09_sizing_and_unit_economics.py` | Document 9 market sizing and unit-economics tables |
-| `doc09_unit_economics_mix.py` | Document 9 plan-mix unit economics |
+| `doc09_sizing_and_unit_economics.py` | Document 9 v0.2 §4.2 conditional funnel and cross-border segment (Tables B, C), §4.4 steady-state P&L and breakeven (one churn input), §4.6 stage capital, §4.4 M4 B2B2C arithmetic, §8.3 signal/kill-criteria arithmetic (Wilson intervals, calendar, U\*). Loads `doc09_unit_economics_mix.py` by file path |
+| `doc09_unit_economics_mix.py` | Document 9 v0.2 §4.4 per-subscriber unit economics by plan mix (VAT, Paystack fixed fee, Mono aggregation, plan-gated LLM token profiles), sensitivities, the churn-indexed USD-share threshold U\*, kill CAC, the cross-border tax-pack economics and the §4.7 worked example. `legacy=True` reproduces the v0.1 table |
 | `r09_unit_economics_sensitivity.py` | Review R09 recomputation and sensitivity of Document 9's unit economics |
 | `../behavioural/payday_sim.py` | Document 3 synthetic payday-spending worked example |
 | `contracts_checks.py` | CANONICAL_CONTRACTS.md C1–C7 worked examples: per-commodity postings, FX residual rule, currency pool and lots, figure-token validator, entry-time status check, confidence rule, FX decomposition and sign check, goal output, tax basis period and watermark |
