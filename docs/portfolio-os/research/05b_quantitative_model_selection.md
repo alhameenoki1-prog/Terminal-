@@ -83,3 +83,130 @@ Each finding carries an evidence grade (E1–E6 per the brief) and source number
 **F24. Time-weighted and money-weighted returns answer different questions; a personal ledger needs both, and cash-flow timing makes them diverge materially.** Modified Dietz [S95] and GIPS methodology (TWR with valuation at large external cash flows for firm composites; money-weighted returns permitted where the manager controls cash flows) [S96, unverified text]; Dichev shows investors' dollar-weighted returns lag buy-and-hold returns [S97]. Our example: one quarter with a mid-period 50% deposit gives TWR −6.27% versus Modified Dietz/IRR −5.21%. **E3** [S95–S97].
 
 **F25. The two prototypes are not validated infrastructure.** Twenty-three defects with line references in §4.8, independently reproduced numerically. **E2** (direct code inspection and replication).
+
+## 4. Proposed framework / specification for Portfolio OS
+
+### 4.1 Inputs the quant layer requires (and what it refuses to compute without)
+
+| Input | Minimum for Phase 1 | Provenance fields required (per brief §5.1) | If missing |
+|---|---|---|---|
+| Position ledger (holdings, units, cost, currency, account, dates) | Complete, reconciled by System A | source, as-of, currency, validation status | No risk figure is shown; exposure table shows "unpriced" rows |
+| Prices for each holding | Daily closes, ≥ 60 trading days for volatility; ≥ 250 for correlation; ≥ 1,000 for tail/drawdown statistics | venue, timestamp, currency, adjustment status, stale-flag (zero-volume day) | Show the metric with a "short history" badge and a wider interval, or suppress below the floor |
+| FX rates NGN/USD, AED/USD (and the rate *the user actually transacts at*) | Daily; both official and any parallel/retail rate the user supplies, labelled | source (e.g. CBN/FMDQ official vs user-supplied), timestamp | Report in local currency only, flag "USD view unavailable" |
+| Base currency choice | User-selected; default unknown — **founder to confirm** | — | Block multi-currency aggregation |
+| Cash flows (deposits, withdrawals, dividends, coupons, fees, tax) | Complete, dated | from the ledger | MWR not computed; TWR shown with "unverified cash flows" badge |
+| Benchmark(s) | Optional: NGX ASI, S&P 500, 1-year FGN T-bill, USD cash | licence status per data team | Attribution suppressed |
+| Scenario library | Shipped with the product (§4.4), versioned | source series, dates | — |
+
+### 4.2 Portfolio-construction model families: assessment (assignment item A)
+
+Table 4.2a summarises each family on the assignment's criteria. "Suitability (i)" is the founder's own multi-currency, few-asset portfolio; "(ii)" is a future retail product.
+
+| Family | Key assumptions | Data needs | Stability | Lay interpretability | Failure modes | Compute | Suitability (i) / (ii) | Evidence |
+|---|---|---|---|---|---|---|---|---|
+| Mean–variance (Markowitz) [S1] | Known μ, Σ; quadratic utility or normal returns; one period | μ needs decades [S5]; Σ ≥ 250 d | Very low: weights flip on small μ changes [S9, S10] | Low ("why 0% in X?") | Corner solutions; error maximisation [S2]; leverage of estimation noise | Trivial | Not justified / display-only with constraints, later | E1 |
+| 1/N and simple heuristics [S5] | None | None | Perfect | High | Ignores risk differences (e.g. a 60%-vol asset at equal weight) | None | Benchmark for every optimiser; a legitimate default | E1 |
+| Constrained / shrunk mean–variance [S11–S14] | As above plus priors/constraints | Σ ≥ 250 d; priors | Moderate | Moderate | Constraints do the work; priors hidden | Trivial | Phase 2 as "alternative view" only | E1 |
+| Minimum variance (no μ) [S158] | Σ only | ≥ 250 d | Moderate; still sensitive to Σ regime | Moderate | Concentrates in low-vol assets (bonds, which in NGN carry FX risk) | Trivial | Phase 2 display; never a recommendation | E2 |
+| Covariance: sample | Stationarity | T ≫ N | Poor when T/N small | — | Singular for N > T; break-sensitive | Trivial | Input only when T/N > 20 | E1 |
+| Covariance: Ledoit–Wolf shrinkage [S15–S18] | Stationarity within window | ≥ 60 d usable, ≥ 250 preferred | Good | — (internal) | Intensity saturates on jump days (§4.9) | Trivial | **Phase 1 risk input, with break isolation** | E1 |
+| Covariance: EWMA/RiskMetrics [S23] | Local stationarity; λ fixed (0.94 daily per secondary sources) | ≥ 100 d | Responsive; noisy | Moderate ("recent-weighted") | λ arbitrary; no mean-reversion | Trivial | Phase 1 as a *second* estimate to show disagreement | E3 |
+| Covariance: factor-based [S20–S22] | Factor structure | Factor returns for NGX/DFM/ADX — not available with provenance | Good for large N | Moderate | Mis-specified factors | Low | Later (retail product with many names) | E1 |
+| Covariance: DCC-GARCH [S27, S28] | Correct GARCH + DCC dynamics | ≥ 1,000 d per series | Fragile | Low | Spurious dynamics; no asymptotics [S28] | Moderate | Do-not-build (yet) | E2 |
+| Black–Litterman [S31–S35] | Market equilibrium prior; views with confidence | Market-cap weights of a defined universe; δ, τ, Ω | Depends entirely on Ω/τ | Moderate if framed as "your view vs the market" | Prior ill-defined for NGN/AED/USD mix; confidence is a guess | Trivial | Later (view-expression tool) | E2 |
+| Risk parity / risk budgeting [S36–S41] | Risk contributions as the objective; leverage available | Σ | Good | High as a *display* | Return depends on leverage and bond beta [S37–S39]; implicit return forecast [S40] | Trivial | Phase 2 display of risk contributions; no leverage | E1/E2 |
+| Hierarchical risk parity [S42–S44] | Hierarchical correlation structure | Σ with N large | Moderate | Low | No advantage at N ≤ 10; cost-sensitive [S44] | Low | Do-not-build (yet) | E2 |
+| Resampled efficiency [S45–S47] | MV inputs + resampling | As MV | Smoother weights | Low | Averaging heuristic [S46] | Moderate | Do-not-build | E2 |
+| Robust optimisation [S48, S49] | Uncertainty sets | As MV plus set sizes | Good within set | Low | Sets are estimates | Moderate | Do-not-build (yet) | E2 |
+| CVaR optimisation [S50, S51] | Scenario set represents the tail | ≥ 1,000 d or a scenario library | Poor with short tails | Moderate ("average of worst 5%") | Fits tail noise | Linear programme | Reporting yes (Phase 1); optimisation later | E1 (theory) |
+| Kelly / fractional Kelly [S52–S54] | Known edge and odds; log utility | Edge estimates | Catastrophic under estimation error | Low | Over-betting; drawdowns | Trivial | Do-not-build | E1 |
+
+**Constraints and transaction costs (all families).** Long-only, per-position caps, per-currency caps, minimum trade sizes (NGX board lots) and explicit cost assumptions per venue are mandatory in anything that is ever displayed, because Jagannathan & Ma show constraints act as shrinkage [S11] and because unconstrained output is uninterpretable to a lay user. **Rebalancing** is specified as *threshold monitoring* (e.g. report when a weight drifts more than a user-chosen band, default 5 percentage points absolute or 25% relative — an engineering default, E5) with the cost of the implied trade shown next to the drift. The product does not auto-rebalance.
+
+### 4.3 Risk measurement specification (item B)
+
+| Metric | Definition the product uses | Minimum data | Uncertainty shown | Plain-language label |
+|---|---|---|---|---|
+| Volatility | Annualised SD of daily log returns in the selected base currency; also EWMA (λ = 0.94) as a second estimate | 60 d (badge) / 250 d | Chi-square CI for iid; wider band if autocorrelation detected | "Typical yearly swing" |
+| Downside deviation / Sortino [S102] | Below a user-set minimum acceptable return | 250 d | Bootstrap CI | "Downside swing" |
+| VaR / CVaR (historical and scenario) | 1-day and 1-month 95%/99% from historical returns and from the scenario library; parametric VaR *not* shown | 250 d (95%); 1,000 d (99%) | Order-statistic CI; Kupiec backtest once ≥ 250 forecasts exist [S139, S140] | "Loss exceeded about 1 month in 20" |
+| Drawdown table | Max drawdown, peak/trough dates, time to recover, current drawdown; per asset, per currency view, and portfolio | 250 d | Note on sampling distribution [S66]; horizon stated | "Worst peak-to-trough fall" |
+| Concentration | HHI and 1/HHI by position, issuer, sector, country, currency [S69] | Holdings only | None needed | "Effective number of holdings" |
+| Diversification ratio [S70] and effective number of bets [S71] | As defined in §4.9 code | 250 d | Bootstrap CI | "How much diversification you are actually getting" |
+| Risk contributions | w_i (Σw)_i / w'Σw | 250 d | Bootstrap CI | "Where your risk comes from" |
+| Correlation under stress | Full-sample, EWMA, and conditional on the worst-decile days of a chosen factor (oil, USD/NGN, S&P) [S73–S77] | 500 d | Forbes–Rigobon-adjusted figure shown alongside [S75] | "How things move together in bad months" |
+| Currency exposure decomposition | For each position: local return, currency return, cross term, in base currency [S78, S79]; exposure table by currency of denomination *and* of economic exposure (e.g. a USD-earning NGX stock — user-tagged) | Holdings + FX | None | "What happens to you if the naira moves 10%" |
+| Liquidity flags | Zero-return-day fraction, Amihud ratio, days-to-liquidate at 20% of ADV [S89–S91] | 60 d of volume | — | "How hard to sell" |
+
+**Multi-currency decomposition formula** (base currency B, position in local currency L): $1+R_B = (1+R_L)(1+R_{FX})$, so $R_B = R_L + R_{FX} + R_L R_{FX}$. The product reports all three terms; for NGN assets the cross term is not negligible in devaluation months (a +20% local month with a −35% currency month gives −22% in USD: −35% + 20% − 7%).
+
+### 4.4 Stress testing specification
+
+**Historical scenarios (shipped library, versioned, each with source series and dates):**
+
+| Scenario | Window | Shock definitions (source) | Applies to |
+|---|---|---|---|
+| Global financial crisis | 2007-10 → 2009-03 | S&P 500 ≈ −57% (to be sourced by data team; outside FRED window); Brent −77% (3 Jul 2008 → 26 Dec 2008) [S87]; NGX ASI collapse of 2008–09 (level data to be sourced; CBN Statistical Bulletin) | USD equity, oil-linked NGN equity, FX |
+| Oil collapse and 2016 naira float | 2014-06 → 2017-12 | Brent −77% (19 Jun 2014 → 20 Jan 2016) [S87]; NGN/USD annual average 158.6 (2014) → 305.8 (2017) [S84]; one-day interbank move ~197 → 254–282 on 20 Jun 2016 [S86] | All NGN assets in USD view |
+| COVID shock | 2020-02 → 2020-04 | S&P 500 −33.9% (19 Feb → 23 Mar 2020) [S88]; Brent −87% (6 Jan → 21 Apr 2020) [S87] | Global |
+| 2022 rates shock | 2022 | S&P 500 −25.4% (3 Jan → 12 Oct 2022) [S88]; bond drawdowns (data team) | USD bonds/equity |
+| 2023 naira unification | 2023-06 → 2024-03 | Official rate ~477 → ~750 in one day (June 2023) and 770 by 23 Jun 2023 [S85]; annual average 426.0 (2022) → 645.2 (2023) → 1,479.0 (2024) [S84] | All NGN assets; NGN-denominated goals |
+
+**Hypothetical scenarios (parametrised; user can edit the magnitudes):** NGN −30%/−50% overnight; AED peg break (AED has been pegged to USD; a peg-break scenario is a low-probability, high-impact hypothetical — E6); oil −50%; US equity −40% with NGN −20% (joint); NGX liquidity freeze (positions marked at a 15% discount and 30-day exit). **Reverse stress test [S94, S65]:** solve for the smallest joint move (along the first principal component of the stressed covariance) that reduces the base-currency net worth below the user's stated "unacceptable" level, and report it in words ("a 28% naira fall with flat equities would put you below your floor").
+
+Each stress result is shown as a *loss given the scenario*, never with a probability attached, unless the scenario comes from the historical library — in which case the frequency statement is limited to "this happened n times in the last m years".
+
+### 4.5 Performance measurement specification (item C)
+
+| Measure | Method | When shown | Standard error / caveat |
+|---|---|---|---|
+| Time-weighted return (TWR) | Sub-period returns between every external cash flow, geometrically linked; daily valuation where prices exist [S95, S96] | Always (strategy quality) | Pricing-stale badge if any sub-period uses a stale price |
+| Money-weighted return (MWR) | IRR of dated cash flows and end value; Modified Dietz as the fallback approximation when intra-period prices are missing [S95] | Always (investor's experience) | Multiple-root check; shown with the TWR–MWR gap explained ("timing effect") [S97] |
+| Currency decomposition of return | Local, currency, cross term by position and in aggregate [S78, S79] | Always for multi-currency | — |
+| Sharpe, Sortino, Calmar | Excess of a *stated* cash rate in the base currency (USD T-bill / FGN T-bill / AED deposit — unknown which; founder to confirm); Sortino vs stated MAR [S102]; Calmar = annualised return / max drawdown over the same window [S103] | Only when ≥ 36 monthly or ≥ 250 daily observations | Lo (2002) SE [S98] printed next to the ratio; autocorrelation-adjusted SE when the Ljung–Box test rejects; the product states "not statistically distinguishable from zero" when |SR| < 2 SE |
+| Deflated Sharpe ratio [S104] | Applied to any backtested or strategy-selected figure the research module produces | Research outputs only | Number of trials must be logged |
+| Attribution (Brinson) [S108, S109] | At the level of *asset class × currency* only (allocation vs selection vs currency); security-level attribution suppressed for < 20 holdings | Quarterly, when a benchmark is chosen | Benchmark choice stated; no attribution without a licensed benchmark series |
+
+### 4.6 Emerging-market data pathologies and required fixes (item E)
+
+| Pathology | Effect on models | Detection | Fix | Minimum data quality by model |
+|---|---|---|---|---|
+| Thin trading / zero-return days | Volatility and beta biased down; correlations biased toward zero [S142–S145] | Zero-return-day fraction; volume = 0 flags | Dimson aggregated coefficients (±2–3 lags) for beta; weekly or monthly aggregation for volatility and correlation; show both | Volatility: daily only if zero-day fraction < 10%, else weekly; beta: Dimson always on NGX |
+| Stale prices in indices and funds | Autocorrelated, smoothed returns; understated risk [S145, S151, S152] | Significant lag-1 autocorrelation | Unsmoothing (Geltner/Getmansky) for fund NAVs; disclose | Any series with ρ₁ > 0.2 is flagged "smoothed" |
+| Non-synchronous closes across time zones | Daily cross-market correlations biased down [S146, S147] (NGX closes before US cash open; DFM/ADX close hours earlier still) | Lead–lag cross-correlations | Use 2-day or weekly returns for cross-region correlation; never mix daily closes across regions in Σ | Cross-region Σ: weekly only |
+| Survivorship | Overstated historical returns of "the market" [S148] | Compare constituent lists over time | Use total-return indices with documented methodology; flag back-filled data | Any backtest must state the universe-as-of date |
+| FX conversion | Mixing official, NAFEM and parallel rates creates fictitious returns | Rate source per observation | One rate source per series, labelled; user-transacted rate for the user's own flows | — |
+| Short histories | Tail and drawdown statistics undefined; shrinkage targets dominate | T below floors in §4.3 | Suppress or badge; use scenario library instead of empirical tails | Per-metric floors in §4.3 |
+| Structural breaks (devaluations, policy regimes) | Estimates average across regimes; shrinkage intensity saturates (§4.9) | Known event dates; Bai–Perron break tests on longer series [S149]; window-selection logic [S150] | Isolate break days as scenarios; estimate Σ on the post-break window when ≥ 120 d exist, otherwise show both windows | — |
+| Price limits and circuit breakers | Truncated return distributions on limit days (NGX ±10% daily limit per its market-structure page; tiered minimum-volume rules for price changes were revised during 2026 and press reports on the effective date conflict [S156]) | Returns equal to the limit | Flag limit days; do not treat as ordinary observations | — |
+
+**Thin-trading demonstration** (`thin_trading_demo.py`, output verbatim):
+
+```
+stale prob  obs vol true vol  OLS beta Dimson k=1 Dimson k=3 weekly beta zero-day frac
+       0.0    0.303    0.303     0.967      1.005      0.987       0.973          0.00
+       0.3    0.304    0.303     0.674      0.932      0.982       0.902          0.29
+       0.5    0.308    0.303     0.510      0.744      0.937       0.844          0.49
+       0.7    0.313    0.303     0.322      0.580      0.818       0.664          0.69
+```
+
+(In this generator the missed moves are recovered in full on the next trading day, so total variance is preserved and observed volatility is not understated; in real thin markets stale quotes are *not* fully caught up within the sample window, and daily volatility is also biased down [S142, S145]. The beta bias is the robust result.)
+
+### 4.7 Forecasting and simulation specification (item D) — the Goal Reality Engine
+
+**Principles.** (a) No point forecast of returns is produced anywhere in the product (F19). (b) Every simulated distribution is accompanied by an *estimation-uncertainty band* (how much the answer moves when the history is resampled) and a *sensitivity line* (how much it moves per ±2 percentage points of assumed drift). (c) Optimisation output is never a forecast; (d) percentiles are rounded to the nearest 5 points and shown as ranges; (e) every output logs the forecast so it can be calibration-tested later (F22).
+
+**Engine choice.**
+
+| Engine | Keeps | Loses | Verdict |
+|---|---|---|---|
+| GBM with point μ, σ | Simplicity | Fat tails, clustering, parameter uncertainty [S125, S128] | Allowed only as a *labelled benchmark path* |
+| Student-t / GARCH [S26] | Tails, clustering | Needs estimated parameters and ≥ 1,000 d; unstable on NGX data | Phase 2, only with estimation + diagnostics |
+| Regime switching [S118–S120] | Crisis clustering | Many parameters; regime identification from short data is unreliable | Phase 2 research only |
+| IID bootstrap [S121] | Empirical tails | Dependence | — |
+| Stationary/block bootstrap [S122–S124] | Empirical tails and short-range dependence | Tails never observed; stationarity | **Phase 1 engine**, with the scenario library injected as explicit overlays |
+| Scenario trees (deterministic) | Transparency | Probability | **Phase 1**, alongside the bootstrap |
+
+**Presentation contract for a goal (example: "$100,000 targeting $150,000 in five years").** The product shows: (1) the required compound return (8.4% a year in USD); (2) which asset mixes have *historically* delivered that over rolling 5-year windows and how often (with the window count); (3) the risk those mixes carried (worst 5-year drawdown in the history, in the user's base currency); (4) the bootstrap probability of shortfall as a *range* (10th–90th percentile of the estimation band), with a plain sentence: "With the data we have, the chance of reaching this goal is somewhere between X and Y; the range is wide because five years of history cannot tell us the average return to within ±6 points a year"; (5) alternative structures (longer horizon, higher contributions, lower target) and what each does to the range; (6) the explicit statement that none of this is a forecast or a recommendation. Sequence risk is shown as the difference between the goal probability with and without contributions timed early versus late (path-dependence of contributions [S134, S135]).
+
+**Calibration testing (from day one).** Each forecast distribution issued is stored with its PIT value once the outcome is known; monthly, the product computes the PIT histogram [S136, S137], a Berkowitz test [S138] and coverage of the 50%/90% bands [S139, S140]. Until 24 outcomes exist, the engine is labelled "uncalibrated".

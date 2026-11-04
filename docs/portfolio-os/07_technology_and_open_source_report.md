@@ -479,3 +479,122 @@ Five-question test for ranks 1–3: see Table 4.1 (rows 3, 4 and 2 respectively)
 6. Counsel/Doc 6 review of: AGPL/GPL reuse boundaries; NDPA/PDPL obligations for personal use and for SaaS; cross-border inference; retention periods; tax-law effective dates.
 7. Security review (§4.7 checklist) executed on the Compose deployment with synthetic data before any real statement is uploaded.
 8. Re-verification of model IDs, prices and data-retention terms on the implementation start date (they were checked on 2026-11-02 and are time-sensitive).
+
+## 10. Sources
+
+All web sources were accessed on **2026-11-02** (the document was completed on 2026-11-04; sources were not re-fetched after 2026-11-02). "Observed" = read directly from the cited page/file. Academic items state the verification route: **[verified — hosted reference-lookup tool]** or **[verified — direct OpenAlex/arXiv API query]**, as authorised by the coordinator when the tool was unavailable.
+
+**Existing systems**
+- S1. Ghostfolio README, ghostfolio/ghostfolio, GitHub, 2026. https://github.com/ghostfolio/ghostfolio — observed.
+- S2. Ghostfolio `prisma/schema.prisma`. https://github.com/ghostfolio/ghostfolio/blob/main/prisma/schema.prisma — observed.
+- S3. Ghostfolio releases (3.94.0–3.96.0). https://github.com/ghostfolio/ghostfolio/releases — observed.
+- S4. Ghostfolio `exchange-rate-data.service.ts`. https://github.com/ghostfolio/ghostfolio/blob/main/apps/api/src/services/exchange-rate-data/exchange-rate-data.service.ts — observed.
+- S5. Actual Budget README. https://github.com/actualbudget/actual — observed.
+- S6. Actual Budget docs, "Bank Sync". https://actualbudget.org/docs/advanced/bank-sync/ — observed.
+- S7. Actual Budget docs, "Rules". https://actualbudget.org/docs/budgeting/rules/ — observed.
+- S8. Actual Budget docs, "Sync" (end-to-end encryption). https://actualbudget.org/docs/getting-started/sync/ — observed.
+- S9. Actual Budget docs, "Transfers". https://actualbudget.org/docs/transactions/transfers/ — observed.
+- S10. Actual Budget releases (v26.9.0–v26.11.0). https://github.com/actualbudget/actual/releases — observed.
+- S11. Actual Budget `packages/crdt` README. https://github.com/actualbudget/actual/tree/master/packages/crdt — observed.
+- S12. Actual Budget issues #3351 and #1132 (multi-currency). https://github.com/actualbudget/actual/issues/3351 — observed.
+- S13. Actual Budget FAQ. https://actualbudget.org/docs/faq/ — observed.
+- S14. Firefly III README. https://github.com/firefly-iii/firefly-iii — observed.
+- S15. Firefly III releases (v6.7.9; develop-2026110x). https://github.com/firefly-iii/firefly-iii/releases — observed.
+- S16. Firefly III Data Importer README. https://github.com/firefly-iii/data-importer — observed.
+- S17. Firefly III `app/Enums/TransactionTypeEnum.php`. https://github.com/firefly-iii/firefly-iii/blob/main/app/Enums/TransactionTypeEnum.php — observed.
+- S18. Firefly III `app/Enums/AccountTypeEnum.php`. https://github.com/firefly-iii/firefly-iii/blob/main/app/Enums/AccountTypeEnum.php — observed.
+- S19. Firefly III `app/Models/Transaction.php`. https://github.com/firefly-iii/firefly-iii/blob/main/app/Models/Transaction.php — observed.
+- S20. Maybe Finance README (archived 27 Jul 2025). https://github.com/maybe-finance/maybe — observed.
+- S21. Sure (community fork of Maybe) README. https://github.com/we-promise/sure — observed.
+- S22. Beancount README. https://github.com/beancount/beancount — observed.
+- S23. Beancount documentation: index; "Beancount Language Syntax"; "How Inventories Work". https://beancount.github.io/docs/ ; https://beancount.github.io/docs/beancount_language_syntax/ ; https://beancount.github.io/docs/how_inventories_work/ — observed.
+- S24. PyPI metadata: beancount 3.2.3, beangulp 0.2.0, beanquery 0.2.0, fava 1.30.16. https://pypi.org/pypi/beancount/json (and sibling URLs) — observed.
+- S25. Fava README. https://github.com/beancount/fava — observed.
+- S26. hledger README, features and release notes (1.99.6, 2026-11-01). https://github.com/simonmichael/hledger ; https://hledger.org/features.html ; https://hledger.org/release-notes.html — observed.
+- S27. OpenBB README and LICENSE (Apache License, Version 2.0; © 2021–2026 OpenBB Inc.). https://github.com/OpenBB-finance/OpenBB ; https://github.com/OpenBB-finance/OpenBB/blob/develop/LICENSE — observed.
+- S28. PyPI metadata: openbb 5.0.0, openbb-core 2.0.1, openbb-yfinance 2.1.0 (AGPL-3.0-only), openbb-fmp 1.6.1, openbb-polygon 1.5.1, openbb-sec 2.0.0, openbb-fred 2.0.0. https://pypi.org/pypi/openbb-yfinance/json (and siblings) — observed.
+- S29. OpenBB `openbb_platform/providers` directory listing (develop). https://github.com/OpenBB-finance/OpenBB/tree/develop/openbb_platform/providers — observed; listing may be partial.
+- S30. Wealthfolio README and releases (v3.10.0–v3.12.0). https://github.com/afadil/wealthfolio ; https://github.com/afadil/wealthfolio/releases — observed.
+- S31. Portfolio Performance README and releases (0.88.0–0.90.0). https://github.com/portfolio-performance/portfolio ; https://github.com/portfolio-performance/portfolio/releases — observed.
+- S32. rotki README. https://github.com/rotki/rotki — observed.
+- S33. Paisa README. https://github.com/ananthakumaran/paisa — observed.
+
+**Libraries, data sources and infrastructure**
+- S34. PyPI JSON API metadata sweep (84 packages; version, upload date, declared licence) via https://pypi.org/pypi/<package>/json — observed; raw rows retained in the department's scratch notes.
+- S35. npm registry metadata sweep (19 packages) via https://registry.npmjs.org/<package> — observed.
+- S36. PyMuPDF README, "Licensing" (GNU AGPL v3 / Artifex commercial). https://github.com/pymupdf/PyMuPDF — observed.
+- S37. Docling README (MIT; LF AI & Data Foundation). https://github.com/docling-project/docling — observed.
+- S38. yfinance README, legal disclaimer. https://github.com/ranaroussi/yfinance — observed.
+- S39. TradingView Lightweight Charts README (Apache-2.0; attribution notice). https://github.com/tradingview/lightweight-charts — observed.
+- S40. Tiger Data docs, "TimescaleDB editions" (Apache 2 Edition; Tiger Data License). https://www.tigerdata.com/docs/about/latest/timescaledb-editions — observed.
+- S41. PostgreSQL Global Development Group, "PostgreSQL Licence". https://www.postgresql.org/about/licence/ — observed.
+- S42. Python Software Foundation, "decimal — Decimal fixed-point and floating-point arithmetic". https://docs.python.org/3/library/decimal.html — observed.
+- S43. U.S. SEC, "EDGAR Application Programming Interfaces" (last reviewed 8 Apr 2025). https://www.sec.gov/search-filings/edgar-application-programming-interfaces — observed.
+- S44. Central Bank of Nigeria, Exchange Rates (NFEM rate table). https://www.cbn.gov.ng/rates/ExchRateByCurrency.html — observed.
+- S45. Nigerian Exchange Group, Market Data. https://ngxgroup.com/exchange/data/ — observed.
+- S46. Mono Technologies, homepage/product pages. https://mono.co/ — observed (vendor claims).
+- S47. Lean Technologies, homepage. https://www.leantech.me/ — observed (vendor claims; CBUAE status described inconsistently on the page).
+- S48. Central Bank of Nigeria, "Operational Guidelines for Open Banking in Nigeria", approved March 2023 (PDF; text extracted locally with pdftotext). https://www.cbn.gov.ng/Out/2023/CCD/Operational%20Guidelines%20for%20Open%20Banking%20in%20Nigeria.pdf — observed.
+- S49. Open Banking Nigeria. https://openbanking.ng/ — observed.
+
+**AI platform and models**
+- S50. Anthropic, "Models overview" (model IDs, context, pricing summary). https://platform.claude.com/docs/en/about-claude/models/overview — observed.
+- S51. Anthropic, "Pricing". https://platform.claude.com/docs/en/about-claude/pricing — observed.
+- S52. Anthropic, "Structured outputs". https://platform.claude.com/docs/en/build-with-claude/structured-outputs — observed.
+- S53. Anthropic, "Tool use with Claude". https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview — observed.
+- S54. Anthropic, "Citations" (incompatibility with structured outputs). https://platform.claude.com/docs/en/build-with-claude/citations — observed.
+- S55. Anthropic, "API and data retention". https://platform.claude.com/docs/en/manage-claude/api-and-data-retention — observed.
+- S56. Anthropic `claude-api` reference skill (bundled documentation, cached 2026-10-06), cross-checked against S50–S55 — observed.
+- S57. Ollama README (MIT). https://github.com/ollama/ollama — observed.
+- S58. llama.cpp README (MIT; OpenAI-compatible server; GBNF grammars). https://github.com/ggml-org/llama.cpp — observed.
+- S59. Qwen3-32B model card (Apache-2.0). https://huggingface.co/Qwen/Qwen3-32B — observed.
+- S60. Meta, "Llama 4 Community License Agreement" (effective 5 Apr 2025). https://dev.meta.ai/llama/llama4/license/ — observed.
+- S61. Google, "Gemma Terms of Use" (last modified 1 Apr 2026). https://ai.google.dev/gemma/terms — observed.
+- S62. OpenAI, gpt-oss-20b model card (Apache-2.0). https://huggingface.co/openai/gpt-oss-20b — observed.
+- S63. S. Willison, "The Dual LLM pattern for building AI assistants that can resist prompt injection", 25 Apr 2023. https://simonwillison.net/2023/Apr/25/dual-llm-pattern/ — observed (practitioner, E3).
+- S64. OWASP, "Top 10 for LLM Applications 2025". https://genai.owasp.org/llm-top-10/ — observed.
+
+**Academic works**
+- S65. K. Greshake, S. Abdelnabi, S. Mishra, C. Endres, T. Holz, M. Fritz, "Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection", arXiv:2302.12173, 2023. [verified — direct arXiv API query]
+- S66. E. Debenedetti et al., "Defeating Prompt Injections by Design" (CaMeL), arXiv:2503.18813, 2025. [verified — hosted reference-lookup tool]
+- S67. P. Lewis et al., "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks", arXiv:2005.11401, 2020. [verified — direct arXiv API query]
+- S68. P. Islam, A. Kannappan, D. Kiela, R. Qian, N. Scherrer, B. Vidgen, "FinanceBench: A New Benchmark for Financial Question Answering", arXiv:2311.11944, 2023; abstract quoted from https://arxiv.org/abs/2311.11944. [verified — hosted reference-lookup tool]
+- S69. Z. Chen et al., "FinQA: A Dataset of Numerical Reasoning over Financial Data", arXiv:2109.00122, 2021. [verified — direct arXiv API query]
+- S70. F. Zhu et al., "TAT-QA: A Question Answering Benchmark on a Hybrid of Tabular and Textual Content in Finance", arXiv:2105.07624, 2021. [verified — direct arXiv API query]
+- S71. Z. Ji et al., "Survey of Hallucination in Natural Language Generation", ACM Computing Surveys, 2023 (OpenAlex year 2022), doi:10.1145/3571730. [verified — direct OpenAlex API query]
+- S72. T. Schick et al., "Toolformer: Language Models Can Teach Themselves to Use Tools", arXiv:2302.04761, 2023. [verified — direct arXiv API query]
+- S73. S. Yao et al., "ReAct: Synergizing Reasoning and Acting in Language Models", arXiv:2210.03629, 2022. [verified — direct arXiv API query]
+- S74. C. Auer et al., "Docling Technical Report", arXiv:2408.09869, 2024. [verified — direct arXiv API query]
+- S75. K. Claessen, J. Hughes, "QuickCheck: a lightweight tool for random testing of Haskell programs", ICFP 2000, doi:10.1145/351240.351266. [verified — direct OpenAlex API query; hosted tool timed out]
+- S76. D. R. MacIver, Z. Hatfield-Dodds et al., "Hypothesis: A new approach to property-based testing", Journal of Open Source Software, 2019, doi:10.21105/joss.01891. [verified — direct OpenAlex API query]
+- S77. M. Shapiro, N. Preguiça, C. Baquero, M. Zawirski, "Conflict-Free Replicated Data Types", SSS 2011, doi:10.1007/978-3-642-24550-3_29. [verified — direct OpenAlex API query]
+- S78. M. Kleppmann, A. Wiggins, P. van Hardenberg, M. McGranaghan, "Local-first software: you own your data, in spite of the cloud", Onward! 2019, doi:10.1145/3359591.3359737. [verified — hosted reference-lookup tool]
+- S79. H. Markowitz, "Portfolio Selection", Journal of Finance, 1952, doi:10.2307/2975974. [verified — direct OpenAlex API query]
+- S80. R. O. Michaud, "The Markowitz Optimization Enigma: Is 'Optimized' Optimal?", Financial Analysts Journal, 1989, doi:10.2469/faj.v45.n1.31. [verified — direct OpenAlex API query]
+- S81. V. DeMiguel, L. Garlappi, R. Uppal, "Optimal Versus Naive Diversification: How Inefficient is the 1/N Portfolio Strategy?", Review of Financial Studies 22(5), 2009 (OpenAlex records online-first year 2007), doi:10.1093/rfs/hhm075. [verified — direct OpenAlex API query]
+- S82. O. Ledoit, M. Wolf, "Honey, I Shrunk the Sample Covariance Matrix", Journal of Portfolio Management, 2004, doi:10.3905/jpm.2004.110. [verified — direct OpenAlex API query]
+- S83. M. López de Prado, "Building Diversified Portfolios that Outperform Out of Sample", Journal of Portfolio Management, 2016, doi:10.3905/jpm.2016.42.4.059. [verified — direct OpenAlex API query]
+- S84. T. Bollerslev, "Generalized autoregressive conditional heteroskedasticity", Journal of Econometrics, 1986, doi:10.1016/0304-4076(86)90063-1. [verified — direct OpenAlex API query]
+- S85. R. C. Merton, "Option pricing when underlying stock returns are discontinuous", Journal of Financial Economics, 1976, doi:10.1016/0304-405X(76)90022-2. [verified — direct OpenAlex API query]
+
+**Security, privacy and regulation**
+- S86. Microsoft Learn, "Threats — Microsoft Threat Modeling Tool" (STRIDE). https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats — observed.
+- S87. M. Fowler, "Monolith First", 3 Jun 2015. https://martinfowler.com/bliki/MonolithFirst.html — observed (practitioner, E3).
+- S88. OWASP, Application Security Verification Standard 5.0.0, published 30 May 2025. https://asvs.owasp.org/ — observed.
+- S89. NIST, SP 800-63B-4 "Digital Identity Guidelines: Authentication and Authenticator Management", Final, July 2025. https://pages.nist.gov/800-63-4/sp800-63b.html ; https://csrc.nist.gov/pubs/sp/800/63/b/4/final — observed.
+- S90. HashiCorp Vault LICENSE (Business Source License 1.1; licensor IBM). https://github.com/hashicorp/vault/blob/main/LICENSE — observed.
+- S91. OpenBao README (MPL-2.0). https://github.com/openbao/openbao — observed.
+- S92. SOPS README (MPL-2.0; CNCF sandbox 2023). https://github.com/getsops/sops — observed.
+- S93. age README (BSD-3-Clause). https://github.com/FiloSottile/age — observed.
+- S94. SQLCipher README (BSD-3-Clause, Zetetic LLC). https://github.com/sqlcipher/sqlcipher — observed.
+- S95. Keycloak README (Apache License, Version 2.0). https://github.com/keycloak/keycloak — observed.
+- S96. Authelia README (Apache-2.0; passkeys; OpenID Certified). https://github.com/authelia/authelia — observed.
+- S97. authentik README (MIT; authentik EE License). https://github.com/goauthentik/authentik — observed.
+- S98. DLA Piper, "Data Protection Laws of the World — Nigeria" (last modified 17 Mar 2026). https://www.dlapiperdataprotection.com/index.html?t=law&c=NG — observed (secondary practitioner source).
+- S99. DLA Piper, "Data Protection Laws of the World — United Arab Emirates" (last modified 27 Jan 2025). https://www.dlapiperdataprotection.com/index.html?t=law&c=AE — observed (secondary practitioner source).
+- S100. UAE Government Portal, "Data protection laws" (updated 4 Dec 2025). https://u.ae/en/about-the-uae/digital-uae/data/data-protection-laws — observed.
+
+**Repository**
+- S101. Repository `alhameenoki1-prog/Terminal-`, local checkout at /home/user/Terminal-: package.json; vite.config.ts; src/App.tsx; src/store/useStore.ts; src/services/chatService.ts; src/services/yahooService.ts; src/components/ChatPanel.tsx; src/components/MonteCarloPanel.tsx; src/data/countryProfiles.ts; src/types/index.ts; git log (17 commits, latest "feat: global country mode") — observed.
+
+**Not reachable in this session (recorded, not cited):** ndpc.gov.ng (HTTP 403); rulebook.centralbank.ae Open Finance Regulation (403); altareq.ae (outside allowed network); dfm.ae data-services pages (404); nrs.gov.ng (client-rendered); docs.firefly-iii.org (403); GitHub REST API (session-restricted).
