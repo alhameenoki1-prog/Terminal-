@@ -24,7 +24,7 @@ Sections
   K  price drift per month: month-on-month series vs year-on-year shortcut (R03 m5)
   L  official-parallel FX spread (R03b M4, V-030)
   M  year-one questionnaire burden, v0.1 vs v0.2 (R03b M3, V-029)
-  N  budget-view experiment: between-person sample size (Doc 4 sec. 4.4.1 and sec. 9 item 10)
+  N  budget-view experiment: between-person sample size (Doc 4 sec. 4.4.1; Doc 4 v0.2 sec. 6)
 """
 import sys
 

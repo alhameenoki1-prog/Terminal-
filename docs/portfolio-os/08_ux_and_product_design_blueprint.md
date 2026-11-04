@@ -759,7 +759,7 @@ Seasonality is modelled only from calendar events the user declares (for example
 
 | Store | Contents | Retention | "Delete everything" |
 |---|---|---|---|
-| Tax and ledger records vault | statements, documents, journal, questionnaire | ≥ 6 years after the year of assessment (NTAA s.31(5); Doc 6 §4.1), WORM-style | Offers a full export first, and states that Nigerian law requires the taxpayer to keep these records six years. For the founder as sole user (NDPA s.3(1)) the choice is his. For a multi-user service, policy is set by counsel and a DPIA |
+| Tax and ledger records vault | statements, documents, journal, questionnaire | ≥ 6 years after the year of assessment (NTAA s.31(5); Doc 6 §4.1), WORM-style | Offers a full export first, and states that Nigerian law requires the taxpayer to keep these records six years. For the founder as sole user (NDPA s.3(1)) the choice is theirs. For a multi-user service, policy is set by counsel and a DPIA |
 | Behavioural derivations | construct results, card history | Outside the tax vault; deleted when behavioural consent is withdrawn, otherwise after 24 months (E5; R03b) | Deleted |
 | Analytics events | local event log | Deleted on opt-out | Deleted |
 

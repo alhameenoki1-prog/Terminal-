@@ -1,7 +1,7 @@
 ```
 Document: 03 — Scientific Behavioural Finance Research Report
 Department: Behavioural Finance, Psychology and Decision Science  ·  Lead role(s): Chief Behavioural Science Officer; behavioural-finance researcher; academic cognitive psychologist; decision scientist; behavioural economist; consumer financial-psychology specialist; psychometrician; experimental-design specialist
-Version: 0.2  ·  Date: 2026-11-04  ·  Status: revised after independent review (v0.1 2026-11-04; research performed 2026-11-02)
+Version: 0.2 · Date: 2026-11-04 · Status: revised after independent review
 Reviewers required: Data & Personal Finance Architecture (System A); Quant/Portfolio (System D); AI Research & Explanation (System H); UX & Product Design; Legal/Compliance & Ethics, including a Nigerian data-protection lawyer and UAE counsel (§4.9); Tax (F17 foreign-currency flag only)
 ```
 
@@ -15,11 +15,11 @@ Reviewers required: Data & Personal Finance Architecture (System A); Quant/Portf
 1. A claims ladder with two observed rungs (recorded, classified), a literature-context rung that never raises the evidence indicator, and a rung for within-person randomised results. All behavioural text comes from rung-tagged templates via C2 tokens.
 2. Personal MVP: decision-linked measures only — recurring charges; fees, levies and conversion cost; liquidity buffer by currency; currency conversions with spread and tax flags; a user-confirmed obligations view.
 3. The payday decomposition guards against false "splurge" alarms (8.03× naïve versus 1.60×). It becomes a decision measure only if the founder's data show an end-of-cycle shortfall cost.
-4. No within-person trial in the MVP. A standing order the founder sets up at his bank is tracked at L0 as a decision.
+4. No within-person trial in the MVP. A standing order the founder sets up at their bank is tracked at L0 as a decision.
 5. Year-one questionnaires: 64 items cut to 7.
 6. Behavioural analysis gets its own off-by-default consent, a sensitive-inference register, separate retention, and a data-protection impact assessment before any second user.
 
-**Biggest uncertainty.** Whether behavioural analysis improves any decision for this founder. That depends on facts we lack: his pay cycles, any shortfall cost, his trading frequency.
+**Biggest uncertainty.** Whether behavioural analysis improves any decision for this founder. That depends on facts we lack: their pay cycles, any shortfall cost, their trading frequency.
 
 ## 2. Scope and method
 
@@ -141,7 +141,7 @@ A rule that always explains a behaviour as rational is as unsupported as one tha
 | Barratt Impulsiveness Scale BIS-11 [S122] | 30 items, 3 factors | Established factor structure | Clinical/psychology use | Not a financial instrument; risk of pathologising | **Do not use** |
 | Financial fragility item [S123] | 1 item: confidence in raising $2,000 in 30 days | — | Predicts hardship | Currency/context adaptation needed | Not administered. It duplicates construct 3 (liquidity buffer), and the "$2,000" anchor is not equivalent across currencies |
 
-**F23a. Instrument licensing (new in v0.2; answers Doc 4 §9 item 10 and R03 M4).** Checked 2026-11-04 by simulated specialists, who are not lawyers. Legal must confirm before any commercial use.
+**F23a. Instrument licensing (new in v0.2; answers Doc 4 v0.1 §9 item 10, now Doc 4 v0.2 §6, and R03 M4).** Checked 2026-11-04 by simulated specialists, who are not lawyers. Legal must confirm before any commercial use.
 
 | Instrument | Terms found | Personal MVP (non-commercial, founder only) | Commercial (System I) | Grade |
 |---|---|---|---|---|
@@ -172,7 +172,7 @@ A rule that always explains a behaviour as rational is as unsupported as one tha
 - **Szaszi et al.** argue that heterogeneity makes a single mean meaningless [S144].
 - **Bakdash & Marusich** show left-truncated effects and overestimated pooled means [S170].
 
-Mertens et al. replied to all three [S169]. The earlier Hummel & Maedche review found most studies significant, with widely varying sizes [S146]. DellaVigna & Linos compare 126 Nudge Unit RCTs (23 million people) with academic trials. Nudge Unit trials average 1.4 percentage points (8.0% over control) against 8.7 points (33.4%) for academic trials; selective publication plus low power explains about 70% of the gap [S145]. This is **E2**: one study of two units, regraded from E1. Its outcomes are take-up of government programmes after letters and emails, so it says little about prompts a sophisticated user designs for himself. Opower-style feedback shows cycles of action and backsliding that attenuate, with effects persisting at 10–20% annual decay after discontinuation [S154]. This is **E2**: one multi-site programme, regraded from E1.
+Mertens et al. replied to all three [S169]. The earlier Hummel & Maedche review found most studies significant, with widely varying sizes [S146]. DellaVigna & Linos compare 126 Nudge Unit RCTs (23 million people) with academic trials. Nudge Unit trials average 1.4 percentage points (8.0% over control) against 8.7 points (33.4%) for academic trials; selective publication plus low power explains about 70% of the gap [S145]. This is **E2**: one study of two units, regraded from E1. Its outcomes are take-up of government programmes after letters and emails, so it says little about prompts a sophisticated user designs for themselves. Opower-style feedback shows cycles of action and backsliding that attenuate, with effects persisting at 10–20% annual decay after discontinuation [S154]. This is **E2**: one multi-site programme, regraded from E1.
 
 *Working prior for Portfolio OS (v0.2):*
 - Informational or reminder prompts in the finance domain should be expected to have **possibly zero** effect.
@@ -287,7 +287,7 @@ The catalogue is cut to constructs that inform a named decision (R03b §2a, §2b
 
 ### 4.3 Statistical decision rules (v0.2)
 
-- **One decision framework: randomisation-based frequentist tests at scheduled looks** (R03 M7; E4, statistician). Tests are derived from the actual randomisation (Edgington's principle [S174]) or from autocorrelation-preserving circular shifts. The v0.1 Bayesian posterior-versus-ROPE (region of practical equivalence) rule is dropped as a decision rule, so the two frameworks are not mixed. Benjamini–Hochberg across "15 constructs" is dropped because most constructs are arithmetic, not tests (R03b §2b).
+- **One decision framework: randomisation-based frequentist tests at scheduled looks** (R03 M7; E4, statistician). Tests are derived from the actual randomisation (Edgington's principle [S174]) or from autocorrelation-preserving circular shifts. The v0.1 Bayesian posterior-versus-ROPE (region of practical equivalence) rule is dropped as a decision rule, so the two frameworks are not mixed. The ROPE itself, [0.90, 1.10] for a ratio, is kept as a pre-declared band of practical equivalence that the interval must clear (§4.4). It is not used as a posterior probability. Benjamini–Hochberg across "15 constructs" is dropped because most constructs are arithmetic, not tests (R03b §2b).
 - **Count tests, not constructs.** In the MVP the only inferential test is construct 6; construct 9 is added later. When more than one test is live, Holm's correction applies across tests at each look.
 - **Independence unit is the pay cycle.**
   - The interval shown is a cycle-level bootstrap, labelled "approximate" while there are fewer than 10 cycles. On the synthetic data it is 1.51–1.80, against v0.1's day-level 1.38–1.83, which broke this rule (script §C; R03 M8).
@@ -421,7 +421,7 @@ The reviewer's proposed minimum of 24 cycles for a 15% effect (R03 B1) is theref
 | The founder is subject, designer and analyst | No blinding; hypotheses known in advance; reactivity (installing a monitoring app itself lowers spending [S76]); expectancy |
 | Burden | Twelve or more months of manual multi-bank uploads (no open banking: Doc 6 F37), plus review-queue work |
 
-**What the MVP does: decisions, tracked at L0b** (R03b M2). If the founder decides on a saving rule, he implements it as a **standing order at his bank**. That is user-configured bank-side automation: Portfolio OS observes it and moves no money, consistent with Doc 4 R13. The system records the decision date and shows the following before and after it, with the `L0b.before_after` disclaimer that this is a description, not a test of effect:
+**What the MVP does: decisions, tracked at L0b** (R03b M2). If the founder decides on a saving rule, they implement it as a **standing order at their bank**. That is user-configured bank-side automation: Portfolio OS observes it and moves no money, consistent with Doc 4 R13. The system records the decision date and shows the following before and after it, with the `L0b.before_after` disclaimer that this is a description, not a test of effect:
 - savings rate (Doc 4 §4.4.3);
 - end-of-cycle buffer;
 - construct 6a.
@@ -454,7 +454,7 @@ A sweep's effect on saving is mechanical and needs no inference. A self-chosen s
    - Withdrawal stops the trial and deletes its behavioural derivations under §4.9.6. Only the consent and withdrawal events are kept. This replaces v0.1's "the record is kept".
    - Unchanged from v0.1: no social comparison, no loss- or shame-framed copy, no streaks, no interventions on obligation or social transfers, and full transparency of mechanism (F29).
 
-**Budget-view experiment (Doc 4 §4.4.1 and §9 item 10; R03 §5.6).** For one person this cannot be tested at useful power. In the personal MVP the founder chooses a view, and adherence and savings rate are reported at L0b without a causal claim. At commercialisation it becomes a between-person randomised trial. Detecting a 2-percentage-point savings-rate difference with an SD of 10 points needs about 392 users per arm (two-sided 0.05, power 0.8; E5 inputs; script §N).
+**Budget-view experiment (Doc 4 §4.4.1; Doc 4 v0.2 §6, formerly §9 item 10; R03 §5.6).** For one person this cannot be tested at useful power. In the personal MVP the founder chooses a view, and adherence and savings rate are reported at L0b without a causal claim. At commercialisation it becomes a between-person randomised trial. Detecting a 2-percentage-point savings-rate difference with an SD of 10 points needs about 392 users per arm (two-sided 0.05, power 0.8; E5 inputs; script §N).
 
 ### 4.7 Outputs the system must NOT produce, and why
 
@@ -502,7 +502,7 @@ Grades apply F12's one-notch discount to mechanism claims not replicated in fiel
 **4.9.1 The facts relied on** are in F30 (NDPA text read 2026-11-04; PDPL via secondary source).
 
 **4.9.2 When the Act applies.**
-- **Founder alone.** If the founder runs the system alone, for himself, on infrastructure he controls, the s.3(1) exemption for processing "solely for personal or household purposes" is likely to apply. Its proviso still protects third parties: the ledger holds kin names and account numbers.
+- **Founder alone.** If the founder runs the system alone, for themselves, on infrastructure they control, the s.3(1) exemption for processing "solely for personal or household purposes" is likely to apply. Its proviso still protects third parties: the ledger holds kin names and account numbers.
 - **The trigger.** The relevant trigger is **a controller other than the founder** (a company, or a cloud processor acting for one) or **any second user**, not "a second person's data", as Doc 6 §4.6 phrases it. Whether processors serving household users fall inside the exemption is unverified (E4).
 - **We do not rely on the exemption.** The design below applies from the start, because it is cheap now and expensive to retrofit (E4).
 
@@ -640,7 +640,7 @@ Conformance is tested in §9 item 5.
   - (2) Income streams with credit dates and a confirmed-anchor flag.
   - (3) The taxonomy mapping below, including a sensitive flag on religious giving.
   - (4) **Risk instrument:** Doc 4 §4.4.4 should replace "Grable–Lytton 13-item, annually" with the SOEP/GPS item asked just in time (F23, F23a). Grable–Lytton stays optional only after written permission. This disagreement is preserved as R15 until Doc 4 decides.
-  - (5) Doc 4 §9 item 10 is answered here: instrument licensing is F23a and the budget-view experiment is §4.6.
+  - (5) Doc 4's ask (v0.2 §6; v0.1 §9 item 10) is answered here: instrument licensing is F23a and the budget-view experiment is §4.6.
   - (6) The R13 conflict is resolved on our side by removing in-product automation from Doc 3.
 - *Doc 8 (UX):* Doc 8 v0.2 was revised in parallel; we read it on 2026-11-04. It already:
   - renders cards from this document's specification;
@@ -665,13 +665,13 @@ Conformance is tested in §9 item 5.
 - *System H (AI):* token rendering per C2 and template selection per §4.10, with refusal (`L4.*`) when a construct is not establishable.
 - *Legal / compliance:* review §4.9, the consent texts, the licensing table F23a and the §4.6 protocol, and confirm that none of this is regulated advice.
 - *Founder:*
-  - Does he have one pay cycle or several?
-  - Has he had any overdraft fees, high-cost borrowing or skipped contributions?
-  - How often does he trade?
+  - Do they have one pay cycle or several?
+  - Have they had any overdraft fees, high-cost borrowing or skipped contributions?
+  - How often do they trade?
   - Who is the controller, and which cloud processors are used?
-  - Which calendar events does he declare?
+  - Which calendar events do they declare?
   - Who reviews pre-registrations?
-  - Will he upload every institution monthly?
+  - Will they upload every institution monthly?
 
 **Taxonomy mapping (Doc 3 partitions to Doc 4 sources; R03 §5.4).**
 
@@ -989,7 +989,7 @@ Academic sources were verified by DOI against OpenAlex (with Crossref where note
 
 ## 11. Revision history and response to review
 
-**v0.1 (2026-11-04):** first draft.
+**v0.1 (2026-11-04; research performed 2026-11-02):** first draft.
 
 **v0.2 (2026-11-04):** revised after reviews R03 (academic) and R03b (cross-functional).
 - Contracts C1–C5 and C2 template tokens adopted (§4.0, §4.10).

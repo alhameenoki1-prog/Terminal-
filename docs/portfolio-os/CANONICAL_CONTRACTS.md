@@ -390,7 +390,7 @@ Doc 5c's expiry-only control would have shown 27.50% as fresh; C3.5 blocks it on
 
 ### C3.8 Open questions
 1. **Lawyer:** must derived figures be purged when NGX or vendor licences end (R05c Q5)?
-2. **Founder:** will he act as validator for samples, given an estimated workload of about 250 samples a year at 1 in 20?
+2. **Founder:** will they act as validator for samples, given an estimated workload of about 250 samples a year at 1 in 20?
 3. Ageing thresholds remain E5 until a trial calibrates them.
 
 ---
