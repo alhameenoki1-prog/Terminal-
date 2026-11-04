@@ -202,3 +202,19 @@ values: Proposed, Recommended, Approved by founder, Rejected, Superseded. The lo
 | R5 | Decide whether to enable Distilla and/or Financial Datasets for US research later (no action now) | Second-source validation for US securities |
 | R6 | Provide any prior-conversation exports or documents you want incorporated | Closes the provenance gap |
 | R7 | Confirm that Drive and Gmail remain out of research scope unless you point to specific files | Privacy |
+
+## 12. Execution record (added 2026-11-04)
+
+What actually ran, against the plan above:
+
+| Stage | Agents | Notes |
+|-------|--------|-------|
+| 1 Research | 9 department agents | Interrupted twice by usage limits; each resumed from its saved transcript, so no research was lost |
+| 1b Review | 10 reviewer agents | The first launch was lost entirely to a usage limit before any memo was written; relaunched on Claude Opus 5.5 with assignments saved to `reviews/assignments/` so later interruptions could resume from disk |
+| Contracts | 1 architecture agent, then a v0.2 revision | Settled conflicts the reviews found between Docs 4–8 |
+| Revision | 9 revision agents, 1 consistency agent, 2 conformance agents | Every finding answered in each document's §11 |
+| 3 Challenge | 3 red-team panels, 1 consolidation agent, 1 Investment Committee agent, 1 roadmap agent | Doc 11, the IC memo, Doc 10 |
+
+**Tool notes.** The local citation-lookup server timed out throughout; the hosted variant worked intermittently and was often rate-limited, so most references were verified by direct Crossref and OpenAlex DOI queries. Web search budgets ran out in several agents; they fell back to fetching listed sources. The Workflow tool was not used: each stage's briefs depended on the previous stage's actual results.
+
+**Coordinator checks.** The coordinator re-ran every reproducibility script under isolated Python, reproduced the key red-team results (the C2 bypass harness; the scipy fallback), corrected its own overstated verification counts, and removed gendered references to the founder, whose pronouns are not known.
