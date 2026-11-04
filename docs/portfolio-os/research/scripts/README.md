@@ -14,3 +14,4 @@ All inputs are synthetic or are dated assumptions stated in the script header. R
 | `doc09_unit_economics_mix.py` | Document 9 plan-mix unit economics |
 | `r09_unit_economics_sensitivity.py` | Review R09 recomputation and sensitivity of Document 9's unit economics |
 | `../behavioural/payday_sim.py` | Document 3 synthetic payday-spending worked example |
+| `contracts_checks.py` | CANONICAL_CONTRACTS.md C1–C7 worked examples: per-commodity postings, FX residual rule, currency pool and lots, figure-token validator, entry-time status check, confidence rule, FX decomposition and sign check, goal output, tax basis period and watermark |
