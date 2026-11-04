@@ -135,3 +135,62 @@ The bands, rent relief, s.34 thresholds, s.34(1)(b), s.51(3)/(5), s.119 proporti
 | S32 Treasury FATCA | home.treasury.gov/…/foreign-account-tax-compliance-act | confirmed: UAE Model 1 in force 19 Feb 2016; Nigeria absent |
 | S5 JRB PIT Guidelines | jrb.gov.ng/assets/2026-pit-guidelines-TJG3n9-T.pdf | still HTTP 404; unverified |
 
+## 5. Cross-document contradictions
+
+| Topic | Doc 6 | Other document | Resolution |
+|---|---|---|---|
+| T-bill interest | 10 % WHT from 28 Oct 2025; final for individuals under s.51(5) | Doc 5a F16 and §4 table: "DMO states FGN securities' interest is tax-exempt" | Doc 5a must separate FGN bonds (exempt, s.162(1)(n)) from T-bills |
+| UAE securities regulator | CMA replaced SCA, 1 Jan 2026 (F36) | Doc 5a §2 refers to the "current" SCA rule | Doc 5a to update |
+| VAT on bank fees | ₦50 on ₦1,000 (Example 3, wrong) | Doc 4: ₦3.75 on ₦50 (correct) | Fix Doc 6 |
+| Stamp duty | NTA Ninth Schedule item 48, s.184(i) located | Doc 4 F5: "statute section not located" | Doc 4 can now cite Doc 6, *after* the section numbers in Doc 6 are verified |
+| Dividend WHT | final, franked investment income (NTAA s.51(3)) | Doc 5a F28: "dividends are taxable investment income" | Doc 5a wording to align |
+| NGN reference rate | synthetic ₦1,500–1,560/$ | Doc 4 NFEM ₦1,346.91/$ (29 Oct 2026) | Acceptable as synthetic, but label it and add an appreciation case (m1) |
+
+## 6. Questions the Investment Committee needs answered
+
+1. For a disposal in 2026, which year of assessment applies, which return reports it, and how are **2025** disposals treated in year of assessment 2026? (B1)
+2. Was the NTAA in force from 26 Jun 2025 or 1 Jan 2026, and does that change anything for the founder's 2025 position? (M1)
+3. Does s.120(5) make the UAE agreement effective if the UAE side treats it as in force? Is there one agreement or two? (M3)
+4. Is the founder a "taxable person" under the NTAA definition, or only under the NTA one? (M6)
+5. If Portfolio OS is offered to others, does preparing (not filing) a return count as practising as a tax practitioner, and who carries liability for an inaccurate pre-filled return? (M7)
+6. What is the engine's exact refusal rule, and will the founder ever see an un-watermarked tax figure before a practitioner has signed off? (B2)
+
+## 7. Required changes before Investment Committee, in priority order
+
+1. Fix the basis period: add an `NG-BASIS-PERIOD-2026` rule, re-split Example 1 into year of assessment 2026 (salary and interest; ₦66,000 / nil balance) and 2027 (the gain), and add transitional 2025 disposals to §9. (B1)
+2. Define the status enumeration and the refusal predicate. Watermark the examples. Specify all rule records, with the correct count and boundary tests. Add the missing rules listed in B2. (B2)
+3. Correct the NTAA commencement (record both dates in `disputes[]`) and every section pinpoint (s.201, s.162). Add an automated check that each pinpoint resolves against the gazette text. (M1, M2)
+4. Add the s.120(5) analysis to the treaty finding. (M3)
+5. Re-weight the deposit-interest treatments: A is the textual default, B is unsourced. Keep both visible until sign-off. (M4)
+6. Fix Example 3 (VAT ₦75, closing ₦1,588,875, post the USD leg of the transfer). (M5)
+7. Cite both "taxable person" definitions. Add the tax-practice statute and return liability to the counsel items. (M6, M7)
+8. Reconcile the T-bill and SCA statements with Doc 5a. (M8)
+9. **Additions to the §9 professional sign-off list**, which currently omits the following:
+   - (i) basis periods and the 2025→2026 transition;
+   - (ii) the NTAA commencement date;
+   - (iii) s.120(5);
+   - (iv) capital and currency loss relief (s.28(3)), and gifts and market-value deeming (ss.36, 54);
+   - (v) the "taxable person" conflict;
+   - (vi) the double WHT rate without a Tax ID;
+   - (vii) a domicile opinion by a Nigerian lawyer (Example 2 relies on it, but §9(a) assigns residency to a tax practitioner only);
+   - (viii) Nigerian counsel on tax-practice regulation and liability for pre-filled returns;
+   - (ix) a UAE tax agent on Small Business Relief after 2026 and the exceptional-circumstances day rule;
+   - (x) the CRS self-certification position for UAE accounts;
+   - (xi) an **independent recomputation** of the golden test cases by the practitioner in their own software, plus an IT-controls review of the rule store. Today the only checks of the engine are self-checks by the author's script, which reproduced the VAT error rather than catching it.
+
+## 8. What the reviewer could not check
+
+- The JRB *Personal Income Tax Guidelines* (24 Feb 2026) still return HTTP 404, so any guidance there on basis periods, deposit-interest finality or the filing deadline is unknown.
+- The text of the WHT Regulations 2024 themselves: I relied on the ISC commentary for reg. 4(3).
+- National Assembly votes and proceedings on the UAE treaty, and the UAE Ministry of Finance treaty list.
+- The primary texts of Federal Decree-Laws 32/33 of 2025 and Cabinet Decision 49/2023.
+- The Chartered Institute of Taxation of Nigeria Act (M7 is stated from professional knowledge, E4, unconfirmed).
+- The outcome of the re-gazetting order and the FCT suit.
+- The NDPC GAID primary text (F38–F40 were not re-examined in depth).
+- Whether NTAA s.13(2)(b)'s preceding-year wording is applied to employment income in practice.
+- The engine's refusal behaviour cannot be tested at all: no implementation or rule files exist.
+- Benford (1938) could not be resolved on Crossref, and OpenAlex was rate-limited after one call.
+
+The arithmetic in the author's script was reproduced independently (`/tmp/claude-0/-home-user-Terminal-/db376c7d-be49-5fe4-a185-5e7cc59446a3/scratchpad/r06_calc/recompute.py`, `python3 -I`, Decimal arithmetic). Every Doc 6 figure matches, including ₦4,716,800, ₦1,854,200, ₦1,785,000, ₦69,200, ₦81,373, ₦58,127 and ₦870,000. The exception is Example 3's VAT, which is internally wrong. The material errors are legal and structural, not arithmetic.
+
+*End of R06 review.*
