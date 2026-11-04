@@ -339,11 +339,12 @@ flowchart LR
 
 ### 4.6 AI research-and-explanation layer (System H) — adopts contract C2
 
-**Binding contract.** CANONICAL_CONTRACTS **C2** governs figure integrity, and Doc 7 does not restate it. In summary:
-- The model returns segments of text and tokens.
-- Text may contain no digit, number word, fraction glyph, month or weekday name.
-- A token resolves only if a tool returned its ID in the current turn, and its `as=` field must match the figure's field, unit and currency.
-- Only the renderer produces the visible string, and a span-map backstop rejects any digit outside renderer-emitted spans.
+**Binding contract.** CANONICAL_CONTRACTS **C2 (v0.2)** governs figure integrity, and Doc 7 does not restate it. In summary:
+- The model returns `text`, `tok` and `tpl` segments. A `tpl` segment names a registered Doc 3 template and a construct output; the model writes no slot (C2.2 item 12).
+- Text is checked in the C2.2(2) order, and the first failure rejects: format and control characters; any Nd, Nl or No numeral character; after NFKC, any character outside the connecting-text allow-list (homoglyphs); ASCII Roman numerals; the number and date lexicon in English, Yoruba, Hausa, Arabic, French and Spanish (ordinals, plurals, multipliers, months, weekdays and their abbreviations, named dates); and, in model-written text only, quantifier, comparative, direction and relative-time words.
+- A token resolves only if a tool returned its ID in the current turn. `as=` is mandatory for `fig`, `calc`, `count`, `range` and `date` and must match the figure's field, unit and currency. `per=` must equal a figure's period and `scope=` its account or entity, and within a sentence every `period` and `name` token must agree with the figures it sits beside.
+- Only the renderer produces the visible string, and a span-map backstop rejects any numeral character or lexicon word outside renderer-emitted spans.
+- The guarantee is **no free numerals and bound tokens**, not "no false quantitative claims" (C2.4 residual risk; T2-19 bounds the rest).
 
 v0.1's post-generation numeric gate is **deleted** (R07 B1). That gate let the model write digits, matched them against every value in the trace (raw `documents.search` chunks included) and allowed 0.5% tolerance. Its "defence in depth" text, its structured answer `answer_markdown + figures[]`, and its sentence "the privileged answering model never sees raw document text" are withdrawn. §4.12(c) shows the five bypasses.
 
@@ -354,17 +355,21 @@ v0.1's post-generation numeric gate is **deleted** (R07 B1). That gate let the m
 | 1 | Controller | A Python manual loop (not an automatic tool runner). Each tool result is stamped with figure IDs, which the controller adds to a per-turn allow-list. The model never holds the allow-list | C2.2(4) |
 | 2 | Tools (read-only, `strict: true`) | `ledger.query`, `analytics.metric`, `risk.metric`, `plan.scenario`, `tax.compute`, `research.fact`, `documents.search` (returns `quote` handles only, digits masked `◊`) and `calc.<formula>` | C2.2(6), (7) |
 | 3 | Calc registry (initial 10) | `difference(money[c],money[c])`, `sum(money[c]…)`, `ratio(money[c],money[c])→fraction`, `share_of_total`, `percent_change`, `convert(money[c1], rate_set, c2, date_rule)` (C5 hierarchy), `annualise(fraction, period)`, `period_total`, `count`, `cagr`. Each is typed, refuses a unit or currency mismatch and records its input IDs. The model chooses a formula and input IDs, never free operands | C2.2(6); replaces `calc.derive` |
-| 4 | Output | `output_config.format` strict schema `{segments[], assumption_ids[], limitation_ids[], refused, refusal_code}` | C2.2(1) |
+| 4 | Output | `output_config.format` strict schema `{segments:[text \| tok \| tpl{v, bind}], assumption_ids[], limitation_ids[], refused, refusal_code}` | C2.2(1), (12) |
 | 5 | User-typed numbers | Parsed deterministically into `user` figures before the model is called. The model sees masked text | C2.2(8) |
 | 6 | Status at render | C3.4 badges. A disputed figure shows both values, never a range. An expired figure shows no value | C2.2(9) |
 | 7 | Failure | One regeneration with the violations listed, then the refusal template and a review item. No reliance on temperature | C2.2(11) |
+| 8 | Lexicons and vocabulary as registry data | The character allow-list, the multilingual number and date lexicon, the claim-word list and a **connecting-text vocabulary allow-list** (a frequency-ranked English word list minus both lexicons) are versioned registry data in module 14 (owner Doc 7; wording with Doc 3 and Doc 8). Production rejects any model-written word outside the vocabulary list | C2.2(2), (10) |
+| 9 | Figure binding | The figure store holds `period_id` and `scope_id` on every figure (§4.2). Doc 7 builds what the contract's reference implementation leaves out: the `name`-token scope check (names resolved locally; the cloud model sees only handles), the `cmp` token over a registered `compare(a, b)` calc whose inputs share field, unit and scope, and `calc` role binding (`ratio(numerator=…, denominator=…)`) | C2.2(3), (5), (6) |
+| 10 | Template segments | The renderer fills `tpl` slots from the construct output using the registry's slot table (token type, `as=`, `fmt`), and rejects a template that is not `approved`, sits above the construct's current rung, is not listed in the construct's specification, has a slot field mismatch, or whose construct fails its C3.4 tier | C2.2(12) |
+| 11 | CI | T2-01 to T2-19 on every prompt, tool or model change. T2-17 is a generated corpus of integers from 0 to 10¹² in every listed form and language, mutated with zero-width characters and homoglyphs, reported with n and a 95% upper bound. Red-team panel B's harness (`research/scripts/rtb_c2_bypass_harness.py`) must report 0 of 20 PASS; it does against the contract's v0.2 reference implementation (re-run 2026-11-04) | C2.3 |
 
-**Qualitative claims (R07 M7).** C2 controls figures, not wording, so "you are impulsive" would pass C2. Doc 7 therefore adds three rules:
-- (i) Behavioural statements are shown only as outputs of Doc 3's claims-ladder templates, computed in module 5 and stored. The model may reference a stored template output; it may not compose a behavioural sentence.
+**Qualitative claims (R07 M7).** C2's numeral rules control figures, not wording, so "you are impulsive" would pass them. Three rules apply:
+- (i) Behavioural statements reach the user **only** as C2 `tpl` segments (C2.2 item 12): a registered Doc 3 template bound to a construct output computed in module 5. The model may choose a template and a construct output; it may not compose a behavioural sentence or write inside a template.
 - (ii) A lint list built from Doc 3's forbidden forms and Doc 8 §4.7 rejects free-text psychology, labels and causal "because you are" sentences.
 - (iii) Tax statuses (residency, disposal, taxable) are rendered only from module 10 outputs, carrying the C7 watermark.
 
-The exact schema field for template references is a change request to Doc 3 and the C2 owner (C2.6 Q3). Until it is agreed, the AI layer answers behavioural questions only by rendering stored template outputs.
+The schema field is now the `tpl` segment of C2.2 item 12 (C2.6 Q3, closed in contracts v0.2). Doc 3 owns the template registry; Doc 7 builds the registration gate and the render checks (table row 10).
 
 **Prompt injection and taint (R07 M2).**
 - **Taint.** Every string that comes from a document, narration, merchant name, note, feed or web page carries a taint flag. The privileged model receives tainted text only as `quote` handles with digits masked (C2.2(7)), and only when the wording is needed. Counterparty names are masked too (V-028, §4.7.5).
@@ -394,11 +399,11 @@ The exact schema field for template references is a change request to Doc 3 and 
 
 | Metric | Definition | Target and how reported |
 |---|---|---|
-| Figure-integrity failure | Any rendered value that does not resolve to an allow-listed figure with the claimed field, unit and currency. No tolerance applies, because values are rendered rather than written | 0 observed. Report the upper bound: 1.49% at n = 200; 598 cases are needed for ≤ 0.5% (script section D) |
+| Figure-integrity failure | Any rendered value that does not resolve to an allow-listed figure with the claimed field, unit, currency, period and scope. No tolerance applies, because values are rendered rather than written | 0 observed. Report the upper bound: 1.49% at n = 200; 598 cases are needed for ≤ 0.5% (script section D) |
 | Answer correctness | The tokens cite the figure IDs a reviewer expects for the question | Exact-match rate with a Wilson interval |
 | Validator false negatives | Red-team cases that pass the validator | 0 observed, with bound |
 | Validator false positives | Legitimate answers rejected (C2 T2-12, including "no one", "one of") | Reported, no target yet (E5) |
-| Misattribution | `as=` mismatches caught (T2-05) | Count |
+| Misattribution | `as=`, `per=` and `scope=` mismatches caught (T2-05, T2-18); swapped-figure metamorphic test (T2-19) with an independent quantity extractor | Count; T2-19 rate with a Wilson bound |
 | Qualitative violations | Lint hits on free-text psychology or tax status | 0 observed, with bound |
 | Run-to-run variance | Each golden case repeated 5 times on release runs | Agreement rate |
 | Refusal correctness | Forecast, advice and out-of-data requests | Rate |
@@ -406,7 +411,7 @@ The exact schema field for template references is a change request to Doc 3 and 
 
 - **Running policy.** A 50-case smoke run on Sonnet after every prompt or tool change; the full 250-case suite on both models at each release. Cost is in §4.12(b).
 
-**Logging and review.** Each turn stores the C2.2(11) trace: prompt hash, figure IDs supplied and cited, the verdict, model and prompt versions, and token usage including thinking tokens. Traces are encrypted and kept 12 months (§4.7.4). Reviewer labels feed the evaluation set.
+**Logging and review.** Each turn stores the C2.2(11) trace: prompt hash, figure IDs supplied and cited, the verdict, model and prompt versions, and token usage including thinking tokens. Traces are C8 class A: encrypted under the class key and kept 12 months (§4.7.4). Reviewer labels feed the evaluation set.
 
 ```mermaid
 sequenceDiagram
@@ -420,15 +425,15 @@ sequenceDiagram
   C->>M: system prompt + tools + masked question
   M-->>C: tool_use ledger.query(period, commodity=CUR:AED)
   C->>T: execute (read-only role)
-  T-->>C: figure fig_a1 {field=spend.total, AED, as_of, C3 axes}
+  T-->>C: figure fig_a1 {field=spend.total, AED, period_id, scope_id, as_of, C3 axes}
   C->>C: add fig_a1 to this turn's allow-list
   C->>M: tool_result (IDs + metadata)
   M-->>C: tool_use calc.convert(fig_a1, rate_set=C5, target=CUR:NGN, date_rule=transaction_date)
   C->>T: execute registry formula (unit/currency checked)
   T-->>C: calc_c7 {field=spend.total_ngn, NGN, inputs=[fig_a1, rate ids]}
   C->>M: tool_result
-  M-->>C: {segments:[text, {{calc:calc_c7|as=spend.total_ngn|fmt=ngn0}}, …]}
-  C->>R: validate (digits, words, allow-list, as=) then render; span-map backstop
+  M-->>C: {segments:[text, {{calc:calc_c7|as=spend.total_ngn|per=per_q3|scope=acct_b1|fmt=ngn0}}, {{period:per_q3}}, …]}
+  C->>R: validate (characters, numerals, NFKC, lexicons, claim words, allow-list, as=, per=, scope=) then render; span-map backstop
   R-->>C: rendered string | violations
   C-->>U: answer with evidence strip and badges (or one regeneration, then refusal + review item)
 ```
@@ -448,11 +453,11 @@ v0.1 specified a team's control programme for one person: per-document data keys
 | 5 | **No third-party browser scripts; strict CSP** | Extensions, third-party scripts and XSS reading figures or keys (F30) | No TradingView `tv.js` or any CDN script. CSP `default-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; connect-src 'self'`, plus `require-trusted-types-for 'script'`. No secrets in browser storage. A dedicated browser profile with no extensions for Portfolio OS |
 | 6 | **Server-only secrets** | Key theft | API keys come from SOPS+age-encrypted files, one key per workspace with spend limits (§4.6). Never logged |
 | 7 | **Hash-pinned dependencies** | Supply-chain substitution | `uv lock` (hashes recorded) or `pip install --require-hashes`; `npm ci` against the lockfile; base images pinned by digest; `pip-audit` weekly |
-| 8 | **Tested backups with escrowed keys** | **Total loss**, the largest single-user risk | Nightly age-encrypted backup to a second local disk and an off-site bucket. Object lock applies to the tax-vault class (§4.7.4). The age identity *and* the C1.3 HMAC installation key are escrowed in two places (paper in two locations, or a hardware token plus paper). A restore drill runs monthly for the first quarter, then quarterly. Targets: RTO < 4 h and RPO < 24 h (**E5**, tested in the drill) |
+| 8 | **Tested backups with per-class keys and erasure that reaches them** (C8) | **Total loss**, the largest single-user risk; and a backup that defeats erasure | Nightly age-encrypted backup to a second local disk and an off-site bucket. Each C8 class (T, B, A, S, W) is backed up to **its own age recipient**, so destroying a class identity erases that class in every backup generation. Class identities and the C1.3 HMAC installation key live in the key store; they are **never escrowed one by one**. The escrow (paper in two locations, or a hardware token plus paper) holds **only the identity that opens the key store**. The key store is backed up in rotation (window ≤ 30 days, **E5**; the founder sets it) and is never under object lock. **Compliance-mode object lock is forbidden** on any object holding personal data or key material (C8-I4, checked by a configuration test). Governance mode MAY protect class ciphertext against ransomware, with the bypass credential held in the user's escrow; the host's backup credential is write-only. A restore drill runs monthly for the first quarter, then quarterly, and an erasure drill (C8-I3) runs with it. Targets: RTO < 4 h and RPO < 24 h (**E5**, tested in the drill) |
 | 9 | **Feed integrity as a security control** | Feed poisoning: a spoofed, stale or wrong market or FX value | C3.5 entry check (a world fact stays `candidate` until it matches a primary-source snapshot). C3 corroboration (`two_independent` versus `same_upstream`) and Doc 5c two-source reconciliation. TLS to official hosts only. Out-of-band values quarantined |
 | 10 | **One external review** | Author reviewing their own code | About 1 reviewer-week covering this baseline, the C2 validator and renderer, and the sandbox. Required before real statements load. Cost to be quoted (founder) |
 
-**Key placement (R07 M3).** v0.1 put the key-encryption key on the database host, which adds little once that host is compromised. In the personal stage, host compromise is handled by controls 1, 2 and 5, and per-document envelope encryption is deferred. The age *recipient* for backups is on the host, but its *identity* (the decryption key) is not: it lives only in escrow. A leaked backup is therefore unreadable without the escrowed identity. That is a real gain at almost no operating cost.
+**Key placement (R07 M3).** v0.1 put the key-encryption key on the database host, which adds little once that host is compromised. In the personal stage, host compromise is handled by controls 1, 2 and 5, and per-document envelope encryption is deferred. The per-class age *recipients* for backups are on the host, but their *identities* (the decryption keys) are not: they live in the key store, which opens only with the escrowed key-store identity. A leaked backup is therefore unreadable without the escrow. That is a real gain at almost no operating cost, and it is also the erasure path: shredding a class identity in the key store and its rotated copies makes that class unreadable everywhere (C8 mechanism 2).
 
 #### 4.7.2 Threat model (STRIDE [S86]), revised
 
@@ -467,18 +472,24 @@ v0.1 specified a team's control programme for one person: per-document data keys
 
 #### 4.7.3 Deferred controls (hosted tier, or when a second person's data is processed)
 
-Per-document envelope encryption with KMS or OpenBao; a hash-chained audit log verified nightly; one PostgreSQL role per module and row-level security; Trivy image scans; a CycloneDX SBOM; OpenTelemetry export; Keycloak; a formal incident runbook; penetration testing. The personal stage keeps only these: two database roles (application; read-only for AI and analytics) plus `migrator`; a plain append-only `audit_event`; a licence allow-list script run before adding a dependency. *Reason:* these controls cannot be operated by one person, and each adds a failure mode, especially key-management loss (R07 M3).
+Per-document envelope encryption with a hosted KMS or OpenBao; a hash-chained audit log verified nightly; one PostgreSQL role per module and row-level security; Trivy image scans; a CycloneDX SBOM; OpenTelemetry export; Keycloak; a formal incident runbook; penetration testing. The personal stage keeps only these: two database roles (application; read-only for AI and analytics) plus `migrator`; a plain append-only `audit_event`; a licence allow-list script run before adding a dependency. *Reason:* these controls cannot be operated by one person, and each adds a failure mode, especially key-management loss (R07 M3). **Not deferred (C8):** the local key service that holds one data key per C8 class (a small encrypted key store opened by the escrowed identity) is part of MVB 8 and must exist **before the first real backup**, because erasure by crypto-shredding cannot be added to backups taken without it.
 
-#### 4.7.4 Retention and erasure (R07 m6; V-028)
+#### 4.7.4 Retention and erasure (R07 m6; V-028; governed by CANONICAL_CONTRACTS C8)
 
-| Class | Contents | Retention | Erasure | Owner |
+**C8 governs** and Doc 7 implements it. The user can always erase. Every stored object and backup object carries exactly one class (C8-I1) and is encrypted under that class's data key.
+
+| Class (C8) | Contents | Retention | Erasure | Owner |
 |---|---|---|---|---|
-| **Tax vault** | Documents, `extraction` (including raw OCR text), `source_line`, journal, lots, tax runs | At least 6 years after the year of assessment (NTAA s.31(5), per Doc 6). WORM-style: append-only grants (C1-I4) and object lock on backups | Not erasable while the clock runs. Doc 8's "delete everything" must list this class and its clock date. Then deletion by a journaled policy | Doc 6 governs |
-| **Behavioural derivations** | Doc 3 observations, template outputs, intervention logs, questionnaire answers | Until consent is withdrawn; otherwise 24 months (**E5**, R03b) | Deleted on withdrawal (one action); crypto-shredding by a per-class key | Doc 3 |
-| AI traces | §4.6 trace | 12 months (E5) | Delete; per-class key | Doc 7 |
+| **T tax vault** | Documents, `extraction` (including raw OCR text), `source_line`, journal and postings, lots, tax runs and calculation logs, and the questionnaire answers and classifications that decide a tax figure | Until the user erases it. The statutory period (NTAA s.31(5), per Doc 6) is the taxpayer's duty, shown as a warning and never enforced. While `NG-RECORDS-RETENTION-2026` is below `sourced` no retention date is computed, shown or enforced (C8-I2) | **Always possible, never blocked.** Doc 8's "delete everything" shows the C8 warning ("Tax law may require you to keep these records for several years; the period is not yet sourced here. Export first?"), offers a one-step export, then shreds the class key in the live key store and every copy. The rotation window is stated on the screen | Doc 6 governs content; Doc 7 the mechanism |
+| **B behavioural** | Doc 3 constructs, tags, pre-registrations, intervention logs, questionnaire answers not used for tax | Until consent is withdrawn; otherwise 24 months (**E5**, Doc 3) | Automatic on withdrawal: the class key is shredded at once in the live store and within the rotation window in backups (C8-I5). Only the withdrawal event is kept | Doc 3 |
+| **A AI traces** | §4.6 trace | 12 months (E5) | On request, or at expiry; class key | Doc 7 |
+| **S integrity log** | Erasure, consent and access events: hashes, times, actors, no content | As long as the classes it describes, plus the erasure events | Content-free by design | Doc 7 |
+| **W world facts** | Rates, rule texts, evidence snapshots, registries | Indefinite | Licence-governed purge only (C3 axis R) | Doc 5c |
 | Logs | Structured, no personally identifiable information (PII) | 90 days (E5) | Rotate | Doc 7 |
 
-v0.1's "documents 7 years", "discard raw OCR text" and crypto-shredding-as-erasure are withdrawn. Raw extraction text is evidence for re-parsing (C1.8), and Doc 6 sets the clock. Crypto-shredding is never applied to the tax vault while its clock runs. **Open conflict:** Doc 3 §4.6 says "the record is kept" after withdrawal. That conflicts with erasure on withdrawal, and Doc 3 owns the resolution.
+**Mechanism.** Rows are never updated or deleted, so C1-I4 holds: erasure destroys the class key, and the ciphertext becomes unreadable and may be garbage-collected. Each erasure writes an `erasure` event to class S. Tests: C8-I1 (class on every object, including backup objects), C8-I2 (no date from a rule below `sourced`), C8-I3 (restore every backup generation and every key-store copy older than the rotation window after a shred: no readable record of the class), C8-I4 (no compliance-mode lock on any bucket or object holding personal data or keys), C8-I5 (consent withdrawal).
+
+**Withdrawn in this revision (C8).** v0.2's "WORM-style", "object lock on backups" for the tax vault, "not erasable while the clock runs", the per-record retention clock and "crypto-shredding is never applied to the tax vault while its clock runs" are withdrawn: a compliance-mode lock cannot be lifted before it expires, so it would have made erasure impossible from the first backup. Still withdrawn from v0.1: "documents 7 years" and "discard raw OCR text" (raw extraction text is evidence for re-parsing, C1.8, and stays in class T until the user erases it). **Commercial phase:** whether a company may keep a user's vault after an erasure request is for counsel; until then C8 binds the personal system only. **Open conflict:** Doc 3 §4.6 says "the record is kept" after withdrawal; C8 keeps only the withdrawal event, and Doc 3 owns the rewording.
 
 #### 4.7.5 Data-protection design for behavioural and personal analysis (V-028)
 
@@ -507,13 +518,13 @@ The legal readings below are reviewer R03b's (NDPA 2023 sections read on 2026-11
 1. MVB 1–9 in place and evidenced.
 2. External review (MVB 10) findings closed.
 3. Passkey registration, loss and recovery tested.
-4. Restore from off-site backup completed using only the escrowed identity.
+4. Restore from off-site backup completed using only the escrowed key-store identity; erasure drill (C8-I3) passed; configuration test shows no compliance-mode object lock (C8-I4).
 5. Sandbox blocks network access (test: a parse job tries an outbound connection and fails).
 6. CSP report shows no third-party loads.
-7. C2 T2-01–T2-12 and the red-team corpus pass.
+7. C2 T2-01–T2-19 and the red-team corpus pass; red-team panel B's harness reports 0 of 20 PASS.
 8. Secrets scan of the repository history is clean.
 9. A sample of logs contains no PII.
-10. Consent and retention jobs tested on synthetic data.
+10. Consent and erasure jobs tested on synthetic data (C8-I5); no retention date is shown while rule 34 is draft (C8-I2).
 
 ### 4.8 Stack decisions as ADRs
 
@@ -538,8 +549,8 @@ The legal readings below are reviewer R03b's (NDPA 2023 sections read on 2026-11
 | Calculations | TWRR/MWRR, drawdown, volatility, VaR/CVaR, concentration; C5.3 decomposition identity and sign check; tax runs with C7 watermark | Golden datasets; cross-check oracles (empyrical-reloaded, quantstats, skfolio) with documented tolerance; tax goldens reviewed by a licensed practitioner | Mandatory |
 | Reconciliation | Statement closing balance = ledger balance; duplicates per C1.8 | Synthetic fixture statements per institution, then founder samples (redacted, local) | Mandatory per institution before enabling |
 | Model validation | Monte Carlo moments against analytic GBM; GARCH unconditional variance; seeded determinism; Student-t scaled to unit variance | Statistical tests with fixed seeds | Mandatory for module 8 |
-| Figure integrity (C2) | T2-01–T2-12; red-team corpus; golden questions; qualitative lint | promptfoo or Inspect: smoke on each prompt/tool change, full suite at release | 0 failures observed, reported with an upper bound (§4.6) |
-| Security | Sandbox has no network; CSP shows no third-party loads; hash-pinned install; restore from escrow; consent withdrawal deletes the behavioural class | Scripted checks | Before real data, then at each release |
+| Figure integrity (C2) | T2-01–T2-19; red-team panel B harness (0 of 20 PASS); red-team corpus; golden questions; qualitative lint | promptfoo or Inspect: smoke on each prompt/tool change, full suite at release | 0 failures observed, reported with an upper bound (§4.6) |
+| Security | Sandbox has no network; CSP shows no third-party loads; hash-pinned install; restore from escrow; erasure drill across backups (C8-I3); no compliance-mode lock (C8-I4); consent withdrawal shreds the behavioural class | Scripted checks | Before real data, then at each release |
 | End-to-end | Upload → validate → ledger → dashboard → AI answer on synthetic data | Playwright (Option A SPA) or HTTP-level tests (Fava/server-rendered) | Release gate |
 | CI | ruff, mypy (strict), pytest; coverage ≥ 85% on modules 1–3, 10 and 11 (**E5**: a starting threshold, revisited after the first three months of defects); forward-only migration check; pip-audit/npm audit; licence allow-list | GitHub Actions on every PR | Required checks |
 
@@ -636,7 +647,7 @@ sign dropped: '23.45%' for -0.2345:                      v0.1 gate -> PASS;  C2 
 0.5% tolerance check: |4,100,000 - 4,084,410| / 4,084,410 = 0.382%
 ```
 
-The fifth case passes C2 because the model never writes the value. The renderer prints −23.4% with the sign taken from the stored figure (C2.2(5)).
+The fifth case passes C2 because the model never writes the value. The renderer prints −23.4% with the sign taken from the stored figure (C2.2(5)). Script section B's validator is minimal (C2.2 items 2, 4, 5 and 7 as in v0.1) and is kept only to show why the v0.1 gate was withdrawn; its outputs are unchanged under contracts v0.2. The hardened v0.2 lexical and binding rules are tested against the contract's reference implementation by red-team panel B's harness (0 of 20 PASS, re-run 2026-11-04).
 
 **(d) Local-model hardware and hosting (R07 M6).**
 - **Qwen3-32B.** The model card gives 32.8B parameters, 64 layers and 8 KV heads [S59]; a head dimension of 128 is assumed (E5). At about 4.5 bits per weight the weights need 18.4 GB, plus 2.1 GB of KV cache at 8,192 tokens (20.6 GB) or 8.6 GB at 32,768 tokens (27.0 GB), before runtime overhead. At 8 bits the total is 34.9–41.4 GB. It therefore needs a GPU or unified-memory machine with ≥ 24 GB for short statements.
@@ -707,8 +718,8 @@ Estimates are in person-weeks (40 h) for one experienced Python developer. **E5*
 *Added in v0.2:*
 - **Contract owner.** Clarify `superseded_at` against C1-I4 (§4.2 rule 3). Agree how Doc 3 template references enter the C2 output schema (C2.6 Q3).
 - **Doc 3.** Template IDs and slots; a lint list of forbidden forms; withdraw or justify "the record is kept" after withdrawal (§4.7.4); the sensitive-category list for the register (§4.7.5).
-- **Doc 6.** Confirm the retention clock per jurisdiction for the tax vault, and whether household-scale processing by a cloud processor falls outside the NDPA. Doc 6 owns the GAID date and the PDPL status (F22, F23).
-- **Doc 8.** "Delete everything" must show the tax-vault exception and its clock. Offline means "the local server works without the internet"; there is no multi-device sync in the MVP (R07 M7). The undo semantics follow §4.2 rule 4.
+- **Doc 6.** Source rule 34 (`NG-RECORDS-RETENTION-2026`) so the C8 warning can name a date (it never blocks erasure), confirm the UAE record-keeping period, and whether household-scale processing by a cloud processor falls outside the NDPA. Doc 6 owns the GAID date and the PDPL status (F22, F23).
+- **Doc 8.** "Delete everything" shows the C8 warning, the export step and the backup rotation window; it never blocks and shows no date while rule 34 is draft. Offline means "the local server works without the internet"; there is no multi-device sync in the MVP (R07 M7). The undo semantics follow §4.2 rule 4.
 - **Doc 9.** Reconcile the Stage 0 duration and exit criteria with §4.13.
 - **Founder.** FD-1 (may raw statement text leave the device?); hours per week and language skills; institutions and statement formats; whether a distributed desktop build or a hosted tier is planned within 12 months (this decides whether GPL or AGPL matters at all).
 
@@ -730,7 +741,7 @@ Estimates are in person-weeks (40 h) for one experienced Python developer. **E5*
 5. **Regulatory facts.** Doc 7 now adopts the dates and positions owned by Doc 6 (GAID in force 19 Sep 2025; UAE Executive Regulations not issued, unresolved). Still unverified here: Nigerian open-banking go-live, CBUAE Open Finance Regulation text, and Nigeria Tax Act 2025 commencement (Doc 6).
 6. **Statement formats unknown.** If the banks provide only image PDFs, OCR quality becomes the critical path, and ingestion moves to the high end of §4.13.
 7. **Vendor change risk (Anthropic API).** Model IDs, prices, thinking behaviour and retention terms change often (F14–F16). Mitigation: a provider adapter, pinned IDs, the harness re-run on each migration, and re-verification on the implementation start date.
-8. **C2 false positives.** The number-word rule may reject legitimate prose ("no one", "one of"). C2 T2-12 measures this, and the target stays E5 until measured.
+8. **C2 false positives.** The v0.2 lexicon and claim-word rules may reject legitimate prose ("no one", "one of", "you may", "first", "year of assessment"). C2 T2-12 measures this, and the target stays E5 until measured.
 9. **Key-loss versus confidentiality trade-off.** Two-place escrow raises the risk of escrow theft. The baseline accepts this because total loss is the larger single-user risk (R07 M3). The founder must agree.
 
 ## 8. Recommendations, ranked
@@ -764,9 +775,9 @@ Estimates are in person-weeks (40 h) for one experienced Python developer. **E5*
 3. **C1 conformance.** The Doc 4 and Doc 6 owners confirm that Doc 7's implementation decisions (§4.2) conform to C1. The contract owner answers the `superseded_at` clarification.
 4. **Golden datasets** from Systems A and D for ledger and risk metrics, with tolerances agreed. `contracts_checks.py` and `doc07_tech_checks.py` outputs are reproduced by the implementation.
 5. **Local-versus-hosted extraction evaluation** on ≥ 50 synthetic statements, reported with the harness (§7.1).
-6. **C2 harness.** T2-01–T2-12 plus the 250-case corpus, reported with upper bounds. The validator's false-positive rate is measured.
+6. **C2 harness.** T2-01–T2-19, red-team panel B's harness (0 of 20 PASS), the T2-17 generated corpus and the 250-case corpus, reported with upper bounds. The validator's false-positive rate is measured.
 7. **Measured AI traces** in the first two weeks of building, replacing the E5 assumptions in §4.12(b).
-8. **Counsel and Doc 6 review:** GPL/AGPL boundaries for any distribution or hosting; NDPA/PDPL scope for personal use with a cloud processor; DPIA before any second user (§4.7.5); retention clocks; cross-border inference.
+8. **Counsel and Doc 6 review:** GPL/AGPL boundaries for any distribution or hosting; NDPA/PDPL scope for personal use with a cloud processor; DPIA before any second user (§4.7.5); the commercial-phase retention basis (C8); cross-border inference.
 9. **Security review** (§4.7.7) on the deployment with synthetic data, by someone other than the author, before any real statement is uploaded.
 10. **Re-verification** of model IDs, prices, thinking behaviour and retention terms on the implementation start date. They were checked on 2026-11-04 and are time-sensitive.
 
@@ -907,7 +918,7 @@ Web sources S1–S101 were accessed on **2026-11-02**. Those marked *re-fetched 
 
 ## 11. Revision history and response to review
 
-**v0.1** 2026-11-02, first draft. **v0.2** 2026-11-04, revised after review R07 (verdict: major revision) and revision-log rows V-003, V-004, V-005 and V-028. Contracts C1, C2, C3 and C5 are adopted by reference. No contract clause is departed from.
+**v0.1** 2026-11-02, first draft. **v0.2** 2026-11-04, revised after review R07 (verdict: major revision) and revision-log rows V-003, V-004, V-005 and V-028. Contracts C1, C2, C3 and C5 are adopted by reference, and C8 since the contract-conformance edit of 2026-11-04. No contract clause is departed from.
 
 | Finding (R07 numbering) | Revision log | Action | Where | Note |
 |---|---|---|---|---|
@@ -944,12 +955,13 @@ Web sources S1–S101 were accessed on **2026-11-02**. Those marked *re-fetched 
 | §3 grade audit: §4.12(b) costs | — | Fixed | §4.12(b) | |
 | §3 grade audit: "never sees raw document text" | V-004 | Fixed | §4.6 | Removed |
 | V-028 privacy design for behavioural analysis | V-028 | Fixed (engineering); Deferred (legal) | §4.7.4, §4.7.5, §4.3 row 5 | Consent off by default, sensitive-inference register, purpose tags, local rendering, DPIA before a second user. Legal review: Doc 6 and counsel. Doc 3 retention conflict: Doc 3 |
+| Contract conformance to contracts v0.2, 2026-11-04 | CC-1, CC-2, CC-7, CC-8, RT-A independence, RT-B C2 bypass, RT-B retention (C8) | Fixed | §1 items 3 and 5, F19, Table 4.1, §4.2 (table; rules 3 and 6), §4.6 (summary, rows 4 and 8–11, qualitative claims, evaluation, logging, sequence diagram), §4.7.1 MVB 8 and key placement, §4.7.3, §4.7.4, §4.7.7, §4.9, §4.12(c), §6, §7 item 8, §9 items 6 and 8 | C2 v0.2: hardened lexical order, multilingual lexicons and the connecting-text vocabulary allow-list as registry data; `as=` mandatory for `count`, `range` and `date`; `per=`/`scope=` binding with `period_id`/`scope_id` in the figure store; `tpl` segments; Doc 7 builds `cmp`, `name` scope checks and `calc` role binding; T2-13 to T2-19 and the harness in CI. Claims restated as "no free numerals and bound tokens". C8: per-class keys and recipients, escrow of the key-store identity only, no compliance-mode lock, key service before the first real backup, erasure always possible; "WORM-style", "not erasable while the clock runs" and the per-record clock withdrawn. `independence`, `stratum` and pay-period fields stored. `doc07_tech_checks.py` re-run under `python3 -I`: quoted outputs unchanged, so the script was not edited; RT-B harness re-run, 0 of 20 PASS |
 
-**Counts.** 33 rows: 26 Fixed outright, 2 Rejected in part (with evidence), and 5 Fixed with a deferred remainder. The deferred parts are M6 measured traces, M7 final MVP scope, the m7 version re-sweep, the m9 OpenAI/Gemini evaluation and the V-028 legal review. No finding was dropped.
+**Counts.** 34 rows (33 from the R07 response plus the contract-conformance row): 27 Fixed outright, 2 Rejected in part (with evidence), and 5 Fixed with a deferred remainder. The deferred parts are M6 measured traces, M7 final MVP scope, the m7 version re-sweep, the m9 OpenAI/Gemini evaluation and the V-028 legal review. No finding was dropped.
 
 **Notes on the contracts (no departure).**
-1. **C1-I4 versus C1.7 `superseded_at`.** C1-I4 forbids UPDATE on `classification`, while C1.7 lists a `superseded_at` field on soft-state rows. Doc 7 derives `superseded_at` in a view (§4.2 rule 3). The contract owner is asked to say so explicitly.
-2. **C2 does not cover qualitative claims** (C2.6 Q3). Doc 7 adds the template-only rule (§4.6) and asks the C2 owner and Doc 3 to define the schema field for template references.
+1. **C1-I4 versus C1.7 `superseded_at`.** C1-I4 forbids UPDATE on `classification`, while C1.7 lists a `superseded_at` field on soft-state rows. Doc 7 derives `superseded_at` in a view (§4.2 rule 3). The contract owner is asked to say so explicitly. **Closed by C1.7 v0.2 (CC-1).**
+2. **C2 does not cover qualitative claims** (C2.6 Q3). Doc 7 adds the template-only rule (§4.6) and asks the C2 owner and Doc 3 to define the schema field for template references. **Closed by C2.2 item 12 v0.2 (CC-2):** the `tpl` segment.
 
 **What remains open.**
 - Founder: FD-1, hours and skills, institutions and formats, distribution or hosting intent (§9.1).
@@ -958,5 +970,6 @@ Web sources S1–S101 were accessed on **2026-11-02**. Those marked *re-fetched 
 - Measured AI traces; C2 false-positive rate.
 - The Stage-0 scope and duration against Doc 9 (§4.13), including the tax-module dependency.
 - Counsel: NDPA/PDPL scope with a cloud processor, DPIA, GPL/AGPL for any distribution.
-- Doc 3: the "record kept after withdrawal" conflict and the template-reference schema.
+- Doc 3: the "record kept after withdrawal" conflict and publication of the template registry fields (C2.2 item 12).
+- Before the Stage 0b AI layer: the connecting-text vocabulary allow-list and the T2-17 generated corpus (deferred to Doc 7 by the contracts).
 - An external security reviewer, and a quote for that review.

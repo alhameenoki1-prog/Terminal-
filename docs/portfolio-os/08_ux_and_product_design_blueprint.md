@@ -2,7 +2,7 @@
 Document: 08 — User Experience and Product Design Blueprint
 Department: Product and User-Experience  ·  Lead role(s): Chief Product Officer; UX researcher; UI designer; accessibility specialist; product-analytics specialist; human–computer-interaction (HCI) researcher
 Version: 0.2 · Date: 2026-11-04 · Status: revised after independent review
-Reviewers required: Behavioural Finance (Doc 3); Ledger and Data (Doc 4); Investment and Quant Methods (Docs 5a–5c); Tax (Doc 6); Architecture and Data Engineering (Doc 7); owners of CANONICAL_CONTRACTS C2–C7; Programme coordinator; licensed reviewers flagged in §4.4 Journey 7, §4.5.13 and §7
+Reviewers required: Behavioural Finance (Doc 3); Ledger and Data (Doc 4); Investment and Quant Methods (Docs 5a–5c); Tax (Doc 6); Architecture and Data Engineering (Doc 7); owners of CANONICAL_CONTRACTS C2–C8; Programme coordinator; licensed reviewers flagged in §4.4 Journey 7, §4.5.13 and §7
 ```
 
 # Document 8 — User Experience and Product Design Blueprint
@@ -209,7 +209,9 @@ Evidence grades follow the Context Brief (E1–E6). Source numbers refer to §10
 
 | C3 / C4 / Doc 4 state | Visual | Accessible name fragment (spoken after the value) | May feed |
 |---|---|---|---|
-| V `validated`, F `fresh` | plain numerals | "as of {date}" | descriptive and conclusion-driving calculations |
+| V `validated`, F `fresh`, strongest check by a second person or a licensed professional (C3.3a `second_person` / `licensed`) | plain numerals | "as of {date}" | descriptive and conclusion-driving calculations |
+| V `validated`, F `fresh`, strongest check `self` (the founder's own check; always so in single-user mode) | **"self-checked" chip**, never the plain validated display | "self-checked, as of {date}" | same as `validated` (eligibility unchanged, C3.3a) |
+| V `validated`, F `fresh`, checked only by software (`simulated_agent`) | "checked by software" chip | "checked by software, as of {date}" | same as `validated` |
 | V `auto_validated` | "auto-checked" chip, or "single source" when `single_source` | "auto-checked" / "single source" | descriptive; conclusions only via C3.4 corroboration or the sampling rule |
 | V `candidate` | "unchecked" chip | "unchecked, not in totals" | nothing |
 | V `disputed` | **both values side by side** with sources and the tolerance that failed; chip fill #CC79A7 with black text (6.86:1); **never a range** | "disputed: {value A} from {source A}, {value B} from {source B}" | nothing, and no derived figure |
@@ -225,7 +227,7 @@ Evidence grades follow the Context Brief (E1–E6). Source numbers refer to §10
 | "No trade since {date}" (Doc 5c P1) | chip beside the price | same | per F |
 | Inference confidence (C4) | band word (very high / high / medium / low) plus evidence count and producer ("rule", "your earlier choice", "model suggestion"); **number only in the detail drawer** | "{band}, seen {k} of {n}" | auto-applies only under the C4 rule |
 
-The worst badge among a derived figure's inputs is inherited ("includes 1 stale price"). Statement lines that reconciled are `auto_validated` under C3.2. In dense ledger tables Doc 8 shows that state **once, at table level** ("All 212 lines reconciled to statements"), not as a chip in every cell. This interpretation needs the C3 owner's agreement (§11).
+The worst badge among a derived figure's inputs is inherited ("includes 1 stale price"), and so is the weakest check: a total with any self-checked input says "includes self-checked figures". The words "validated", "verified", "reviewed" and "independently checked" are reserved for checks by a second person or a licensed professional, in the UI, in exports and in assistant answers (C3.3a); the founder's own checks are always "self-checked". Statement lines that reconciled are `auto_validated` under C3.2. In dense ledger tables Doc 8 shows that state **once, at table level** ("All 212 lines auto-checked: reconciled to statements"), not as a chip in every cell. C3.4 v0.2 (CC-9) allows this on four conditions, which Doc 8 adopts: every cell shares the state; any cell that differs carries its own chip; each differing cell's accessible name includes its state; and a value taken out of the table (copied, exported, in a tooltip or cited by the assistant) carries its own chip, with a status column per row in exports.
 
 Text wireframe (desktop). Statement amounts keep their minor units, which is a stated exception to GOV.UK (§4.7).
 ```
@@ -239,7 +241,7 @@ NGN 12,870,000.00  ·  auto-checked  ·  NG Bank statement p.3  ·  as of 30 Oct
 4. what was not known;
 5. a Recompute action.
 
-**The model writes connecting text only. Values, dates, counts and directions are tokens that the renderer resolves from the validated store against the turn's allow-list (C2.2).** Quoted statement text appears only as a `quote` ("as printed on …, p.n") and never as a figure. Numbers the user types are labelled "you entered" (C2.2 item 8). v0.1's "the model may paraphrase" is withdrawn.
+**The model writes connecting text only. Values, dates, periods, counts, comparisons and directions are tokens (`fig`, `calc`, `date`, `period`, `count`, `cmp`, `dir`) that the renderer resolves from the figure store against the turn's allow-list (C2.2 v0.2).** Every `fig`, `calc`, `count`, `range` and `date` token carries `as=`; a figure that covers a period carries `per=` and one that belongs to an account or entity carries `scope=`, and the period and account names in a sentence come from `period` and `name` tokens that must match them. **Behavioural sentences arrive only as `tpl` segments** (C2.2 item 12): the panel renders the registered Doc 3 template's fixed text and fills each slot from the bound construct output through the registry's slot table (token type, `as=`, `fmt`). The model chooses the template and the construct output and writes no slot. The panel's "How was this worded?" row shows the template ID and version and the construct's current rung. If a render check fails (template not approved, rung above the construct's, not listed in the construct's specification, slot field mismatch, or the construct below its C3.4 tier), the panel shows the specification's withheld variant (for example `L1.too_early`) or a refusal, never a partial sentence. Quoted statement text appears only as a `quote` ("as printed on …, p.n") and never as a figure. Numbers the user types are labelled "you entered" (C2.2 item 8). v0.1's "the model may paraphrase" is withdrawn.
 
 **Prohibited patterns (design-review checklist, from F8).**
 - Pressure and nagging: confirmshaming; countdowns or scarcity cues; nagging after a declined intervention (one decline silences it for 90 days).
@@ -249,7 +251,7 @@ NGN 12,870,000.00  ·  auto-checked  ·  NG Bank statement p.3  ·  as of 30 Oct
 - Obstruction: interstitials that delay reaching one's own data.
 - Encoding: colour as the only signal of gain or loss.
 
-**Worked example (synthetic; contract C5.4, reproduced by script §2).** The figures are October 2026 at CBN central synthetic rates: ₦1,530.00/$ on 30 Sep, ₦1,500.00 on 16 Oct and ₦1,480.00 on 30 Oct, so the naira strengthens. 31 Oct is a Saturday and takes the 30 Oct fixing.
+**Worked example (synthetic; contract C5.4, reproduced by script §2).** The figures are October 2026 at synthetic CBN official rates (NFEM Rate, ₦/US$): ₦1,530.00/$ on 30 Sep, ₦1,500.00 on 16 Oct and ₦1,480.00 on 30 Oct, so the naira strengthens. 31 Oct is a Saturday and takes the 30 Oct fixing.
 - Holdings: NGN 12,000,000; USD 35,000; AED 85,000; 12 ETF units moving from $250.00 to $257.50.
 - Flows: AED −5,500 spent on 15 Oct; NGN 1,000,000 converted to USD 660 on Sunday 18 Oct (using the 16 Oct fixing); salary NGN +2,350,000 on 26 Oct; NGN −480,000 spent on 28 Oct.
 
@@ -262,7 +264,7 @@ Sign check: in the NGN view the USD rate fell while the user was long USD, so FX
 
 ```
 NG Bank · NGN current            Oct 2026                        view: NGN | USD
-Balance   NGN 12,870,000.00  (USD 8,695.95 at CBN central 1,480.00, fixing Fri 30 Oct)
+Balance   NGN 12,870,000.00  (USD 8,695.95 at CBN official rate (NFEM) 1,480.00, fixing Fri 30 Oct)
 Net worth change (all accounts)  −NGN 3,293,723.62
    your income and spending   −NGN 383,914.23
    conversion cost vs CBN     −NGN 10,000.00
@@ -285,7 +287,7 @@ USD 8,695.95 = 12,870,000 ÷ 1,480, rounded half-even once. In the USD view the 
 | Planning | reserve months, committed next 30 days | **Cash-flow forecast** with Doc 4's recurring projection and scenario overlays (§4.4.6); **Budgets** in Doc 4's three views (envelope, zero-based, percentage guides; *Later* per Doc 4 R9); Goals (Goal Reality Engine) |
 | Investments | value, allocation, exposure | Holdings; Risk; Research notes; **US estate-tax monitor** link (Doc 6 R6) |
 | Insights | observations at their Doc 3 rung | Cards (§4.5.6); hidden kinds; consent status |
-| Taxes | questionnaire status; mode (indicative / audited) | Nigeria and UAE columns; "cannot know from statements" checklist; **US-situs value vs USD 60,000** (Doc 6 F31, R6); rule status and watermark (C7) |
+| Taxes | questionnaire status; mode (indicative / audited) | Nigeria and UAE columns; "cannot know from statements" checklist; **US estate-tax monitor** in presence mode while Doc 6 rule 21 is draft, threshold mode only once it is sourced (Doc 6 F31, R6; C7 v0.2); rule status and watermark (C7) |
 | Documents and data | uploads, parsing status | Documents; Sources; **Data-quality dashboard** (Doc 5c §4.3.8); **Market-data validation queue** (Doc 5c §4.3.10; C3 sampling at 1 in 20) |
 | Settings | — | Facts about you (residency and circumstances record; risk willingness, §4.3.4); currencies and views; privacy and consents (§4.5.13); keyboard; notifications |
 
@@ -526,9 +528,9 @@ The goal effect is "Goal USD 100,000 by 31 Oct 2031: **unchanged** at about 60 o
 - *Gate.* Taxes opens on the questionnaire status. If the 2026 record is not current, the area stays in indicative mode with no tax figures (Doc 6 R3).
 - *Layout.* With the record current, two columns, Nigeria and UAE, each with "What we can compute from your records" and "What we cannot know from statements". Every figure carries its strip and the **C7 watermark** of the weakest rule status used: "DRAFT COMPUTATION – rule text sourced, not reviewed", "INDICATIVE – not confirmed by a licensed tax practitioner", or "Rules practitioner-confirmed (not advice)".
 - *Refusals.* A computation needing a `draft` rule is refused with its reason. Example: the YOA 2026 transitional rule for 2025 disposals (C7) shows "Not computed: rule in draft. Route to a practitioner."
-- *Alternative treatments* (deposit interest A/B) are computed and shown side by side.
+- *Alternative treatments* (deposit interest A/B) are shown side by side, together or not at all (C7 v0.2). A figure that aggregates investment income (interest, rent, foreign dividends) into a year of assessment refuses while `NG-BASIS-INVESTMENT-2026` is draft, so today the YOA 2026 gross PIT shows "Not computed: the basis period for investment income is not yet sourced. Route to a practitioner." for both treatments, with no value. Sandbox values never reach this screen.
 - *Basis period.* Gains appear in the year of assessment after disposal (NTA s.26(3); C7).
-- *Estate-tax monitor.* It shows US-situs value against USD 60,000 (Doc 6 F31) and prompts the user to seek advice, never to restructure.
+- *Estate-tax monitor* (C7 `rule_class = monitor`). While Doc 6 rule 21 is draft it runs in **presence mode**: "US estate tax may apply to US assets of non-US persons; the rule is not yet sourced here, so no threshold is applied." No threshold and no comparison are shown. Once the rule is sourced it compares the US-situs value with the threshold from the rule record, under the run's watermark, and shows "watching" below it, never "no action needed". It prompts the user to seek advice, never to restructure. The W-8BEN reminder follows the same pattern ("validity rule not yet sourced here; confirm with the broker").
 - *Export.* A preparation pack with every figure's strip and watermark. Filing-ready schedules only when every rule is `practitioner_confirmed` (C7). A permanent banner: "Prepared from your records; a licensed tax practitioner must review before filing." Nothing is filed by the product.
 - *Success criteria:* the founder distinguishes computed, refused and unknown items; the export has zero figures without provenance or watermark.
 
@@ -558,7 +560,7 @@ The table below lists the states each screen must handle beyond these.
 **4.5.1 Overview dashboard** (C5.4 household; script §2, §6).
 ```
 ┌ Overview ───────────────────── view: NGN | USD ─── as of Tue 3 Nov 2026, 09:10 WAT ┐
-│ Net worth  NGN 102.3 million   [ageing: CBN central, fixing Fri 30 Oct]              │
+│ Net worth  NGN 102.3 million   [ageing: CBN official rate (NFEM), fixing Fri 30 Oct] │
 │ October change  −NGN 3.3 million                                                     │
 │   income and spending −NGN 0.38 million · conversion cost −NGN 10,000 ·              │
 │   market +NGN 0.13 million · exchange rates −NGN 3.03 million        Why? ›          │
@@ -616,9 +618,9 @@ Ledger row as a card (phone):
 ┌ Possible transfer between your accounts ────────────────────────────────────────┐
 │ OUT  Sun 18 Oct  NG Bank     −NGN 1,000,000.00  "TRF TO US BROKER"               │
 │ IN   Mon 19 Oct  US Broker   +USD 660.00        "WIRE IN"                        │
-│ Implied rate 1,515.15 NGN/USD · CBN central 1,500.00 (fixing Fri 16 Oct;         │
-│   18 Oct is a Sunday)                                                            │
-│ Cost of converting vs CBN central rate: NGN 10,000.00 (1.00% of NGN given)       │
+│ Implied rate 1,515.15 NGN/USD · CBN official rate (NFEM) 1,500.00                │
+│   (fixing Fri 16 Oct; 18 Oct is a Sunday)                                        │
+│ Cost of converting vs CBN official rate (NFEM): NGN 10,000.00 (1.00%)            │
 │   within the expected range for NGN→USD (−1.0% to +4.0%) · provider rate not     │
 │   printed, so the provider's markup cannot be separated                          │
 │ Confidence: medium · matching rule · amounts, 1-day lag, descriptor              │
@@ -736,7 +738,7 @@ Phone:
 - *Documents › Sources:* each feed and file, its licence class and terms version, last successful fetch, feed health (`ok` / `fetch_failed` per series, C3.2), and dependent figures.
 - *Header:* a global freshness indicator shows the oldest input on screen.
 - *Data-quality dashboard* (Doc 5c §4.3.8): counts per V state, open reconciliation breaks, coverage of holdings with eligible prices, figures rendered with badges, AI answers blocked.
-- *Validation queue* (Doc 5c §4.3.10; C3.3 single-source sampling at 1 in 20; about 250 samples a year, C3.8 Q2). Each item shows the source snapshot and reconciliation result side by side. The validator must differ from the ingester.
+- *Validation queue* (Doc 5c §4.3.10; C3.3 single-source sampling at 1 in 20; about 250 samples a year, C3.8 Q2). Each item shows the source snapshot and reconciliation result side by side. Each check records `independence` (C3.3a): the founder's checks are `self`, so the figures they pass show "self-checked", never "validated". v0.1's guard "the validator must differ from the ingester" is replaced by that recorded attribute, because a single user cannot meet it.
 
 **4.5.12 Empty, error and stale states.** Empty: one sentence and one button. Error: cause, where (file, page, row), what was kept, manual path. Stale: grey numerals, chip, "last good value as of …", and recompute if possible. Expired: no value.
 
@@ -757,15 +759,16 @@ Phone:
 
 Seasonality is modelled only from calendar events the user declares (for example Ramadan, if the user adds it).
 
-*Retention, shown per store:*
+*Retention and erasure, shown per class* (CANONICAL_CONTRACTS C8):
 
-| Store | Contents | Retention | "Delete everything" |
+| Class (C8) | Contents | Retention | "Delete everything" |
 |---|---|---|---|
-| Tax and ledger records vault | statements, documents, journal, questionnaire | ≥ 6 years after the year of assessment (NTAA s.31(5); Doc 6 §4.1), WORM-style | Offers a full export first, and states that Nigerian law requires the taxpayer to keep these records six years. For the founder as sole user (NDPA s.3(1)) the choice is theirs. For a multi-user service, policy is set by counsel and a DPIA |
-| Behavioural derivations | construct results, card history | Outside the tax vault; deleted when behavioural consent is withdrawn, otherwise after 24 months (E5; R03b) | Deleted |
+| T tax and ledger records vault | statements, documents, journal, lots, calculation logs, the questionnaire answers behind tax figures | Until the user erases it. Keeping records for the statutory period (NTAA s.31(5); Doc 6 §4.1A) is the taxpayer's duty, shown as a warning, never enforced. While Doc 6 rule 34 is draft, **no retention date is shown** | **Always possible, never blocked.** Step 1 shows the warning "Tax law may require you to keep these records for several years; the period is not yet sourced here. Export first?" with a one-step export. Step 2 confirms erasure and states the backup window: "Copies in your backups become unreadable within {{period:rotation_window}}." Once rule 34 is sourced, the warning names each record's date with its watermark, still as a reminder only |
+| B behavioural derivations | construct results, card history, tags, intervention logs | Outside the tax vault; erased when behavioural consent is withdrawn, otherwise after 24 months (E5; R03b) | Erased; only the withdrawal event is kept |
+| A assistant traces | prompt hashes, figure IDs, verdicts | 12 months (E5; Doc 7) | Erased |
 | Analytics events | local event log | Deleted on opt-out | Deleted |
 
-Behavioural templates are filled by the local renderer from tokens (C2). Counterparty names are never sent to a cloud model for behavioural text. "Delete everything" is two-step, with no retention dark pattern.
+Erasure destroys the class key, so the data and every backup copy become unreadable; backups never use a lock that would prevent this (C8; Doc 7 §4.7.4). v0.1's "WORM-style" is withdrawn. For the founder as sole user (NDPA s.3(1)) the choice is theirs; for a multi-user service the policy is set by counsel and a DPIA. The rotation window is the founder's setting (C8 open question 3).
 
 *Other settings:*
 - Data: export everything as CSV and JSON (portability).
@@ -829,8 +832,11 @@ Focus moves into the drawer on open and returns to the invoking control on close
   - "million" in words with one or two decimals appears only in summary tiles, with the full value in the accessible name;
   - tables, strips and exports use ISO codes (NGN, AED, USD), and prose may use ₦ (U+20A6).
 - Never patronise or joke about money; own mistakes once and plainly [S110].
-- Every assumption is stated in the sentence that uses it ("using the CBN central rate of 1,480.00, fixing Fri 30 Oct"), and every time-sensitive figure carries "as of".
-- Behavioural sentences come only from Doc 3 templates.
+- Every assumption is stated in the sentence that uses it ("using the CBN official rate (NFEM) of 1,480.00, fixing Fri 30 Oct"), and every time-sensitive figure carries "as of".
+- Behavioural sentences come only from Doc 3 templates, rendered as C2 `tpl` segments.
+- **Assistant connecting text (C2.2(2) v0.2).** It contains no numeral, number or date word (months and weekdays and their abbreviations included, so the assistant writes "might", not "may"), and no quantifier, comparative, direction or relative-time word ("last month", "first", "all", "more", "fell"). Periods, counts, comparisons and directions come from tokens. Template fixed text is reviewed by Doc 3 at registration instead.
+- **Check wording (C3.3a).** The founder's own checks are "self-checked"; software checks are "checked by software". "Validated", "verified", "reviewed" and "independently checked" appear only for checks by a second person or a licensed professional.
+- **Rate label (C5.1 v0.2).** The reference rate is labelled "CBN official rate (NFEM)". "CBN central rate" is withdrawn: CBN publishes no central column.
 
 **Banned vocabulary (lint rule; v0.1 list merged with Doc 3 §4.4 and §4.7, R08 M6 and R03b m1–m3).**
 
@@ -852,7 +858,7 @@ Focus moves into the drawer on open and returns to the invoking control on close
 
 **Sample strings.**
 - *Error:* "We could not read page 7 of NG-Bank-Oct-2026.pdf (it looks scanned), so this statement does not balance and is not used yet. Its other pages are kept as unchecked lines. You can export a CSV from the bank app, upload another copy, or type the missing lines; we will use the statement once it balances to its closing figure."
-- *Ageing:* "Rate as of Fri 30 Oct (CBN central). Two business days old; values that depend on it are marked."
+- *Ageing:* "Rate as of Fri 30 Oct (CBN official rate, NFEM). Two business days old; values that depend on it are marked."
 - *Stale price:* "Close of Fri 30 Oct. More than three trading days old; values that depend on it are marked stale."
 - *Parsing consent:* "Send document text to a cloud model to help read difficult statements? Off by default. If off, reading happens on your Portfolio OS server (your own hardware) and may be slower." v0.1's "on this device" was wrong under Doc 7.
 
@@ -1319,6 +1325,7 @@ All web sources accessed 2026-11-02 unless stated. v0.2 re-checks made on 2026-1
 | R03b §5 #6 phantom "more frequent nudges" disagreement | — | Fixed | §7 | Row deleted |
 | R03 M1 ladder restructure (L0a/L0b, L2 as analogy, causal rung) | V-026 | Deferred | §4.5.6 | Owner: Doc 3. Doc 8 renders whatever rung IDs Doc 3 publishes; the interim shows L2 only as collapsed "research context" |
 | Consistency pass, 2026-11-04 (Doc 5 §9.2 I6) | V-033 | Fixed; version stays 0.2 | §4.5 state table, §4.5.7 | UAE equities shown with exposure only: "valued from statement of ‹date›", "Not available: no licensed price history" in risk cells, a coverage line on portfolio risk, and a C6 refusal or a "Not simulated" line in the goal view. No figure changed, so `doc08_journey_figures.py` was not touched |
+| Contract conformance to contracts v0.2, 2026-11-04 | CC-2, CC-4, CC-6, CC-9, RT-A rate field, RT-A independence, RT-B C2 bypass, RT-B retention (C8) | Fixed; version stays 0.2 | §4.1 Component A, table-level chip text, Component B, worked example; §4.2 Taxes row; §4.5.1, §4.5.3, §4.5.11, §4.5.13; J7; §4.7 | Rate label "CBN central" (including v0.2's "CBN central (NFEM)") → "CBN official rate (NFEM)" (C5.1). Status chips per C3.3a: founder checks show "self-checked", software checks "checked by software"; "validated/verified/reviewed" reserved for second-person or licensed checks; the "validator must differ from the ingester" guard replaced by the recorded `independence`. Table-level chip under C3.4's four conditions. Component B renders C2 `tpl` segments from registry slots; `as=` on every `date`, `count` and `range` token; `per=`/`scope=` binding; copy rule for model text (no "last month", "may", "first"). §4.5.13 per C8: "WORM-style" withdrawn; erasure always possible with the warning, export step and backup window; no date while rule 34 is draft. J7: deposit-interest branches together or not at all; YOA 2026 gross PIT refused while the investment-income basis is draft; estate-tax and W-8BEN monitors in presence mode. Script re-run under `python3 -I`: output identical (only a comment changed). Not done here: the C4 queue-sizing update (CC-8, "30" → "35") and the investing-costs sub-line (CC-7), which are outside this conformance list |
 
 **Counts.** 62 review rows, not counting the consistency-pass row:
 - 56 Fixed. Four carry a qualification: R08 M1 (one point disputed), R08 M7 (tariff shown as a range), R08 §3 U4 (regraded, rule kept per C6) and the 44 px convention (labelled E4).
@@ -1329,7 +1336,7 @@ All web sources accessed 2026-11-02 unless stated. v0.2 re-checks made on 2026-1
 **Notes on contracts.** Doc 8 follows every contract. None is departed from. These points need the owners' attention:
 1. **C4 item 3 does not say what a rule's precision stratum is.** If counterparty memory is scored per counterparty, almost no monthly payee reaches 35 confirmations within three years, and a steady month needs about 74 decisions (30 minutes). If it is scored as one pooled producer, the figure is about 20 decisions (9 minutes) (script §8).
 2. **C4's "≥ 30 confirmed applications" with Wilson LB ≥ 0.90 effectively means at least 35.** Thirty correct out of 30 gives a lower bound of 0.886. Stating 35 would avoid confusion.
-3. **C3.4 implies an "auto-checked" chip on every reconciled statement line.** Doc 8 shows it once per table, with the state in each cell's accessible name only when it is not plain. The C3 owner should confirm this satisfies the contract.
+3. **C3.4 implies an "auto-checked" chip on every reconciled statement line.** Doc 8 shows it once per table, with the state in each cell's accessible name only when it is not plain. The C3 owner should confirm this satisfies the contract. **Closed by C3.4 v0.2 (CC-9):** allowed on four conditions, adopted in §4.1.
 4. **C6 makes Doc 8's former U4 adjustment line mandatory, but its evidence is E4** [S40]. Doc 8 displays it and will report the Phase 1 comprehension result. If the founder misreads it, Doc 8 will propose a contract change rather than drop it unilaterally.
 5. **The Journey 6 engine is a parametric illustration**, not the C6 demeaned bootstrap. It shows C6's output fields and display rules only. Doc 5b owns the engine.
 
