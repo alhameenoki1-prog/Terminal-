@@ -152,3 +152,64 @@ Non-academic URLs, re-fetched on 2026-11-04:
 | S118 | web.dev/articles/vitals | Fetched. LCP 2.5 s / INP 200 ms / CLS 0.1 at p75 confirmed |
 | S119 | infrequently.org (Russell, 2025) | Fetched. Galaxy A24 4G, 9/3 Mbps, 100 ms confirmed; budget column choice questioned (M7) |
 | S107 | Local ICU check | Reproduced: Node 22, ICU 78.3, Unicode 17.0 gives `₦1,234,567.89`, `AED 1,234,567.89`, and ar-AE with RLM/LRM marks and Latin digits |
+
+## 5. Cross-document contradictions
+
+| Topic | Doc 8 | Other document | Ref |
+|---|---|---|---|
+| AI text generation | "The model may paraphrase" | Doc 3 §4.2 rule 4: templates only. Doc 5c §4.3.12: figure tokens; the model's digits are not rendered | B1 |
+| Payday window and statistic | 4 days, share, no interval | Doc 3: days 0–6, ratio with 95 % interval, cycles held, permutation test | B1 |
+| Intervention eligibility and design | L1 card, two-month before/after | Doc 3 §4.6: L2 only, ABAB, ≥ 12 cycles | B1 |
+| Evidence rungs | Three levels | Doc 3: L0–L4 | B1 |
+| FX translation of flows | Closing rate | Doc 4 §4.2 and Doc 6 F4: transaction-date rate plus period-end revaluation | B2 |
+| Decomposition terms | Two or four | Doc 4 §4.4.7: three, plus conversion-cost expense line | B2 |
+| Base currency | One, by majority of income | Doc 4: USD and NGN views by default. Doc 6: NGN for tax | m5 |
+| Confidence bands | Three (0.9 / 0.7) | Doc 4: four (0.98 / 0.90 / 0.70); < 0.90 or model-produced goes to review | B3 |
+| Data states | Five states | Doc 5c: eight states plus Ageing tier, A–D grades, no-trade badge, licence scope | B3 |
+| Disputed figures | Shown as range; market-cap range computed | Doc 5c §4.3.3: excluded from valuation | B3 |
+| Amber | Conflict | Doc 5c: Ageing | B3 |
+| Tax questions | Six, just in time, never repeated | Doc 6 §4.4: yearly attested questionnaire, about 20 items, no tax figures without it | M2 |
+| Citizenship | Not asked | Doc 6 F25/F31 and Doc 4 §4.4.8 step 1: asked | M2 |
+| Risk tolerance | Not asked | Doc 4: Grable–Lytton. Doc 3: SOEP, DOSPERT, CFPB | M3 |
+| Liabilities and pensions | Absent | Doc 4 chart of accounts and §4.4.5 | M3 |
+| Offline and mobile | Offline-first PWA, queued writes | Doc 7: server monolith; mobile app "do not attempt yet"; local-first unresolved | M7 |
+| Partial statements | "Other 13 pages were used" | Doc 4 §4.3.7: unreconciled statement rejected; period incomplete | m7 |
+| Open-banking status | Oct 2025 evidence | Doc 4 F1: checked 2026-11-02 | m9 |
+| Synthetic FX levels | USD/NGN about 1,480–1,530 | Doc 4/5c observed about 1,346 on 2026-11-02. Synthetic, but a reader comparing documents will be confused; label more loudly or align | — |
+
+Doc 8 §2 says sibling documents "did not exist … at the time of writing". The file was nevertheless edited on 2026-11-04, after Docs 3–7 were committed, and §6 still states dependencies as wishes rather than referencing the now-published interfaces.
+
+## 6. Questions the Investment Committee needs answered
+
+1. What precision and recall do proposals actually reach on the founder's real statement formats, and how many minutes of review does the first batch need? (The whole "no questionnaire" claim rests on this.)
+2. Which document owns the single figure-state machine and the single confidence scale, and when will Doc 8 adopt it?
+3. Is the personal MVP desktop-web against a home server (Doc 7) or an offline-first PWA (Doc 8)? The performance, offline and consent copy differ completely between the two.
+4. Will the tax area ship in "indicative / unaudited" mode (Doc 6) before the yearly questionnaire is complete, and what exactly may be shown?
+5. How will goal views show parameter uncertainty, not only sampling spread, given Doc 5's parameters are placeholders?
+6. Who facilitates and scores the n = 1 studies, given that the founder is both sponsor and subject?
+7. What is the accessible-name pattern for a number carrying an evidence strip, so that a screen-reader user can read a dense ledger?
+
+## 7. Required changes before Investment Committee (priority order)
+
+1. Adopt Doc 3's claims ladder, sentence templates and intervention protocol on the insight card. Remove "trait" and the two-month before/after test. Make Component B template- and token-only (B1).
+2. Replace the FX worked example with Doc 4's method, correct the sign of the Overview FX effect, and add the conversion-cost line (B2).
+3. Map Doc 8's visual states one-to-one onto Doc 5c's state machine and Doc 4's confidence bands. Stop computing ranges from disputed inputs. Reassign the amber colour (B3).
+4. Specify graded low-precision fallbacks. Replace "≥ 90 % accepted" with measured precision and recall plus review-minutes per batch. Sort the queue by materiality × uncertainty (M1).
+5. Replace §4.3.4's tax rows with Doc 6's yearly questionnaire and indicative/audited modes. Put tax chips on transaction kind (M2, M3).
+6. Add Liabilities, Pensions, FX and costs, budget views, forecast scenarios, the risk questionnaire and the market-data validator queue to the IA (M3).
+7. Remove the bare Overview goal count. Align the count to dotplot resolution. Add a parameter-uncertainty display. Fix Journey 3 (M5).
+8. Fix contrast failures, character-key shortcuts, timeout, accessible names and the minus sign. Draw phone-width wireframes for the ledger, queue and goal view (M4).
+9. Rewrite directive copy and expand the banned list (M6).
+10. Make offline and performance claims conditional on a Doc 7 decision. Re-base the JS budget (M7).
+11. Fix the validation-plan design issues: synthetic data, independent facilitator, carry-over, Phase 2 counts, telemetry scope with Doc 3 (M8).
+12. Correct the minor date, name and reproducibility items and commit the worked-example scripts (m1–m10).
+
+## 8. What this reviewer could not check
+
+- The FCA effect sizes were checked against the PDF text extracted by `pdftotext`. I did not read the regression tables in full.
+- No full texts of the academic papers were read. Claim checks rest on abstracts, metadata and Doc 8's wording.
+- NGX trading hours, and whether NFEM publishes on non-business days, were not fetched.
+- The NDPA "consent cannot be a condition of service" summary, the UAE PDPL executive-regulation status, TechCabal's ₦575/GB figure (HTTP 403 for Doc 8 as well), the EFInA 64 % and the KPMG/Orange study were not re-checked.
+- Doc 5a/5b (simulation outputs) and Doc 9 were not read for this review, beyond Doc 5c.
+- Contrast was computed against pure white and #121212. The actual surface colours are unspecified.
+- No usability or assistive-technology testing was possible. My Monte Carlo re-run used my own lognormal monthly model, not Doc 8's (uncommitted) code.

@@ -4,11 +4,18 @@ Review of: 04 — Banking and Personal Finance Architecture (v0.1, 2026-11-02)  
 
 ## 1. Verdict and the three most important problems
 
-**Verdict: Major revision.** The direction is right: statements before APIs, double entry, reconciliation as a gate, and named FX series. The worked-example arithmetic reproduces exactly. The problems are in the ledger contract, which the other documents will build on. As written it would let wrong postings pass every control and still balance.
+**Verdict: Major revision.** The direction is sound: statements first, double entry, reconciliation gating, named FX series. The worked-example arithmetic reproduces to the cent. The ledger contract is the weak point. As written, it lets wrong postings pass every control.
 
-1. **FX "conversion cost" is a residual plug, and the ±6% band lets it absorb matching errors (Blocking).** The cost is defined as |D| − fees − |C|×ref_rate, so any false-positive cross-currency match, wrong reference date or misread amount within 6% becomes a plausible "spread". The transaction balances and every statement reconciles. Nothing in §4.3.7 catches it.
-2. **The ledger model is not settled and contradicts Docs 06 and 07 (Blocking).** It balances on Σ base_amount = 0, not per currency. Categories are encoded as posting accounts, which clashes with append-only storage and mutable categories. There are no currency lots, although Doc 06 says foreign currency is a chargeable asset under NTA s.34(1)(b). §4.5(7) allows "decimals with four places for rates", which truncates USD-per-NGN to 0.0007, an error of about 5%.
-3. **Ingestion claims run ahead of evidence (Major).** `bankstract` is an alpha package, first released in June 2026, with four parsers (FBN, OPay, PalmPay, Zenith). Its OPay row-chaining is disabled. Yet OPay is listed as a Tier 1 must-have source and the rule is "reject files that fail balance checks". Duplicate hashing breaks on re-exports. The Plaid mapping misfiles telecoms, and stamp duty is booked as a bank fee.
+1. **The FX "conversion cost" is a residual plug (Blocking).** With a symmetric ±6% band, any false-positive cross-currency match, wrong rate date or misread amount is booked as plausible "spread". Every statement still reconciles.
+2. **The ledger model contradicts Docs 06 and 07 (Blocking).**
+   - It balances on Σ base_amount, not per currency.
+   - Categories are stored as posting accounts, which conflicts with append-only storage.
+   - It has no currency lots, although foreign currency is chargeable under NTA s.34(1)(b).
+   - "4 dp rates" truncate USD-per-NGN with an error of about 5%.
+3. **Ingestion claims outrun evidence (Major).**
+   - bankstract is an alpha package with four parsers, and its OPay chaining is disabled, yet OPay is Tier 1 under a "reject on failure" rule.
+   - Duplicate hashing breaks on re-exports.
+   - The Plaid mapping misfiles telecoms and stamp duty.
 
 ## 2. Findings, severity-ranked
 
@@ -173,3 +180,111 @@ The many-to-many mapping means the "comparability" claim is not earned. **Fix:**
 - **m6.** S61 and S84 are marked unverified but resolve on Crossref: 10.61190/fsr.v24i2.3240 and 10.2139/ssrn.3455696.
 - **m7.** §7 item 1 says "[checked 2026-11-04]" in a document dated 2026-11-02.
 - **m8.** Parallel-market "stress" uses an unsourced series. Label it indicative until §7 item 7 is resolved.
+
+## 3. Evidence-grade audit
+
+| Location | Claim | Grade given | Should be | Reason |
+|---|---|---|---|---|
+| F1 | CBN rule texts | E2 | E3 (or E2 if Doc 07's S48 primary text is cited) | S1 and S3 are law-firm summaries |
+| F1 | "October 2026 review found no go-live" | E3 | E3, but not independent | TechCrier's latest evidence is the July 2026 OBN page (re-fetched), so it is circular, not corroborating |
+| F7, F8 | FX regime; CBUAE regulation | E2 | E3 | Legal500/Mondaq and law-firm summaries; rulebook not read |
+| F12 | Fellegi–Sunter is "the correct foundation" | E1 | E2 for the theory, E4 for applicability | One theoretical paper, not replicated evidence for this use |
+| F14 | Paycheque-anchored forecasting | E1 body | E2 evidence + E4 transfer | US and Icelandic data; no NG/UAE evidence |
+| §4.3.1 | ±3 days, ±15%, confidence 0.95/0.80 | untagged | E5 | Engineering assumptions stated as specification |
+| §4.3.2 | "Observed 2–3.5% spreads" | implicit | E6/E5 | The source is the synthetic §4.6 |
+| §4.3.1 | WPS narration cue | untagged | E4/E5 | Not in the EY/MOHRE text |
+| F4 | NIBSS session-ID labels per bank | "[search, vendor]" | unsourced | No source number |
+| §8 | Targets (≥95% auto-reconciled, <10 min, ≥90% at ≥0.90) | untagged | E5 | No baseline |
+
+## 4. Citation and source spot-check
+
+**Academic (Crossref DOI API, 2026-11-04).** All match title, authors, year and volume.
+
+| Ref | DOI | Status |
+|---|---|---|
+| S60 Grable & Lytton 1999 | 10.1016/S1057-0810(99)00041-4 | Verified (FSR 8(3)) |
+| S62 Heath & Soll 1996 | 10.1086/209465 | Verified |
+| S65 Soman & Cheema 2011 | 10.1509/jmkr.48.SPL.S14 | Verified |
+| S66 Prelec & Loewenstein 1998 | 10.1287/mksc.17.1.4 | Verified |
+| S67 Soman 2001 | 10.1086/319621 | Verified |
+| S68 Fernandes et al. 2014 | 10.1287/mnsc.2013.1849 | Verified |
+| S69 Kaiser et al. 2022 | 10.1016/j.jfineco.2021.09.022 | Verified (145(2)) |
+| S70 Olafsson & Pagel 2018 | 10.1093/rfs/hhy055 | Verified |
+| S71 Carlin et al. | 10.1093/rof/rfac040 | Verified (27(3); issued 2022) |
+| S72 Lusardi et al. 2011 | 10.1353/eca.2011.0002 | Verified |
+| S78 Gathergood et al. 2019 | 10.1257/aer.20180288 | Verified |
+| S79 Fellegi & Sunter 1969 | 10.1080/01621459.1969.10501049 | Verified (64(328)) |
+| S61 Kuzniak et al. 2015 | 10.61190/fsr.v24i2.3240 | Document says unverified; **found** |
+| S84 Sabat & Gallagher 2019 | 10.2139/ssrn.3455696 | Document says unverified; **found** (SSRN) |
+
+**Non-academic (re-fetched 2026-11-04).**
+
+| Source | Result |
+|---|---|
+| S20 Kuda stamp duty | Confirmed: ₦50, ≥₦10,000, sender, from 1 Jan 2026. Exempt: salaries, own Kuda accounts. Silent on POS/card. |
+| S22 TechEconomy | Confirmed; adds "or foreign currency equivalent". No statute section. |
+| S21 Paystack | Confirmed: 18 Feb 2026, merchant outflows, payroll merchants exempt. |
+| S18 Legit.ng (CBN charges) | Confirmed every figure in F5 (effective 1 May 2026). Still press, not the CBN PDF. |
+| S26 Nairametrics CPI | Confirmed 14.63 / 15.39 / 20.98 / 0.06 / 19.59 / 12.95 / 15.64 / 12.46. Doc 03 notes core 13.29% in other press. |
+| S29 WithinNigeria NFEM | ₦1,346.91 confirmed as the 29 Oct **sell** rate; central ₦1,346.41; parallel ₦1,375–1,390 (W2). |
+| S2 Open Banking Nigeria | "Last updated July 2026"; go-live pending; expected "early 2026" (the document says mid-2026 via S90). Individuals are not API consumers. |
+| S6 TechCrier | No go-live confirmed; relies on the July 2026 OBN page. |
+| S32 Himma tracker | Confirmed 5 live; see m5. |
+| S15 bankstract (PyPI JSON) | v0.18.3, 2 Nov 2026, MIT, Alpha, 4 parsers (M1). |
+| S51 Plaid PFC CSV | 18 / 127 confirmed; mapping errors (M6). |
+| S38 EY WPS | Confirmed Resolution 340/2026, 12 May, effective 1 Jun, 1st-of-month deadline; adds the 85% compliance threshold. |
+| S36 aep.ae (Aani) | "Up to AED 50,000"; no daily or per-proxy split. The conflict stands. |
+
+## 5. Cross-document contradictions
+
+| Topic | Doc 04 | Doc 06 | Doc 07 |
+|---|---|---|---|
+| Posting shape | Multi-leg, signed, Σ base = 0 | `account_dr, account_cr` (two-legged) | ≥2 postings, Σ weights = 0 **per currency** |
+| Amount precision | Integer minor units *or* decimals, "4 dp for rates" | — | NUMERIC(28,8); ROUND_HALF_EVEN; `Equity:FX-Rounding` |
+| Rounding in the example | HALF_UP | — | HALF_EVEN |
+| Append-only | Not stated; categories editable on postings | Append-only, reversal + replacement | Append-only; categories in a mutable side table |
+| FX spread | Expense vs reference rate | Realised/unrealised vs **weighted-average currency cost** | Price annotations via `Assets:Transit`; spread not shown |
+| Reference/tax currency | USD + NGN dual view | NGN tax-reporting currency; CBN rate "acceptability unconfirmed" | — |
+| Cost basis | Lots, no method; commission expensed | WA for currency, FIFO for securities, fees in lot | Beancount STRICT/FIFO |
+| Reconciliation failure | Reject statement | `UNEXPLAINED_DIFFERENCE` item | Validation exception queue |
+| Transfer window | [−1, +3] / [−1, +5] business days; ±6% | ±3 days | — |
+| Duplicate key | Includes running balance | Control totals + file hash | (account, date, amount, description) |
+| Bank-side double debit | Statement lines + suspense pair | "Reversed by a new entry" | — |
+| One currency per account | Yes (but violated in §4.6) | Revaluation posts NGN into a USD account | Per-currency weights |
+| CBN NFEM source | "Not fetchable"; press | — | CBN page with Excel export [Doc 07 S44] |
+
+Doc 06 Example 3 also has its own error: 7.5% VAT on ₦1,000 is ₦75, not ₦50. This is outside my remit, so I am reporting it to R06's reviewer.
+
+## 6. Questions the Investment Committee needs answered
+
+1. Which ledger contract (Doc 04, 06 or 07) is authoritative, and who owns the invariant tests?
+2. What is the residual-FX policy when a transfer is matched but unconfirmed?
+3. Which banks does the founder actually use? bankstract covers four Nigerian banks, none of them the founder's confirmed banks.
+4. Does stamp duty apply to POS/card payments and to domiciliary transfers in FX equivalent? What does the tax practitioner say?
+5. What false-positive rate on transfer matching is acceptable, given that the errors flow silently into the FX-cost and savings-rate figures?
+6. Who maintains the parallel-market series, and under what methodology?
+
+## 7. Required changes before Investment Committee (priority order)
+
+1. Replace the FX-residual design (B1): per-pair one-sided bands, a suspense account for unconfirmed residuals, and a dealer-rate split.
+2. Harmonise the ledger contract with Docs 06 and 07 (B2, M7, §5): per-currency invariant, precision and rounding policy, append-only storage, category placement, revaluation as a view.
+3. Add currency lots and NGN tax-basis FX gains (B3).
+4. Re-state reconciliation as a completeness control and add the independent controls in B4.
+5. Correct the ingestion evidence (M1): OPay exception state, bankstract maturity, the per-bank parser gap.
+6. Redesign the dedup key and overlap resolution, and specify the account-identity resolver (M2, M3).
+7. Specify the Fellegi–Sunter estimation, labelled-data strata and hard negatives (M4).
+8. Fix the income taxonomy and the "unexplained inflows" exposure (M5).
+9. Fix the Plaid mapping; add `rail`, `levy_type` and `is_tax` (M6).
+10. Correct the worked example: W1–W13, especially W4, W6, W8 and W10.
+11. Regrade per §3.
+
+## 8. What the reviewer could not check
+
+- The CBN 2026 Guide to Charges PDF, and therefore whether CAMF applies to gross or net turnover and whether ₦0.5/mille is in force. I confirmed only the press figures.
+- NTA 2025 Ninth Schedule item 48 in the gazette. I relied on Doc 06's reading.
+- Whether POS payments attract stamp duty.
+- The CBN NFEM page and the CBUAE rulebook (not attempted, given that the author was blocked by 403).
+- Real Nigerian/UAE statement samples. Narration conventions, session-ID labels, the GTBank Excel export and UAE bank formats remain untested.
+- Aani's per-proxy limit (sources still conflict).
+- Plaid confidence-level semantics, and the Firefly, Beancount and hledger documentation (not re-fetched).
+- Whether 0.42 is the only residual under a full daily-balance retranslation. I reasoned it analytically from the T1/T2 split; I did not re-code it.

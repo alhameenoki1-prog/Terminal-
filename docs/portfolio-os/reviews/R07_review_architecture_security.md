@@ -100,3 +100,92 @@ The STRIDE table lists a "malicious PDF" under Tampering and mitigates it with a
 - *Thin provenance schema.* Doc 7's provenance record lacks `licence_scope`, `scale` (NGN'000), `expiry_at`, `vintage`/`supersedes` and confidence A–D (Doc 5c §4.3.1).
 - *Three status vocabularies.* Doc 7 has four states, Doc 5c has eight and Doc 8 has five (including "Estimated").
 - *Offline and sync.* Doc 8 expects offline and sync behaviour and cites Doc 7 for local-first storage. Doc 7 specifies a server Postgres with no client store, and it cites Kleppmann et al. (S78) to support "Compose on founder-controlled hardware", which is not local-first in that paper's sense.
+
+**M8 — The repository critique is accurate on the headline claims but incomplete, and one claim is wrong (F25–F28, §4.11).**
+- *Student-t (F28 i): confirmed, with qualifications.* `studentTRandom(5)` returns z/√(χ²₅/5) unscaled. Its variance is 5/3, so the standard deviation is inflated by √(5/3) − 1 = 29.1%. My simulation gives 1.290 per step and 1.287 over a 63-day horizon. The document does not say that:
+  - the toggle is off by default (`useState(false)`) and applies only to GBM (`runGBM`);
+  - the −½σ² drift term keeps the unscaled σ, so the median is also biased;
+  - at the horizons this panel uses, the fat tails mostly disappear by the central limit theorem (excess kurtosis 5.65 per day versus 0.06 for the 63-day sum in my simulation), so the toggle mainly *inflates volatility* rather than adding tail risk.
+- *Defects not mentioned.*
+  - The "Cholesky" model returns only `finals1` (line 319), so asset 2 and ρ never affect any output.
+  - The max-drawdown comment says "1 − P5/P50 and 1 − P1/P50", but the code uses P25 and P5.
+  - GARCH has no −½σ² term, so drift is inconsistent across models, and its variance is clamped at 4σ².
+  - There are silent fallbacks: σ = 0.6 and ρ = 0.65 when input parsing fails.
+  - VaR is measured from the spot price, not from the entry price.
+- *Wrong salvage claim.* §4.11 proposes to salvage "the lightweight-charts wrapper pattern". No TypeScript file imports `lightweight-charts`: commit 0269637 "Replace lightweight-charts with TradingView Widget" removed it, and the chart is a third-party `tv.js` embed. That embed, combined with secrets in localStorage (F25), is a worse exposure than F25 alone. Also, `callGroq` sends the key from the browser, so the key is exposed whether or not it is persisted.
+
+**M9 — The evaluation harness cannot support its own targets (§4.6, §4.9).**
+- *Sample size.* "Fabricated-number rate = 0" on about 200 golden questions supports, at best, a 95% upper bound of about 1.5% (rule of three: 3/200).
+- *Definitions.* "Fabricated" and "exact-match ≥ 95%" are not reconciled: is a figure that matches within tolerance fabricated or not?
+- *Missing measurements.* There is no measurement of the gate's false-negative rate (numbers it misses) or false-positive rate (legitimate answers it blocks), of label misattribution, of qualitative claims, of run-to-run variance, or of cases drawn from real (redacted) statements.
+
+*Fix:* report bounds rather than zeros. Add a red-team corpus aimed at the gate itself.
+
+### Minor
+
+- **m1 (F14).** "Forced `tool_choice` is rejected on the newest models" is only partly right. Opus 5.5, Sonnet 5.5, Fable 5.1 and Mythos 5.1 return a 400 error, but **Haiku 5.5 accepts forced tool use** (406 tokens), so the extraction role could combine `any` with `strict`. (Define-tools page, re-fetched.)
+- **m2 (F14, §5).** Citations are indeed incompatible with `output_config.format` (confirmed). However, Anthropic documents a "Get structured data with citations" pattern (one line per field, parsed in code) that gives page-located evidence for each extracted value. It is relevant to ingestion and was not considered.
+- **m3 (F13).** The FinanceBench "81%" figure is a 2023 GPT-4-Turbo result and includes refusals. It supports "do not let the model calculate", not any claim about 2026 fabrication rates. The wording should say so.
+- **m4 (§4.2.3).** No ISO 4217 minor-unit table is specified (JPY 0, KWD 3 decimal places). `ROUND_HALF_EVEN` is chosen without reference to the tax rounding rules (Doc 6). NUMERIC(28,8) is too coarse for 18-decimal crypto units if those ever come into scope.
+- **m5 (F22, F23).** Doc 9 F16 states GAID took effect on 19 September 2025, and Doc 8 F15 says the UAE Executive Regulations were "not issued as of March 2026". Doc 7 leaves both as unknown and should harmonise with them or dispute them.
+- **m6 (§4.7 retention).** "Documents 7 years", "discard raw OCR" and crypto-shredding erasure conflict with Doc 6's "≥ 6 years after the year of assessment … WORM-style storage".
+- **m7.** Package versions had already moved by 2026-11-04 (docling 2.147.0, PyMuPDF 2.1, yfinance 1.8.0, psycopg 3.3.8). The lockfile, not Table 3.2, must be the record.
+- **m8 (ADR-2, §7.2).** The proposed two-week dual-stack spike is poor value. Its criteria (lines of code, defect count) are weak, and the result is predictable: HRP, `arch` and Docling have no TypeScript equivalents. The deciding variable is the founder's own language skill, which is unknown. One alternative was not considered: a Python-only server-rendered UI with no SPA, which removes the two-language cost. Recommendation: no spike. Decide on founder skill, or at most run a 3-day statement-parsing spike.
+- **m9 (ADR-3, ADR-7).** Some alternatives were not genuinely weighed. SQLite+SQLCipher is rejected on SaaS grounds even though the target is personal. OpenAI and Gemini are "not evaluated". §7.1 states as fact that hosted models give "measurably better tool discipline" without any measurement.
+- **m10.** The F29 phrase "no lockfile-based audit" is ambiguous, because `package-lock.json` exists in the repository.
+
+## 3. Evidence-grade audit
+
+| Location | Claim | Problem | Proposed grade |
+|---|---|---|---|
+| F2 | GPL/AGPL disclosure is triggered by a hosted product | Concept error for GPL (distribution trigger) | E3 with correction; counsel |
+| Table 4.1 row 5 | "Local-first literature [S78]" supports Compose on hardware or a VPS | Citation misapplied | E5 |
+| §7.1 | Hosted models give "measurably better tool discipline" | Not measured | E4/E5 |
+| §4.6, §4.9 | "Fabricated-number rate = 0" is achievable and testable | No statistical basis | E5 with bound |
+| §4.6 | 0.5% gate tolerance | Unlabelled engineering choice | E5 |
+| §4.7 | RTO < 4 h, RPO < 24 h, coverage ≥ 85%, "≥ 5,000 labelled rows" | Unsourced thresholds | E5, state the test |
+| §4.12(a) | "exactly 0.00" balance | False as stated | Correct the arithmetic |
+| §4.12(b) | AI cost figures | Omit thinking, loops and cache writes | E5, re-estimate |
+| §4.6 | Privileged model "never sees raw document text" | Contradicted by its own design | Remove |
+| F28 | Student-t ≈ 29% | Correct (verified) | E3 ok |
+| F14–F16 | API behaviour, prices, retention | Correct (verified), except m1 and the Batch omission | E2 ok |
+
+## 4. Citation and source spot-check
+
+**Academic works.** Verified on 2026-11-04 via Crossref DOI (`api.crossref.org/works/<DOI>`) or the arXiv API.
+
+| # | Reference | Route | Status |
+|---|---|---|---|
+| S65 | Greshake et al., arXiv:2302.12173 (2023-02-23) | arXiv | Verified |
+| S66 | Debenedetti et al., "Defeating Prompt Injections by Design", arXiv:2503.18813 | arXiv | Verified |
+| S68 | Islam et al., FinanceBench, arXiv:2311.11944; the "81%" sentence quoted verbatim in the abstract | arXiv | Verified |
+| S69 | Chen et al., FinQA, arXiv:2109.00122 | arXiv | Verified |
+| S74 | Auer et al., Docling Technical Report, arXiv:2408.09869 | arXiv | Verified |
+| S71 | Ji et al., ACM Computing Surveys, 10.1145/3571730 (issued 2023-03) | Crossref | Verified |
+| S75 | Claessen & Hughes, QuickCheck, 10.1145/351240.351266 (ICFP 2000) | Crossref | Verified |
+| S76 | MacIver & Hatfield-Dodds, JOSS, 10.21105/joss.01891 (2019) | Crossref | Verified |
+| S78 | Kleppmann et al., Onward! 2019, 10.1145/3359591.3359737 | Crossref | Verified (but misapplied, see §3) |
+| S80 | Michaud, FAJ 1989, 10.2469/faj.v45.n1.31 | Crossref | Verified |
+| S81 | DeMiguel, Garlappi & Uppal, RFS, 10.1093/rfs/hhm075 (Crossref issued 2007-12) | Crossref | Verified |
+| S82 | Ledoit & Wolf, JPM 2004, 10.3905/jpm.2004.110 | Crossref | Verified |
+| S83 | López de Prado, JPM 2016, 10.3905/jpm.2016.42.4.059 | Crossref | Verified |
+| S84 | Bollerslev, J. Econometrics 1986, 10.1016/0304-4076(86)90063-1 | Crossref | Verified |
+
+**Non-academic sources.** Re-fetched on 2026-11-04.
+
+| Source | URL | Status |
+|---|---|---|
+| S51 Pricing | platform.claude.com/docs/en/about-claude/pricing | Confirmed: Fable 5.1 $10/$50 (hit $0.25); Opus 5.5 $4/$20 ($0.20); Sonnet 5.5 $2/$10 ($0.10); Haiku 5.5 $0.10/$0.50 ≤100k and $0.50/$2.50 above; Batch −50%; `inference_geo:"us"` 1.1× |
+| S50 Models overview | …/about-claude/models/overview | Confirmed: IDs; 1M context and 128K output; Opus 5.5 default effort `medium`; adaptive thinking always on for Fable 5.1 and Opus 5.5 |
+| S52 Structured outputs | …/build-with-claude/structured-outputs | Confirmed: `output_config.format`; `additionalProperties:false`; no min/max or length limits; refusal and max_tokens caveats; Citations returns 400. Not reported in Doc 7: 20 strict tools per request and a 180 s compile timeout |
+| S55 Retention | …/manage-claude/api-and-data-retention | Confirmed: not retained by default; Covered Models need 30 days. **Batch not ZDR-eligible (29 days)**; flagged content up to 2 years (M1) |
+| S53 Tool use | …/agents-and-tools/tool-use/overview and …/define-tools | 286 tokens confirmed. Forced tool use returns 400 on Opus 5.5, Sonnet 5.5, Fable 5.1 and Mythos 5.1; Haiku 5.5 accepts it (m1) |
+| S54 Citations | …/build-with-claude/citations | Incompatibility confirmed; "structured data with citations" pattern exists (m2) |
+| S38 yfinance README | github.com/ranaroussi/yfinance | Confirmed: "personal use only"; Apache |
+| S39 Lightweight Charts | github.com/tradingview/lightweight-charts | Confirmed: Apache-2.0 plus attribution notice and link |
+| S44 CBN rates | cbn.gov.ng/rates/ExchRateByCurrency.html | Confirmed: NFEM VWAP "official exchange rate for the day"; Export to Excel; no API |
+| S89 NIST 800-63B-4 | pages.nist.gov/800-63-4/sp800-63b.html | Confirmed: phishing-resistant option SHALL be offered at AAL2; syncable authenticators barred at AAL3; 15-character single-factor minimum; no composition or rotation rules; PSTN restricted |
+| S8 Actual sync | actualbudget.org/docs/getting-started/sync/ | Confirmed: bank tokens "not covered by end-to-end encryption" |
+| Licence files | raw.githubusercontent.com: Actual LICENSE.txt (MIT), Firefly III, Ghostfolio, Wealthfolio (AGPL-3.0), Portfolio Performance (EPL-1.0), hledger (GPL-3.0), Beancount COPYING (GPL-2), OpenBB (Apache-2.0 "all files") | All match the document |
+| PyPI metadata | pypi.org/pypi/<pkg>/json | PyPortfolioOpt MIT; Riskfolio-Lib BSD-3; skfolio BSD-3; cvxpy Apache-2.0; arch NCSA; Procrastinate MIT; Docling MIT; beancount GPL-2.0-only; openbb, core, sec, fred Apache; openbb-yfinance, fmp, polygon AGPL-3.0-only. All match |
+| gnu.org AGPL rationale | gnu.org/licenses/why-affero-gpl.html | **Not reachable** (503 / reset) |
