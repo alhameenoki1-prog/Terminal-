@@ -189,3 +189,53 @@ The STRIDE table lists a "malicious PDF" under Tampering and mitigates it with a
 | Licence files | raw.githubusercontent.com: Actual LICENSE.txt (MIT), Firefly III, Ghostfolio, Wealthfolio (AGPL-3.0), Portfolio Performance (EPL-1.0), hledger (GPL-3.0), Beancount COPYING (GPL-2), OpenBB (Apache-2.0 "all files") | All match the document |
 | PyPI metadata | pypi.org/pypi/<pkg>/json | PyPortfolioOpt MIT; Riskfolio-Lib BSD-3; skfolio BSD-3; cvxpy Apache-2.0; arch NCSA; Procrastinate MIT; Docling MIT; beancount GPL-2.0-only; openbb, core, sec, fred Apache; openbb-yfinance, fmp, polygon AGPL-3.0-only. All match |
 | gnu.org AGPL rationale | gnu.org/licenses/why-affero-gpl.html | **Not reachable** (503 / reset) |
+
+## 5. Cross-document contradictions
+
+| Topic | Doc 7 | Other document | Resolution owner |
+|---|---|---|---|
+| Posting model | Per-currency weights, `CHAR(3)` | Doc 4: signed amount + `base_amount`, Σ = 0 in base; Doc 6: `account_dr/account_cr` | Doc 4 + Doc 6 + Doc 7 joint specification (B2) |
+| Transfers | Single entry, two asset postings | Doc 4: two linked transactions; Doc 6: matching within ±3 days, value-date cut-off | Doc 4 |
+| AI numbers | Model writes digits; gate with tolerance | Doc 5c: token substitution, digits never rendered; Doc 8: model "never produces the number"; Doc 6: render `steps[]` only | Adopt Doc 5c (B1) |
+| Provenance and status | 4 states, no licence scope or expiry | Doc 5c: 8 states, licence_scope, expiry_at, vintage, confidence A–D; Doc 8: 5 UI states incl. "Estimated" | Doc 5c schema canonical |
+| FX source | CBN NFEM | Doc 6: "CBN official window" default; Doc 4: NFEM plus optional parallel series; Doc 5c: `rate_type` enum | Doc 5c + Doc 6 |
+| Behavioural MVP | Module 5 "Later" | Doc 3 §8: ranks 1–4 Personal-MVP must-have | Coordinator |
+| Retention and erasure | 7 years; crypto-shredding | Doc 6: ≥ 6 years after year of assessment, WORM | Doc 6 |
+| Local-first | Server Postgres via Compose; hosted LLM | Doc 8: offline states, local-first "(Doc 7)", writes queued | Doc 7 + Doc 8 |
+| Regulatory dates | GAID and UAE regulations "unverified" | Doc 9: GAID effective 19 Sep 2025; Doc 8: UAE regulations not issued as of Mar 2026 | Doc 6 |
+| Undo | Append-only, reversals | Doc 8 P8: "Undo for 30 days on all ledger edits" | Compatible if undo = reversal; state it |
+
+## 6. Questions the Investment Committee needs answered
+
+1. Who builds this, in what language, and with how many hours per week? No effort estimate exists, and Doc 9 Stage 0 assumes 6 months.
+2. Will the founder allow raw statement text to leave his machine? If so, under what retention (ZDR synchronous only, never Batch)? If not, what local hardware budget is approved?
+3. Which posting model is canonical, and who signs it off?
+4. What is the minimum security baseline before real data is loaded, and who reviews it independently?
+5. Is a distributed desktop build or a hosted tier planned within 12 months? This determines whether GPL or AGPL matters at all, and therefore whether Beancount plus Fava can be the personal ledger.
+6. Does the AI layer also prevent qualitative fabrication (behavioural, tax-status or categorisation claims), and by what mechanism?
+
+## 7. Required changes before Investment Committee (priority order)
+
+1. Replace the §4.6 gate with Doc 5c's token-substitution contract. Make the gate a reject-any-digit backstop, mask numbers in retrieval chunks, and turn `calc.derive` into a typed formula registry (B1).
+2. Publish one canonical posting specification with Docs 4 and 6. It needs a commodity column, rounding and FX-cost accounts, and transfers through an in-transit account. Correct the §4.12(a) arithmetic (B2).
+3. Remove Batch and Files API use for statement content. Document retention per feature, the limits of `inference_geo`, and API-key compromise (M1).
+4. Correct the claim of prompt-injection isolation and add taint handling (M2).
+5. Add a minimum-viable security baseline for one person covering parser sandboxing, browser-side exposure (CSP, no third-party scripts), feed poisoning, hash-pinning and key placement, with an external review (M3).
+6. Fix the reproducibility gaps: history for categories and statuses, engine and library versions, an idempotency-key definition, forward-only migrations (M4).
+7. Correct F2's GPL/AGPL analysis and evaluate Beancount + beangulp + Fava as the personal-stage reuse path (M5).
+8. Add person-week estimates and hosting and hardware costs. Re-cost the AI layer with thinking tokens, tool turns and cache writes. Cut MVP scope to what one person can do (M6).
+9. Reconcile MVP scope with Doc 3. Add modules or owners for user-asserted facts, the source and licence registry, and period close. Adopt Doc 5c provenance (M7).
+10. Correct §4.11 (the lightweight-charts salvage claim) and expand F28 with the missed Monte Carlo defects (M8). State statistical bounds for the evaluation targets (M9).
+11. Drop the two-week dual-stack spike, or reduce it to a skill-based decision (m8).
+
+## 8. What I could not check
+
+- The GNU AGPL rationale page (HTTP 503 and connection reset). The GPL distribution-trigger point (M5) therefore rests on practitioner knowledge, E3, and needs counsel.
+- Ghostfolio's Prisma `Float` fields, its exchange-rate service and Firefly III's string casts (S2, S4, S19). I did not re-read these source files.
+- The licences of Docling's and RapidOCR's model weights, the Qwen3 and gpt-oss model cards, the Llama 4 and Gemma terms, and the Mono and Lean vendor claims.
+- NDPA, GAID and PDPL status. I relied on cross-document statements only.
+- Whether `temperature` is accepted alongside always-on adaptive thinking. This matters for Doc 5c's "temperature 0" rule.
+- The exact mechanics by which batch results can be retrieved with a leaked key. I inferred this from the documented 29-day retention.
+- The hardware requirement for local 32B models, which is my own estimate (E5).
+- Procrastinate's built-in periodic-task support. If it has one, APScheduler is redundant (not verified).
+- Any Docs 4, 6 or 8 material beyond the sections named in the assignment.
