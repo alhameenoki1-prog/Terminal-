@@ -1,21 +1,23 @@
 ```
 Document: 5a — Institutional Investment Research Methodology and Data-Quality Framework
 Department: Investment Management and Portfolio Research  ·  Lead role(s): Chief Investment Officer, institutional portfolio manager, equity research analyst, fixed-income analyst, investment strategist, asset-allocation specialist, risk manager, financial-statement analyst, economist, macroeconomic research analyst, emerging-markets specialist
-Version: 0.1 draft  ·  Date: 2026-11-02 (sources re-checked 2026-11-04)  ·  Status: for cross-department review
-Reviewers required: Data Sources (Doc 5c), Quantitative Models (Doc 5b), Tax (Doc 6), Behavioural Finance (System B), Personal-Finance Ledger (System A), AI Research and Explanation (System H), Legal/Compliance, Programme coordinator
+Version: 0.2  ·  Date: 2026-11-04  ·  Status: revised after independent review (v0.1 2026-11-02; review R05a 2026-11-04)
+Reviewers required: Data Sources (Doc 5c), Quantitative Models (Doc 5b), Tax (Doc 6), Behavioural Finance (Doc 3 / System B), Personal-Finance Ledger (Doc 4 / System A), AI Research and Explanation (System H), Legal/Compliance, Investment Committee, Programme coordinator
 ```
 
 # Document 5a — Institutional Investment Research Methodology and Data-Quality Framework
 
 ## 1. Executive summary
 
-**Conclusions.** Portfolio OS should reproduce the *discipline* of institutional research, not its scale: a documented process that moves from validated data, through financial-statement analysis and quality checks, to a valuation *range*, an explicit thesis with written invalidation conditions, and an independent review before anything is shown to the user. The founder's earlier Nigerian tracker failed on the first step (figures without source, as-of date or validation), so this document makes provenance a precondition for every later step rather than a feature added afterwards.
+**Conclusions.** Portfolio OS should reproduce institutional research *discipline*, not scale: validated data, statement analysis, a valuation *range*, a thesis with written invalidation conditions, and independent review before anything is shown. The founder's earlier Nigerian tracker produced outdated or inaccurate figures (brief §1), so provenance precedes every later step. Figure status and rendering follow the canonical contracts C2 and C3.
 
-Three findings drive the design. First, the markets in scope differ sharply in data accessibility and rule stability: US filings are machine-readable through free official APIs (F19), whereas Nigerian Exchange (NGX) microstructure rules changed three times in 2026 alone — trading hours (27 April), settlement (T+1 from 1 June) and a pricing-methodology revision that was approved, scheduled and then postponed (F3–F6). A market-rule registry with effective dates is therefore a core requirement, not documentation. Second, the academic evidence behind popular screening tools (Piotroski F-score, Beneish M-score, accruals, Altman Z) is strong in US data but has not been replicated by us on NGX, Dubai Financial Market (DFM) or Abu Dhabi Securities Exchange (ADX) data, so these tools enter the product as *descriptive flags* until the quant team backtests them (F8–F11). Third, the evidence on return predictability (Welch & Goyal 2008; Goyal, Welch & Zafirov 2024) means the product must never present expected returns as forecasts; it presents ranges, scenarios and required-saving arithmetic (F21–F22).
+Three findings drive the design. First, market and prudential rules move and bind valuations directly. In 2026 NGX changed hours and settlement and postponed a pricing revision; CBN buffers and its payout matrix cap bank distributions (F2–F4, F12). A versioned rule registry is therefore core. Second, the screens (accruals, F-score, M-score, Altman Z) are well evidenced historically in US data and weaker after publication. We found no credible return-predictability test on NGX, DFM or ADX, so the screens enter as descriptive flags (F19–F20). Third, return predictability is weak out of sample, so no expected return is shown as a forecast (F21).
 
-**Biggest uncertainty.** Whether a single individual's research system can keep market-rule and corporate-action data accurate enough, cheaply enough, for NGX and the UAE exchanges. The consequences of getting this wrong are exactly the failure the founder already experienced. We recommend the Personal MVP ship with a narrow, fully validated universe (NGX banks and large caps, FGN securities, a handful of US and UAE instruments) rather than broad coverage with weak provenance.
+**Biggest uncertainty.** Whether one person's system can keep rule, corporate-action and distribution data accurate cheaply. Second: Damodaran's rating-based and CDS-based Nigerian premiums differ by about 3 pp, moving every bank value in Example 1 (§4.4).
 
-**Top recommendations.** Personal-MVP must-haves: provenance-first figure model with stale-figure display; market-rule registry; research-note template with invalidation statements and value ranges; bank-analysis module; "circumstances as inputs" filter that shrinks the admissible universe before research starts. Later: quality screens after local backtests, valuation engine, fixed income and fund analytics, Shari'a classification. Do-not-build (yet): automated ratings, target prices, return forecasts, macro-timing overlays, model-generated figures.
+**What v0.2 changed.** Example 1 is rebuilt, because v0.1 failed its own gates. The NGN cost-of-equity route now follows Damodaran's method. The bank module adds CET1, leverage, buffers and the CBN payout matrix. Tax facts defer to Doc 6. Allocation thresholds are now parameters the user sets.
+
+**Top recommendations.** *Personal-MVP must-haves:* figures that carry their provenance; the rule registry; a note template with a computed status; the circumstances filter; and the bank module, gated on registry rows for CBN rules. *Later:* screens after local backtests, valuation engine, fixed income, funds. *Do-not-build (yet):* ratings, target prices, return forecasts, macro timing, model-written figures.
 
 ## 2. Scope and method
 
@@ -23,9 +25,22 @@ Three findings drive the design. First, the markets in scope differ sharply in d
 
 **What we searched and read (all accessed 2026-11-02, re-checked 2026-11-04).** Primary sources: NGX market-structure page and press release on trading hours; NGX rulebook documents (pricing methodology interpretative guidance and FAQ, free-float rules, index circuit-breaker rule); NGX Domestic and Foreign Portfolio Investment Report (September 2026); Central Securities Clearing System (CSCS) T+1 page; Central Bank of Nigeria (CBN) Monetary Policy Committee (MPC) decisions page, NFEM exchange-rate page and Guidelines on Regulatory Capital (2021); National Pension Commission (PenCom) addendum of 9 February 2026; National Bureau of Statistics (NBS) CPI rebasing highlights (February 2025); IFRS Foundation jurisdiction profiles for Nigeria and the UAE; Debt Management Office (DMO) and FMDQ Exchange pages; Securities and Exchange Commission (SEC) Nigeria NAV page; US SEC EDGAR API documentation; UAE Ministry of Finance T-Bonds programme page; DFM Shari'a compliance page; Damodaran's country-risk page, July 2026 blog post and spreadsheet; CFA Institute Code and Standards and Research Objectivity material; BIS BCBS 239 page. Secondary sources (broker market-information pages for DFM/ADX, Nigerian financial press) were used only where primary pages were unavailable (several DFM, ADX, CBN and CBUAE pages returned 403/404 in this environment) and are labelled as such.
 
-**Tools.** WebSearch (standard and extended) and WebFetch; curl plus `pdftotext`/`openpyxl` to read primary PDFs and spreadsheets; Python 3 for the worked-example arithmetic. Academic references were checked with the hosted reference-lookup tool against OpenAlex **by DOI**; title-only lookups and the non-hosted tool timed out, and OpenAlex returned HTTP 429 towards the end of the session. Each reference in §10 carries **[verified]**, **[partially verified]** (DOI resolves to the right title but the full check was blocked by rate limits) or **[unverified]**. Claims that rest only on unverified references are graded no higher than E3.
+**Tools.** WebSearch (standard and extended) and WebFetch; curl plus `pdftotext`/`openpyxl` to read primary PDFs and spreadsheets; Python 3 for the worked-example arithmetic (v0.2: every number in §4.4 and §4.11 is reproduced by `research/scripts/doc05a_worked_examples.py`, standard library only, `python3 -I`). Academic references were checked with the hosted reference-lookup tool against OpenAlex **by DOI**; title-only lookups and the non-hosted tool timed out, and OpenAlex returned HTTP 429 towards the end of the session. Each reference in §10 carries **[verified]**, **[partially verified]** (DOI resolves to the right title but the full check was blocked by rate limits) or **[unverified]**. Claims that rest only on unverified references are graded no higher than E3.
 
-**What we could not access or verify.** The web-search budget was exhausted mid-session; later checks used direct fetches only. Not verified from primary sources: the current CBN recapitalisation outcome after 31 March 2026; the June 2023 FX-window unification and December 2024 electronic FX matching system; the Central Bank of the UAE (CBUAE) peg statement (page blocked); DFM Shari'a Standard 1 thresholds; the current UAE Securities and Commodities Authority (SCA) accounting-standards rule (the IFRS Foundation profiles date from 2016); NGX index methodology and corporate-action (closure-of-register) rules; the exact Nigeria Tax Act 2025 exemption thresholds for gains on shares (deferred to Doc 6); brokerage access routes from Nigeria/UAE to US markets. These are listed again in §7 and §9.
+**What we could not access or verify.** The web-search budget was exhausted mid-session; later checks used direct fetches only. Not verified from primary sources: the current CBN recapitalisation outcome after 31 March 2026; the June 2023 FX-window unification and December 2024 electronic FX matching system; the Central Bank of the UAE (CBUAE) peg statement (page blocked); DFM Shari'a Standard 1 thresholds; the current accounting-standards rule of the UAE Capital Market Authority (CMA), which replaced the Securities and Commodities Authority (SCA) on 1 January 2026 (the IFRS Foundation profiles date from 2016); NGX index methodology and corporate-action (closure-of-register) rules; brokerage access routes from Nigeria/UAE to US markets. These are listed again in §7 and §9.
+
+**Revision method (v0.2, 2026-11-04).** We read review R05a and revision-log rows V-013, V-014 and V-022 and applied CANONICAL_CONTRACTS C2, C3, C5, C6 and C7. **Doc 6 governs tax facts.** This document now cites Doc 6 rule records and no longer states tax rules of its own. We re-read these primary sources directly:
+- the CBN *Guidelines on Regulatory Capital* PDF (downloaded and converted with `pdftotext`; Tables 1–2, ¶24–31, ¶80–104, Appendix 2) [S52];
+- Damodaran's `ctrypremJuly26.xlsx` (re-downloaded and parsed with the standard library) [S27];
+- the CBN MPC decisions page [S10].
+
+We also fetched these secondary sources:
+- the Stren & Blan note on T-bill withholding [S55];
+- the King & Spalding note on the CMA decree-laws [S54];
+- the Nairametrics reports of the September 2023 FX-gains circular and the June 2025 forbearance circular [S56, S57];
+- search results on the 2024 windfall levy [S58].
+
+The reference-lookup tools, both local and hosted, timed out on every call, so the academic references were re-checked by DOI against the Crossref REST API and are marked **[verified, Crossref]**. Not re-fetched in v0.2: the NGX pages S1–S9 and the DFM/ADX pages. For these, the statuses come from the reviewer's re-fetch (R05a M4) and are labelled "per R05a".
 
 ## 3. Findings
 
@@ -33,21 +48,21 @@ Evidence grades follow the brief (E1–E6). Source numbers refer to §10. "Check
 
 ### 3.1 Accounting basis and market rules
 
-**F1. Nigerian and UAE listed companies report under IFRS, but the UAE evidence is dated.** Nigeria requires IFRS Accounting Standards for all companies whose securities trade in a public market, effective January 2012, under the Financial Reporting Council of Nigeria Act 2011 [S14]. For the UAE, the IFRS Foundation profile records that the Commercial Companies Law No 2 of 2015 requires "international accounting standards", that ADX and Nasdaq Dubai listing rules require IFRS, and that DFM-listed companies use IFRS in practice while some Islamic financial institutions used AAOIFI standards; the profile is internally inconsistent on whether DFM *requires* IFRS and was last updated 16 June 2016 [S15]. Grade: E2 for Nigeria; E3 for the UAE pending a check of current SCA rules (Doc 5c). Implication: one IFRS-based statement model serves all three markets, but the UAE data layer must tolerate AAOIFI-format statements for some Islamic banks.
+**F1. Nigerian and UAE listed companies report under IFRS, but the UAE evidence is dated.** Nigeria requires IFRS Accounting Standards for all companies whose securities trade in a public market, effective January 2012, under the Financial Reporting Council of Nigeria Act 2011 [S14]. For the UAE, the IFRS Foundation profile records that the Commercial Companies Law No 2 of 2015 requires "international accounting standards", that ADX and Nasdaq Dubai listing rules require IFRS, and that DFM-listed companies use IFRS in practice while some Islamic financial institutions used AAOIFI standards; the profile is internally inconsistent on whether DFM *requires* IFRS and was last updated 16 June 2016 [S15]. Grade: E2 for Nigeria; E3 for the UAE. The UAE rule must be re-checked against the Capital Market Authority (CMA). Federal Decree-Laws 32 and 33 of 2025 made the CMA the legal successor to the SCA from 1 January 2026, and SCA resolutions stay in force until replaced, to the extent they do not conflict [S54; Doc 6 F36] (Doc 5c). Implication: one IFRS-based statement model serves all three markets, but the UAE data layer must tolerate AAOIFI-format statements for some Islamic banks.
 
-**F2. NGX trading hours changed on 27 April 2026 to 09:00–16:00 WAT**, approved by SEC Nigeria; the prior window closed at 14:30 [S1, S2]. The NGX market-structure page shows pre-open at 09:00, continuous trading from 09:30, pre-close from 15:50 and close at 16:00, with a "+/-10%" price limit shown in the session table [S1]. Grade: E2. Note the 2018 interpretative guidance describes a ±5% limit around the reference price under the then session structure [S3]; the current page shows ±10%. We treat ±10% as current but flag the discrepancy for rulebook confirmation (§9).
+**F2. NGX trading hours changed on 27 April 2026 to 09:00–16:00 WAT**, approved by SEC Nigeria; the prior window closed at 14:30 [S1, S2]. The NGX market-structure page shows pre-open at 09:00, continuous trading from 09:30, pre-close from 15:50 and close at 16:00, with a "+/-10%" price limit in the session table [S1]. Grade: E2 for the hours. **v0.2 regrade:** R05a's re-fetch found "+/-10%" only on the **pre-open** row, so it is not established as the daily limit for continuous trading. The 2018 interpretative guidance describes a ±5% limit around the reference price under the session structure of that time [S3]. The band is therefore **E3, unconfirmed or ambiguous**. The registry row stays `candidate` until the rulebook is read (§9).
 
-**F3. NGX pricing methodology: three price groups with volume thresholds and tick sizes, and a 2026 revision approved but postponed.** The rule effective 29 January 2018 (SEC approval 14 March 2017) classifies equities as Group A (≥ N100: 10,000 units to move the price, tick N0.10), Group B (N5 to < N100: 50,000 units, tick N0.05) and Group C (< N5: 100,000 units, tick N0.01), with reclassification after four of the last six months in a band [S3, S4]. In June 2026 SEC approved revised bands (Group A ≥ N1,000; B N500–999.99; C < N500) with the same unit thresholds and ticks; implementation set for 17 August 2026 was postponed without a new date, and the exchange said the existing N100/N5 bands remain in force [S35, S36, S37]. Press reports conflict on whether a uniform 100,000-unit rule was in force at any point in 2024–2026 [S37, S38]. Grade: E2 for the 2018 rule; E3 for 2026 status. Implication: a published NGX price can lag economic value because small trades do not move it; the registry must store the rule *with its effective date*.
+**F3. NGX pricing methodology: three price groups with volume thresholds and tick sizes, and a 2026 revision approved but postponed.** The rule effective 29 January 2018 (SEC approval 14 March 2017) classifies equities as Group A (≥ N100: 10,000 units to move the price, tick N0.10), Group B (N5 to < N100: 50,000 units, tick N0.05) and Group C (< N5: 100,000 units, tick N0.01), with reclassification after four of the last six months in a band [S3, S4]. In June 2026 SEC approved revised bands (Group A ≥ N1,000; B N500–999.99; C < N500) with the same unit thresholds and ticks; implementation set for 17 August 2026 was postponed without a new date, and the exchange said the existing N100/N5 bands remain in force [S35, S36, S37]. Press reports conflict on whether a uniform 100,000-unit rule was in force at any point in 2024–2026 [S37, S38]. Grade: E2 for the 2018 rule; E3 for the 2026 status. The tick sizes are **partly confirmed**: S35 gives these ticks for the revised bands only, and the 2018 PDFs were not re-downloaded in v0.2 (per R05a). Implication: a published NGX price can lag economic value because small trades do not move it; the registry must store the rule *with its effective date*.
 
-**F4. Settlement: NGX equities moved to T+2 on 28 November 2025 and to T+1 on 1 June 2026** at CSCS, covering NGX, NASD OTC and the Lagos Commodities and Futures Exchange; fixed income already settled T+2 [S9, S43]. Grade: E2.
+**F4. Settlement: NGX equities moved to T+1 on 1 June 2026** at CSCS, covering NGX, NASD OTC and the Lagos Commodities and Futures Exchange [S9, S43]. Grade: E2 (T+1, confirmed by R05a). The earlier move to T+2 is reported, but 28 November 2025 is the date of a CSCS news item, not a stated go-live date: **E3, date unconfirmed**. Fixed income already settled T+2.
 
 **F5. Free float: 20% of issued shares held by at least 300 shareholders, or a float valued at N20bn (Main Board) / N40bn (Premium Board)**; free float excludes holdings of promoters, directors, strategic holders of ≥ 5% and government; issuers must disclose shortfalls, and trading may be suspended for persistent breaches (rules approved by SEC 6 May 2019) [S5]. Grade: E2. Implication: free float, not market capitalisation, is the first liquidity filter.
 
 **F6. Index circuit breaker: a 5% move in the All-Share Index between 10:15 and 13:45 halts all trading for 30 minutes, once per day; a further 5% closes the market** (Rule 15.46, effective 5 February 2016; times predate the 2026 session change) [S6]. Grade: E2 for the rule text; E3 for current times.
 
-**F7. Foreign participation on NGX has fallen to about 10% of turnover in 2026 (from 21.6% in 2025 year-to-date), and domestic institutions dominate**; the NGX report for September 2026 gives 2026 YTD foreign 10.26% / domestic 89.74%, with domestic institutional N8.37trn versus retail N5.15trn, and reports the NAFEM rate used for conversion (N1,329.16/$ at 30 September 2026) [S7]. Grade: E2. FTSE Russell moved Nigeria from Frontier to Unclassified in September 2023 and back to Frontier effective 21 September 2026, citing FX liquidity and repatriation; MSCI moved Nigeria to Standalone status (announced October 2023, effective February 2024) and had, as of October 2026, not reversed it [S40, S46]. The 2016 MSCI release documents the earlier episode: a 2015 peg caused FX illiquidity that "significantly impaired" repatriation [S28]. Grade: E2/E3. Implication: FX convertibility is a first-order risk factor for any NGN asset held by a person with AED/USD liabilities.
+**F7. Foreign participation on NGX has fallen to about 10% of turnover in 2026 (from 21.6% in 2025 year-to-date), and domestic institutions dominate**; the NGX report for September 2026 gives 2026 YTD foreign 10.26% / domestic 89.74%, with domestic institutional N8.37trn versus retail N5.15trn, and reports the NAFEM rate used for conversion (N1,329.16/$ at 30 September 2026) [S7]. Grade: E2. FTSE Russell moved Nigeria from Frontier to Unclassified in September 2023 and back to Frontier effective 21 September 2026, citing FX liquidity and repatriation; MSCI reclassified Nigeria to Standalone status in October 2023 and had, as of October 2026, not reversed it [S40]. The "effective February 2024" date in v0.1 came from search summaries [S46] and is not in the re-fetched source: **unconfirmed, E3**. The 2016 MSCI release documents the earlier episode: a 2015 peg caused FX illiquidity that "significantly impaired" repatriation [S28]. Grade: E2/E3. Implication: FX convertibility is a first-order risk factor for any NGN asset held by a person with AED/USD liabilities.
 
-**F8. Nigerian pension funds are the marginal domestic institutional buyer, with equity limits raised in February 2026**: PenCom's addendum of 9 February 2026 raised ordinary-share limits for RSA Fund I 30%→35%, Fund II 25%→33%, Fund III 10%→15% and Fund VI-Active 25%→33%, citing excess liquidity and a shortage of alternative assets [S12]. Grade: E2.
+**F8. Nigerian pension funds are the marginal domestic institutional buyer, with equity limits raised in February 2026**: PenCom's addendum of 9 February 2026 raised ordinary-share limits for RSA Fund I 30%→35%, Fund II 25%→33%, Fund III 10%→15% and Fund VI-Active 25%→33%, citing excess liquidity and a shortage of alternative assets [S12]. Grade: E2 as read on 2026-11-02. **v0.2:** the S12 URL returned 404 on 2026-11-04 (R05a). The registry row keeps its values, with `source_status = moved` and last confirmed on 2026-11-02, until the document is found again (§4.5).
 
 **F9. DFM and ADX rules (broker sources; official pages blocked in this session):** continuous trading 10:00–14:45 with a closing auction to 15:00 GST, Monday–Friday; daily limits +15% / −10% from the previous close (ADX adds auction pauses at −5% and −9%); tick sizes from AED 0.001 (below AED 1) to AED 0.10 (≥ AED 100); settlement T+2; foreign-ownership limits (FOL) set by each company's articles within 15–100%, with GCC investors sometimes treated as foreign; trading identity via a National Investor Number (NIN); no withholding, capital-gains or dividend tax [S30, S31]. DFM publishes a Shari'a classification list and three Shari'a standards prepared by an in-house committee (Standard 1 covers issuing, acquiring and trading shares) but the ratio thresholds were not retrievable [S22]; index-provider screens use 33% debt/market-cap limits (S&P, FTSE) versus 30% (AAOIFI) [S29]. ADX removed daily price limits on ETFs and futures from 3 August 2026 [S49]. Grade: E3 throughout; must be re-verified against DFM/ADX rulebooks by Doc 5c.
 
@@ -57,15 +72,52 @@ Evidence grades follow the brief (E1–E6). Source numbers refer to §10. "Check
 
 **F11. CBN recapitalisation 2024–2026: minimum paid-up capital plus share premium of N500bn (international), N200bn (national), N50bn (regional), N50bn (merchant), N20bn/N10bn (non-interest national/regional); retained earnings and AT1 excluded; window 1 April 2024–31 March 2026; options were fresh equity, M&A or licence change** [S32]. CBN said 30 banks had met their thresholds as of 6 March 2026 and 33 had raised capital [S33, S34]. The final post-deadline outcome was not verified in this session. Grade: E3 (circular text seen only via press). Implication: for every NGX bank the research note must record licence category, qualifying capital and compliance status with a date.
 
-**F12. CBN capital adequacy minimums: 15% CAR for banks with international authorisation and domestic systemically important banks (D-SIBs), 10% for others**, plus buffers (Guidelines on Regulatory Capital, September 2021) [S52]. Dividend restrictions tied to NPL ratios above 5% and 10% are reported in secondary sources [S53]. Grade: E2 for CAR; E3 for dividend rules.
+**F12. CBN capital, buffer and distribution rules (Guidelines on Regulatory Capital, September 2021; primary text re-read 2026-11-04) [S52].**
 
-**F13. Monetary policy as of the 307th MPC (21–22 September 2026): MPR reset to 23.0% from 26.5%, corridor +50/−300 bp, CRR 45% (commercial) and 16% (merchant)**; earlier 2026 decisions: 26.5% in February (cut of 50 bp), held in May and July [S10]. Grade: E2. The repository's hard-coded 27.50% is therefore stale by at least two decisions — the anti-pattern this document is designed to remove.
+**Minimum ratios (Tables 1–2), national / international / D-SIB:**
+- CET1 7.0 / 10.5 / 10.5%;
+- Tier 1 7.5 / 11.25 / 11.25%;
+- CAR 10.0 / 15.0 / 15.0%.
+
+**Buffers on top of the minimums:**
+- a capital conservation buffer (CCB1) of 1.0% of risk-weighted assets for all banks, held in CET1 (¶82);
+- a countercyclical buffer (CCB2) "as determined by CBN from time to time";
+- for D-SIBs, a higher-loss-absorbency surcharge (HLA) of 1.0% "to their respective minimum required CAR", met wholly with CET1 (¶30, ¶94).
+
+The **effective CAR floors** are therefore about **11% / 16% / 17%**, and the effective CET1 floors 8.0 / 11.5 / 12.5% (Table 3 uses these CET1 sums for bonuses).
+
+**Leverage-ratio minimums** are 4%, and 5% for D-SIBs. These appear in the bonus conditions (¶98), and Appendix 2 bars dividends when the leverage ratio is below its minimum.
+
+**Distributions.** Dividends are subject to BOFIA (¶103). The maximum dividend depends on CET1, the NPL ratio and the CBN's **Composite Risk Rating** (¶104). Appendix 2 sets the cap as a matrix of CET1 band × NPL band (≤ 5%, 5–8%, 8–10%, > 10%) × risk rating:
+- no dividend at all where the NPL ratio exceeds 10%, the risk rating is High, or leverage is below its minimum;
+- otherwise a capped payout. For a D-SIB with CET1 above 12.5% and NPL below 5%, the cap is 0 / 25 / 75 / 100% for High / Above Average / Moderate / Low.
+
+The cap applies to **adjusted profit**: profit after tax, less the statutory-reserve transfer and the regulatory-risk-reserve adjustment. The non-distributable **regulatory risk reserve (RRR)** holds the excess of prudential provisions over IFRS 9 (¶24, footnote 4).
+
+Grade: E2 for every item above.
+
+**Additional restrictions reported in the press (circular texts not read; E3):**
+- A September 2023 circular directs banks to set aside FX revaluation gains as a counter-cyclical buffer and not to use them "to pay dividend or meet operating expenses", reiterated in March 2024 [S56].
+- A 13 June 2025 circular (reported as BSD/DIR/CON/LAB/018/008) suspends dividends, bonuses and new foreign-subsidiary investment for banks under credit or single-obligor-limit (SOL) forbearance, until the forbearance is exited and capital and provisioning are independently verified [S57].
+
+**Unconfirmed:**
+- The National Assembly passed a 70% windfall levy on banks' *realised* FX gains in July 2024, covering the period from the start of the new FX policy to the end of 2025. Presidential assent and final terms were not verified (E3; Doc 6 owns) [S58].
+- The Composite Risk Rating is a supervisory rating that we have not seen published (E4, bank-analyst judgment), so the payout cap generally cannot be fixed from public data.
+
+The v0.1 finding ("15% / 10% … plus buffers"; NPL tests from secondary sources) was correct but incomplete (R05a M2).
+
+**F13. Monetary policy as of the 307th MPC (21–22 September 2026): MPR reset to 23.0% from 26.5%; corridor +50/−300 bp (previously +50/−450 bp); cash reserve ratio (CRR) 45% for commercial banks, 16% for merchant banks and 75% on non-TSA public-sector deposits.** The liquidity ratio was last stated at 30% at the 303rd MPC (November 2025). The rate history is 27.50% (February–July 2025), 27.00% from the 302nd MPC (22–23 September 2025), 26.50% from February 2026, held in May and July, then 23.0% [S10, re-fetched 2026-11-04]. Grade: E2. The repository's hard-coded 27.50% was **wrong when committed** on 2026-03-02, two decisions after it had last been correct (brief v0.2; C3.6). An entry-time primary-source check (C3.5) would have blocked it; expiry alone would not.
 
 **F14. Inflation statistics were rebased in early 2025 (base year 2024, weights 2023, 934 varieties, 13 COICOP 2018 divisions, modified Laspeyres/Young index)** [S13]; press reports describe a further revision to the index reference period around the turn of 2025/26 [S48]. Grade: E2 for the rebasing; E3 for the later revision. Implication: inflation series must carry a methodology version; year-on-year comparisons across the break are invalid without the NBS linked series.
 
 **F15. The official NGN/USD rate is the NFEM volume-weighted average published daily by CBN**, with high, low, close and turnover [S11]. CBN stated in March 2024 that all *valid* legacy FX backlog claims (about $7bn claimed, $2.4bn found invalid) had been settled [S45]. Grade: E2 for the rate definition; E3 for the backlog history.
 
-**F16. Nigerian federal securities: FGN bonds auction monthly (minimum N50,001,000 at auction), trade on NGX (retail) and FMDQ (wholesale); FGN Savings Bonds, Sovereign Sukuk, Green Bonds, Eurobonds and Treasury bills exist; DMO states FGN securities' interest is tax-exempt; no inflation-linked bond is listed** [S16]. FMDQ publishes closing prices and yields for bonds, T-bills, OMO bills and commercial paper, NAFEX, NIBOR and NITTY fixings and an S&P/FMDQ sovereign bond index, dated daily [S17]. Grade: E2. Implication: inflation-linked thinking in Nigeria must be done analytically (real-yield arithmetic), not through instruments.
+**F16. Nigerian federal securities: FGN bonds auction monthly (minimum N50,001,000 at auction), trade on NGX (retail) and FMDQ (wholesale); FGN Savings Bonds, Sovereign Sukuk, Green Bonds, Eurobonds and Treasury bills exist; no inflation-linked bond is listed** [S16; S16 returned 404 on 2026-11-04, so it cannot be re-checked]. **Tax (Doc 6 governs; V-013, V-022):**
+- Interest on FGN **bonds** is exempt (NTA s.162(1)(n), the pinpoint per R06; Doc 6 v0.1 cites s.163).
+- **Treasury bills**, commercial paper and corporate bonds carry 10% withholding from **28 October 2025** under the FIRS directive; FGN bonds and CBN OMO bills are excepted [S55; Doc 6 F12].
+- Doc 6 treats that withholding as final for individuals under NTAA s.51(5); this needs practitioner confirmation (Doc 6 §9 item i).
+
+The v0.1 statement that "DMO states FGN securities' interest is tax-exempt" is withdrawn: as worded, it is contradicted for T-bills. FMDQ publishes closing prices and yields for bonds, T-bills, OMO bills and commercial paper, NAFEX, NIBOR and NITTY fixings and an S&P/FMDQ sovereign bond index, dated daily [S17]. Grade: E2 for the instruments; tax per Doc 6. Implication: inflation-linked thinking in Nigeria must be done analytically (real-yield arithmetic), not through instruments.
 
 **F17. UAE federal dirham T-Bonds and T-Sukuk are auctioned on a published calendar (about AED 1.1bn in most months of 2026, maturities 2026–2033) with a retail T-Sukuk calendar** [S21]; a fractional/retail access initiative from AED 4,000 was reported in 2025–26 [S50]. The dirham's peg to the US dollar at 3.6725 is a long-standing CBUAE policy but the CBUAE page could not be fetched; treat as E3 [unverified in session].
 
@@ -73,15 +125,39 @@ Evidence grades follow the brief (E1–E6). Source numbers refer to §10. "Check
 
 ### 3.3 Evidence behind research tools
 
-**F19. Earnings quality and accrual-based screens are well evidenced in US data; local replication is absent.** Sloan (1996) documents the accrual anomaly [S60, unverified by tool]; Dechow, Ge and Schrand (2010) review the proxies and their limits [S61, verified]; Piotroski's F-score separates winners from losers among high book-to-market stocks [S62, verified]; Mohanram's G-score extends to growth stocks [S63, verified]; Beneish's M-score detects manipulation and predicts returns [S64, S65, verified]; Hou, Xue and Zhang (2020) show that most published anomalies weaken or fail under replication with microcaps controlled [S66, unverified by tool]; McLean and Pontiff (2016) show post-publication decay [S67, verified]; Harvey, Liu and Zhu (2016) argue for higher statistical hurdles [S68, verified]. Grade: E1 for the existence of these effects in US data; **E4 for their validity on NGX/DFM/ADX** until Doc 5b backtests them.
+**F19. Earnings-quality and accrual screens: the historical US effects are well evidenced, their persistence is weaker, and local evidence is descriptive only.**
 
-**F20. Distress models: Altman's Z (1968) and the emerging-market Z'' variant (2005) and Ohlson's O-score (1980) are standard** [S69, S70, S71, verified]; they are calibrated on non-financial firms and are not designed for banks. Grade: E2 as tools; E4 locally.
+*Historical existence in US data (E1).*
+- Sloan (1996) documents the accrual anomaly [S60].
+- Dechow, Ge and Schrand (2010) review the proxies and their limits [S61].
+- Piotroski's F-score separates winners from losers among high book-to-market stocks [S62].
+- Mohanram's G-score extends the approach to growth stocks [S63].
+- Beneish's M-score detects manipulation and predicts returns [S64, S65].
+
+*Persistence after publication (E2/E3).*
+- Green, Hand and Soliman (2011) document the decline of the accrual anomaly after about 2000 [S103].
+- McLean and Pontiff (2016) show post-publication decay across anomalies [S67].
+- Hou, Xue and Zhang (2020) find that most published anomalies weaken or fail under replication once microcaps are controlled [S66].
+- Harvey, Liu and Zhu (2016) argue for higher statistical hurdles [S68].
+- v0.1's claim that the F-score has a "replication by Hou et al." is **withdrawn**: we could not confirm the specific HXZ result, so the F-score is graded E2 on Piotroski alone.
+
+*International evidence.* Pincus, Rajgopal and Venkatachalam (2007) find the accrual anomaly outside the US mainly in common-law markets with heavy outside-shareholder ownership [S104]. That is the relevant prior for NGX: E2.
+
+*Local evidence.* v0.1 said that "local replication is absent". That is too strong. Descriptive Nigerian applications exist, in low-tier venues:
+- Beneish-flagged earnings manipulation in listed manufacturing firms (Nwosu 2026) [S105];
+- Altman Z applied to Nigerian banks (Oyamienlen 2023) [S106], which is exactly the misuse F20 forbids.
+
+We found **no credible test of return predictability on NGX, DFM or ADX** [per R05a M5; not independently searched in v0.2].
+
+Grades: **E1** for historical US existence; **E2/E3** for current persistence; **E4** for validity on NGX/DFM/ADX until Doc 5b backtests them.
+
+**F20. Distress models: Altman's Z (1968), the emerging-market Z'' model of Altman, Hartzell and Peck (1995; Altman 2005 is a later application) and Ohlson's O-score (1980) are standard** [S69, S107, S70, S71]; they are calibrated on non-financial firms and are not designed for banks (applying them to Nigerian banks, as in [S106], is a misuse). Grade: E2 as tools; E4 locally.
 
 **F21. Equity-premium predictability is weak out of sample.** Welch and Goyal (2008) find most predictors fail out of sample; Campbell and Thompson (2008) show modest gains only with economically motivated restrictions; Cochrane (2008) defends long-horizon predictability from dividend yields; Rapach, Strauss and Zhou (2010) find combination forecasts help marginally; Goyal, Welch and Zafirov (2024) re-examine 29 newer predictors and find most do not hold up [S72–S76, verified]. Valuation ratios (Campbell & Shiller 1988, 1998; Siegel 2016 on CAPE) relate to long-horizon returns with wide error bands [S77–S79, verified]. Grade: E1. Implication: the product may state that "valuation is high/low relative to history"; it may not state an expected return as a forecast.
 
 **F22. Regime models describe history better than they predict it.** Ang and Bekaert (2002) and Ang and Timmermann (2012) document regime shifts in correlations and volatility, with the caveat that regimes are identified with lag and parameters are unstable [S80, S81, verified]. Grade: E2. Country risk matters for emerging-market returns and volatility (Erb, Harvey & Viskanta 1996; Bekaert & Harvey 1995) [S82 verified, S83 unverified by tool].
 
-**F23. Country risk premiums (Damodaran): July 2026 edition uses a mature-market ERP of 4.20% (S&P 500 implied ERP 4.42% less the US Aa1 default spread), sovereign-rating-based default spreads scaled by a relative equity/bond volatility multiplier of 1.55; Nigeria (B3) default spread 5.17%, country risk premium 8.04%, total ERP 12.24%; UAE (Aa2) 0.39% / 0.61% / 4.81%; United States 4.42%** [S26, S27]. The January 2026 page had Nigeria at 5.52% / 8.41% / 12.64% [S25]. The author describes the method as pragmatic rather than theoretical, warns that exposure should follow where a company operates rather than where it is incorporated, and that currencies should not carry risk premiums of their own [S26]. Grade: E3 (practitioner standard, semi-annual; version must be stored).
+**F23. Country risk premiums (Damodaran): July 2026 edition uses a mature-market ERP of 4.20% (S&P 500 implied ERP 4.42% less the US Aa1 default spread), sovereign-rating-based default spreads scaled by a relative equity/bond volatility multiplier of 1.55; Nigeria (B3) default spread 5.17%, country risk premium 8.04%, total ERP 12.24%; UAE (Aa2) 0.39% / 0.61% / 4.81%; United States 4.42%** [S26, S27]. **The same sheet gives a CDS-based alternative:** Nigeria's sovereign CDS net of the Swiss CDS is 3.26% (30 June 2026), so the CDS-based country premium is 5.07% and the total ERP 9.27%, about 3 pp below the rating basis. The mature ERP of 4.20% is the S&P 500 implied ERP measured over an **adjusted** dollar risk-free rate: the Treasury yield less the US Aa1 default spread of 0.22% (0.2186% in the sheet). The multiplier is 1.5545, applied to the **default spread**, not to the mature ERP. All values were re-parsed from the sheet on 2026-11-04. The January 2026 page had Nigeria at 5.52% / 8.41% / 12.64% [S25]. The author describes the method as pragmatic rather than theoretical, warns that exposure should follow where a company operates rather than where it is incorporated, and that currencies should not carry risk premiums of their own [S26]. Grade: E3 (practitioner standard, semi-annual; the edition and the basis, rating or CDS, must be stored).
 
 **F24. Goals-based and liability-aware allocation has a coherent theoretical base.** Chhabra (2005) proposes safety/market/aspirational buckets [S84, partially verified]; Nevins (2004) integrates goals with behavioural finance [S85, partially verified]; Shefrin and Statman (2000) and Das, Markowitz, Scheid and Statman (2010) show mental-account portfolios can be made mean-variance consistent [S86, S87, verified]; Sharpe and Tint (1990) formalise liability hedging [S88, verified]; Markowitz (1952) remains the baseline [S89, verified]. Grade: E2.
 
@@ -91,7 +167,16 @@ Evidence grades follow the brief (E1–E6). Source numbers refer to §10. "Check
 
 **F27. Professional standards for research notes exist and are usable.** CFA Institute Standards V(A) Diligence and Reasonable Basis, V(B) Communication with Clients and V(C) Record Retention (Code and Standards effective 1 January 2024) [S23]; the Research Objectivity Standards and the 2018 CFA Institute brief list the disclosures a reader needs to judge a report: depth of analysis, methodology, definitions, third-party inputs and past performance of research [S24]. BCBS 239 (January 2013) sets risk-data principles — governance, data architecture, accuracy and integrity, completeness, timeliness, adaptability — written for banks but directly transferable to a personal research system [S20]. Grade: E3.
 
-**F28. Tax parameters are inputs, not afterthoughts.** The Nigeria Tax Act 2025 took effect on 1 January 2026 with progressive personal rates of 0–25% and a multi-test residency definition; dividends are taxable investment income; the treatment of gains on shares and the withholding rate on dividends must be confirmed by Doc 6 [S41, S47]. UAE exchanges report no withholding or capital-gains tax on listed securities [S30, S31]. Grade: E3 pending Doc 6.
+**F28. Tax parameters are inputs, and Doc 6 owns them (V-013, V-022).** We restate nothing here. We use Doc 6's rule records (status lifecycle per C7). As of Doc 6 v0.1 and R06:
+- The Nigeria Tax Act 2025 (NTA) took effect on 1 January 2026 with progressive personal rates of 0–25%. Residency is a multi-limb test (s.201 per R06; Doc 6 v0.1 cites s.202).
+- **Dividends** from Nigerian companies bear 10% withholding under the Withholding Regulations 2024 (from 1 July 2024). NTAA s.51(3) treats the net amount as franked investment income "not charged to further tax", that is, final (`NG-DIV-WHT-FINAL-2026`). The NTAA commencement date is itself disputed: 26 June 2025 against 1 January 2026 (R06 M1).
+- **Gains on shares in Nigerian companies** are not chargeable where 12-month aggregate proceeds are below ₦150m **and** the gain does not exceed ₦10m (s.34(1)(a) proviso). Foreign shares have no threshold.
+- **Foreign currency is a chargeable asset** (s.34(1)(b); C1.6).
+- Gains are assessed in the year after disposal (s.26(3); C7).
+- For non-resident aliens, US dividends bear **30%** withholding, because no treaty covers Nigeria or the UAE (Doc 6 F30). US-situs stock above **USD 60,000** creates US estate-tax exposure (Doc 6 F31).
+- UAE exchanges report no withholding or capital-gains tax on listed securities [S30, S31; Doc 6 F28].
+
+Grade: as graded in Doc 6 (E2 for statutory text, E3 for directives seen through law-firm notes). Practitioner confirmation is required before reliance. Any output using these rules carries the C7 watermark.
 
 ## 4. Proposed framework / specification for Portfolio OS
 
@@ -101,15 +186,15 @@ Institutional research is a sequence of gated steps; Portfolio OS should encode 
 
 | Stage | Purpose | Gate to pass (logged) | Owner |
 |---|---|---|---|
-| 0. Circumstances filter | Remove instruments the user cannot or should not hold (currency, liquidity, horizon, concentration, tax, access) | Instrument is in the *admissible universe* (§4.9) | System A inputs + this framework |
+| 0. Circumstances filter | Remove instruments the user cannot or should not hold (currency, liquidity, horizon, concentration, tax, access) | Instrument passes the user's stated constraints (§4.9); output is a coverage list, not an allocation | System A inputs + this framework |
 | 1. Idea generation | Screens, events (results, corporate actions, policy changes), portfolio needs (liability matching) | Idea logged with source and date; no number yet shown to user | Analyst role |
-| 2. Data validation | Assemble price, shares, statements, dividends, corporate actions, FX with provenance | All mandatory inputs at validation status V2 or better (§4.10) | Data-quality role (Doc 5c) |
-| 3. Financial-statement analysis | Restate IFRS statements into a standard model; compute ratios; quality checks | Reconciliation to filing totals within tolerance; quality flags computed | Analyst + quant check |
-| 4. Valuation | DCF, dividend models, relative, sum-of-parts; dual-currency reconciliation | Output is a *range* with named drivers; no single target | Analyst + quant check |
+| 2. Data validation | Assemble price, shares, statements, dividends, corporate actions, FX with provenance | All mandatory inputs eligible for a conclusion-driving calculation under C3.4 (§4.10) | Data-quality role (Doc 5c) |
+| 3. Financial-statement analysis | Restate IFRS statements into a standard model; compute ratios; quality checks | Reconciliation to filing totals within tolerance; period-alignment test passes; quality flags computed | Analyst + quant check |
+| 4. Valuation | DCF, dividend models, relative, sum-of-parts; dual-currency reconciliation | Output is a *range* from a mechanically derived grid; sustainable-growth and payout tests pass or the cell is withheld (§4.10 Q1–Q9) | Analyst + quant check |
 | 5. Thesis and invalidation | One-paragraph thesis; three to five measurable invalidation conditions with data sources | Each invalidation condition maps to a monitored field | Analyst |
 | 6. Review | Quant check (formulas, units), data-quality check (provenance, freshness), risk check (concentration, liquidity, currency) | Sign-off recorded with reviewer role and date | Three roles |
-| 7. Publication to user | Research note with provenance on every figure; permitted language only | Automated linter passes (§4.10) | System H |
-| 8. Monitoring | Invalidation conditions and freshness watched; note auto-expires | Note status: current / stale / invalidated | System |
+| 7. Publication to user | Research note with provenance on every figure; figures rendered only as C2 tokens; permitted language only; advice-sensitivity flag | Automated linter and C2 validator pass (§4.10) | System H |
+| 8. Monitoring | Invalidation conditions and freshness watched | Note status **computed** from C3 freshness of its inputs and its triggers: current / ageing / stale / expired / invalidated; never typed | System |
 
 For the Personal MVP the "roles" are the founder plus system checks; the separation still matters because it forces the invalidation conditions and the provenance check to be written down before a conclusion is shown.
 
@@ -119,45 +204,84 @@ All three markets are IFRS-based (F1), so one statement model applies: income st
 
 | Tool | What it measures | Formula summary | Evidence grade (US) | Local status | Product use |
 |---|---|---|---|---|---|
-| Accruals ratio | Gap between earnings and cash | (Net income − CFO) / average total assets; or balance-sheet accruals | E1 (Sloan 1996 [unverified by tool]; Dechow et al. 2010) | E4 until Doc 5b backtests on NGX/DFM | Flag "earnings not cash-backed" with the two inputs shown |
-| Piotroski F-score (0–9) | Improving profitability, leverage/liquidity, efficiency | Nine binary signals (ROA > 0, CFO > 0, ΔROA > 0, CFO > NI, Δleverage < 0, Δcurrent ratio > 0, no dilution, Δgross margin > 0, Δasset turnover > 0) | E1/E2 (Piotroski 2000; replication by Hou et al.) | E4 locally | Descriptive flag; never a rating |
+| Accruals ratio | Gap between earnings and cash | (Net income − CFO) / average total assets; or balance-sheet accruals | E1 historical (Sloan 1996; Dechow et al. 2010); E2/E3 persistence (Green, Hand & Soliman 2011) | International: Pincus et al. 2007 (common-law markets); NGX/DFM: no credible return test; E4 until Doc 5b backtests | Flag "earnings not cash-backed" with the two inputs shown |
+| Piotroski F-score (0–9) | Improving profitability, leverage/liquidity, efficiency | Nine binary signals (ROA > 0, CFO > 0, ΔROA > 0, CFO > NI, Δleverage < 0, Δcurrent ratio > 0, no dilution, Δgross margin > 0, Δasset turnover > 0) | E2 (Piotroski 2000); v0.1 "replication by Hou et al." withdrawn (specific result not confirmed) | E4 locally | Descriptive flag; never a rating |
 | Mohanram G-score | Growth-stock analogue | Eight signals incl. R&D, capex, advertising intensity, earnings variability | E2 | E4 | Flag |
-| Beneish M-score | Probability of manipulation | 8-variable model (DSRI, GMI, AQI, SGI, DEPI, SGAI, LVGI, TATA); threshold −1.78 | E2 (Beneish 1999; Beneish, Lee & Nichols 2013) | E4; IFRS account mapping must be documented | "Manipulation risk flag" with components shown |
-| Altman Z / Z'' (EM) | Distress | Z'' = 6.56 X1 + 3.26 X2 + 6.72 X3 + 1.05 X4 (+3.25 constant in EM scoring) | E2 (Altman 1968, 2005) | E4; not for banks | Flag for non-financial issuers only |
+| Beneish M-score | Probability of manipulation | 8-variable model (DSRI, GMI, AQI, SGI, DEPI, SGAI, LVGI, TATA); threshold −1.78 | E2 (Beneish 1999; Beneish, Lee & Nichols 2013) | E4; descriptive Nigerian application only (Nwosu 2026, low-tier venue); IFRS account mapping must be documented | "Manipulation risk flag" with components shown |
+| Altman Z / Z'' (EM) | Distress | Z'' = 6.56 X1 + 3.26 X2 + 6.72 X3 + 1.05 X4 (+3.25 constant in EM scoring) | E2 (Altman 1968; Altman, Hartzell & Peck 1995 for Z''; Altman 2005 an application) | E4; not for banks (Nigerian bank applications exist [S106]; the module refuses them) | Flag for non-financial issuers only |
 | Ohlson O-score | Distress (logit) | Nine-variable logit | E2 | E4 | Optional |
 | Gross profitability, QMJ | "Quality" | Gross profit / assets; composite quality | E2 (Novy-Marx 2013 [verified by DOI]; Asness et al. 2019) | E4 | Context only |
 
 Rules for quality-of-earnings work on NGX and UAE statements: (i) FX revaluation gains and losses must be separated from operating earnings (large in Nigeria after 2023–24 devaluation episodes); (ii) IFRS 9 expected-credit-loss (ECL) stages must be read from the notes, not inferred; (iii) related-party exposures and government receivables are a Nigerian-specific quality item; (iv) bonus issues change share counts and must be applied to per-share history; (v) Shari'a-compliant companies' financing structures distort leverage ratios designed for conventional debt.
 
-### 4.3 Bank-specific analysis (the NGX is bank-heavy)
+### 4.3 Bank-specific analysis
 
-Generic screens (F-score, Z-score) are not valid for banks. The bank module computes the following from audited and interim IFRS statements, each with a note reference:
+Banks are among the most traded and most researched NGX sectors. Their index weight is not sourced here, and Doc 5c is asked to supply the NGX Banking index weight; v0.1's unsourced "the NGX is bank-heavy" is withdrawn. Generic screens (F-score, Z-score) are not valid for banks. The bank module computes the metrics below from audited and interim IFRS statements and the bank's Pillar 3 regulatory disclosures, each with a note or table reference. **Thresholds are read from the rule registry (§4.5), never typed into the module.**
 
-| Metric | Definition (stored formula) | Why it matters | Validation |
+| Metric | Definition (stored formula) | Threshold (registry row; source) | Validation |
 |---|---|---|---|
-| Net interest margin (NIM) | Net interest income / average interest-earning assets | Core earnings power; sensitive to MPR and yield curve | Interest-earning assets reconciled to balance sheet |
-| Cost of risk | Impairment charge on loans / average gross loans | Credit cycle; recapitalisation era risk | Impairment charge tied to IFRS 9 note |
-| Stage 3 ratio | Stage 3 gross loans / total gross loans | Non-performing exposure (compare with the 5% prudential reference) | From ECL staging note |
-| Stage 3 coverage | Stage 3 ECL allowance / Stage 3 gross loans | Adequacy of provisioning | Same note |
-| Stage 2 share and migration | Stage 2 / gross loans; quarter-on-quarter change | Early-warning | Same note |
-| Capital adequacy ratio (CAR) | As reported; compare with 15% (international/D-SIB) or 10% minimum (F12) plus buffers | Dividend capacity; recapitalisation | Reported figure plus licence category |
-| Qualifying capital (recap) | Paid-up capital + share premium versus the F11 threshold for the licence category | Compliance and dilution risk | Share register / statement of changes in equity |
-| Cost-to-income | Operating expenses / operating income | Efficiency; inflation pass-through to costs | Exclude impairment |
-| Earnings mix | Share of profit before tax from FX revaluation, trading gains, fees | Sustainability (normalised ROE) | Income statement notes |
-| Funding | CASA share, loan-to-deposit, CRR drag (45% CRR, F13) | Liquidity and margin pressure | Balance sheet |
-| Sovereign exposure | FGN securities / total assets | Sovereign–bank nexus; duration risk | Investment securities note |
-| Dividend capacity | Payout, regulatory restrictions (NPL and CAR tests, F12) | NGX dividend culture | Regulatory thresholds in rule registry |
+| Net interest margin (NIM) | Net interest income / average interest-earning assets | — | Interest-earning assets reconciled to balance sheet |
+| Cost of risk | Impairment charge on loans / average gross loans | — | Tied to IFRS 9 note |
+| Stage 3 ratio (IFRS 9) | Stage 3 gross loans / total gross loans | **None.** This is an accounting measure and is never compared with the CBN 5% NPL threshold | ECL staging note |
+| Prudential NPL ratio (CBN definition) | As disclosed under the prudential guidelines (Pillar 3 / regulatory returns) | Appendix 2 bands ≤ 5%, 5–8%, 8–10%, > 10% [S52] | Stored separately from Stage 3; if not disclosed, the payout cap is shown for every band |
+| Stage 3 coverage; Stage 2 share and migration | Stage 3 ECL / Stage 3 gross; Stage 2 / gross, quarter-on-quarter | — | Same note |
+| Regulatory risk reserve (RRR) | Excess of prudential provision over IFRS 9 ECL, held in a non-distributable reserve | ¶24 and footnote 4 [S52] | Statement of changes in equity |
+| CET1, Tier 1, CAR | As reported | **Effective floor** = Table 1 minimum + CCB1 1.0% + HLA 1.0% (D-SIB) + CCB2 when set. CAR 11 / 16 / 17%; CET1 8.0 / 11.5 / 12.5% (national / international / D-SIB) [S52] | Pillar 3; licence category and D-SIB status from the CBN list |
+| Leverage ratio | Tier 1 / exposure measure | 4% (5% for D-SIBs) [S52 ¶98, App. 2] | Pillar 3 |
+| Liquidity ratio | As reported | 30% (last stated at the 303rd MPC) [S10] | Regulatory disclosure |
+| Cash reserve ratio (CRR) drag | Deposits × CRR, split by deposit type | 45% commercial / 16% merchant; **75% on non-TSA public-sector deposits** [S10] | Deposit mix; the public-sector share usually needs a management disclosure |
+| Loan-to-deposit ratio (regulatory) | Gross loans / deposits per the CBN definition | Current CBN LDR policy **not sourced** in this revision (registry row `candidate`) | Balance sheet |
+| Single-obligor limit (SOL) breaches; forbearance status | Disclosed breaches; whether the bank benefits from credit or SOL forbearance | June 2025 circular: no dividends while under forbearance [S57, E3] | Annual report; CBN and bank announcements. Absence of a disclosure is not evidence of no forbearance |
+| FX net open position | As disclosed | CBN limit not sourced here | Risk-management note |
+| Off-balance-sheet contingents | Guarantees, letters of credit / total assets | — | Contingent-liabilities note |
+| Qualifying capital (recap) | Paid-up capital + share premium versus the F11 threshold for the licence category | Threshold from press only [S32]: `candidate`, so not conclusion-driving until the circular is read (C3.5) | Statement of changes in equity |
+| Cost-to-income | Operating expenses / operating income (excluding impairment) | — | Income statement |
+| Earnings mix | FX revaluation gains / PBT (**pre-tax over pre-tax**); after-tax FX gains / PAT using the tax note's attribution | — | Income-statement and tax notes |
+| Funding | CASA share, loan-to-deposit | — | Balance sheet |
+| Sovereign exposure | FGN securities / total assets | — | Investment-securities note |
+| Composite Risk Rating | CBN supervisory rating; drives bonuses (¶98) and payout (App. 2) | — | **Not published (E4).** The module shows results for every rating value |
+| Dividend capacity | Max distributable = max(PAT − statutory-reserve transfer − RRR adjustment − after-tax FX revaluation gains, 0) × App. 2 payout (CET1 band × NPL band × risk rating). Zero if NPL > 10%, the risk rating is High, leverage is below its minimum, or the bank is under forbearance | S52 ¶103–104 and App. 2 (E2); FX-gains and forbearance circulars (E3) [S56, S57] | Output is a **range across risk-rating values**, compared with the declared dividend |
 
-Normalisation: compute ROE on reported earnings *and* on earnings excluding FX revaluation and one-off gains; show both. The valuation of banks uses excess-return or justified price-to-book models rather than free-cash-flow DCF (worked example §4.11).
+*Note on Appendix 2.* The D-SIB and international tables label the lowest NPL band "NPL < 5%" and the next one "NPL > 5%", so an NPL of exactly 5.0% falls in neither band. The national table uses "≤ 5%". The module treats exactly 5% as the higher band (conservative) and flags the gap (E4).
+
+**Normalisation rules.**
+1. Remove FX revaluation gains and one-offs **after tax**, using the tax note's attribution. Where the note is silent, show both the untaxed variant and the statutory-rate variant.
+2. Take numerator and denominator from the same period (test Q1, §4.10).
+3. Any windfall levy on realised FX gains is already in the reported tax charge and is not deducted again; whether it applies is for Doc 6 to confirm (F12).
+4. Show both reported and normalised ROE.
+5. FX gains held in the counter-cyclical reserve stay in book value but are excluded from distributable profit.
+
+Banks are valued with excess-return or justified price-to-book models, not free-cash-flow DCF (worked example §4.11).
 
 ### 4.4 Valuation module: ranges, currency consistency and dividends
 
 **Principles.** (1) Cash flows and discount rates must be in the same currency and the same inflation basis (Damodaran's own caveat, F23). (2) Every valuation is reported as a range from a small grid of explicitly named assumptions, never a single figure. (3) The cost-of-capital build-up is stored with the version of its inputs (country-risk edition, risk-free source, date).
 
-**Cost of equity for Nigerian issuers — two reconciled routes.**
-- *USD route:* USD risk-free rate + β × total equity risk premium for Nigeria (Damodaran July 2026: 12.24%), then convert to NGN with expected inflation differential: (1 + k_USD) × (1 + π_NGN) / (1 + π_USD) − 1. With a 4.2% USD risk-free rate and β = 1 the USD cost of equity is 16.4%; at 12%/15%/18% NGN inflation (2.5% USD) it becomes 27.2% / 30.6% / 34.0% in NGN.
-- *NGN route:* local government bond yield (which already embeds a sovereign default spread) + β × mature-market ERP × relative-volatility factor. With a synthetic 18% FGN 10-year yield this gives about 24.5%.
-- The two routes rarely agree because the NGN route double-counts or under-counts country risk depending on how much of it the FGN yield already carries, and because inflation expectations are unobservable in Nigeria (no inflation-linked bonds, F16). The product shows both and uses their span as the discount-rate range. **Disagreement preserved:** the equity analyst prefers the USD route (cleaner premium data); the economist prefers the NGN route (market-implied local rates); the risk manager wants both displayed (§7).
+**Cost of equity for Nigerian issuers: two routes on two country-risk bases.** Every number is reproduced by `doc05a_worked_examples.py`. Damodaran inputs: July 2026 edition, re-parsed 2026-11-04 (F23). The FGN yield, the US Treasury yield and the inflation scenarios are synthetic.
+
+- *USD route.* k_USD = rf_USD + β × ERP_Nigeria. Because the mature ERP of 4.20% is measured over an adjusted dollar risk-free rate, **rf_USD = US Treasury yield − US Aa1 default spread (0.22%)**. With a synthetic 4.42% Treasury yield, rf_USD = 4.20%. Convert to NGN by the inflation differential: (1 + k_USD)(1 + π_NGN)/(1 + π_USD) − 1.
+- *NGN route (Damodaran's local-currency method).* **rf_NGN = FGN 10-year yield − sovereign default spread**, then k_NGN = rf_NGN + β × ERP_Nigeria. The v0.1 formula (FGN yield + β × mature ERP × 1.55 = 24.5%) was not Damodaran's: the multiplier scales the default spread, not the mature ERP. It is **withdrawn**.
+- *Country-risk basis.* Rating-based or CDS-based. Each route uses the same basis for the default spread it subtracts and the ERP it adds.
+
+| Basis (July 2026) | Default spread | Total ERP | k_USD (β = 1) | USD route in NGN at 12 / 15 / 18% NGN inflation (US 2.5%) | NGN route (local rf) at 18% FGN yield | NGN inflation implied by risk-free parity |
+|---|---|---|---|---|---|---|
+| Rating (B3) | 5.17% | 12.24% | 16.45% | 27.24 / 30.65 / 34.05% | 25.07% (12.83%) | 10.98% |
+| CDS (net of Swiss) | 3.26% | 9.27% | 13.47% | 23.99 / 27.31 / 30.63% | 24.01% (14.74%) | 12.87% |
+
+**Reconciliation.** The two routes agree when the NGN–USD risk-free gap equals the expected inflation differential. At an 18% FGN yield, the NGN route implies NGN inflation of about 11% on the rating basis, or about 13% on the CDS basis. Both are below the base scenario of 15%. A gap between the routes is therefore a statement about the inflation expectation embedded in the FGN curve, and the note shows it as one. The choice of basis moves k by 3.3–3.4 pp on the USD route and by 1.1 pp on the NGN route. The choice of route at base inflation moves it by 5.6 pp (rating) or 3.3 pp (CDS).
+
+**Grid rule (mechanical; no column can be set by hand).** The grid has four columns:
+- *low*: the minimum over all routes and scenarios;
+- *CDS base* and *rating base*: the USD route at the base inflation scenario, on each basis;
+- *high*: the maximum over all routes and scenarios.
+
+Each column carries the inflation scenario that produced it. The growth assumption in that column uses the same inflation: g = (1 + g_real)(1 + π) − 1, with g_real stated. Test Q6 (§4.10) checks that the grid equals the stored route outputs, so changing the grid means changing a stored input. v0.1's 23% column matched no route (it equals the MPR) and is withdrawn.
+
+**Disagreements preserved (§7):**
+- *Route.* The equity analyst prefers the USD route (cleaner premium data). The economist prefers the NGN route (market-implied local rates). The risk manager wants both displayed.
+- *Basis.* The equity analyst prefers the rating basis (stable and semi-annual; the CDS figure is a single 30 June reading from a thin market). The risk manager wants the CDS basis shown because it is market-based and currently about 3 pp lower.
+
+**Resolution:** no house default. Both routes and both bases are shown as scenario axes. The Investment Committee role (the founder, for the Personal MVP) revisits the display with each semi-annual Damodaran edition.
 
 **Model menu.**
 
@@ -175,41 +299,57 @@ Normalisation: compute ROE on reported earnings *and* on earnings excluding FX r
 
 ### 4.5 Market-rule registry
 
-The registry is a versioned table; every row has `rule`, `market`, `value`, `effective_from`, `source`, `source_date`, `checked_on`, `next_check`, `confidence`. The analyst layer reads rules from the registry, never from code constants. Initial contents (all values as found on 2026-11-04):
+The registry is a versioned table. Every row has `rule`, `market`, `value`, `effective_from`, `source`, `source_date`, `checked_on`, `next_check`, `evidence_grade` and `source_status` (`ok` / `moved` / `unreachable`; this is a property of the source, like a series' feed health in C3.2, and not a validation state).
+
+Each row is a **world fact** under C3. It carries the C3 axes and cannot leave `candidate` until the C3.5 entry-time check against a primary-source snapshot passes. **Tax rows are pointers to Doc 6 rule records (C7) and carry no values of their own.**
+
+The analyst layer reads rules from the registry, never from code constants. Initial contents (v0.2, as found or reported on 2026-11-04):
 
 | Market | Rule | Value | Effective | Source | Confidence |
 |---|---|---|---|---|---|
 | NGX | Trading hours | 09:00–16:00 WAT (pre-open 09:00; continuous 09:30; close 16:00) | 2026-04-27 | S1, S2 | E2 |
-| NGX | Daily price limit (equities) | ±10% | current page | S1 | E2 (2018 guidance showed ±5%; confirm) |
-| NGX | Price groups / volume to move price / tick | A ≥ N100: 10,000 / N0.10; B N5–<N100: 50,000 / N0.05; C < N5: 100,000 / N0.01 | 2018-01-29 (2026 revision approved, postponed) | S3, S4, S35 | E2 (status E3) |
-| NGX | Settlement | T+1 | 2026-06-01 | S9 | E2 |
+| NGX | Price limit (equities) | ±10% shown on the **pre-open** row only; continuous-session daily limit unconfirmed | current page | S1 (per R05a) | E3, `candidate` (2018 guidance showed ±5%; rulebook to confirm) |
+| NGX | Price groups / volume to move price / tick | A ≥ N100: 10,000 / N0.10; B N5–<N100: 50,000 / N0.05; C < N5: 100,000 / N0.01 | 2018-01-29 (2026 revision approved, postponed) | S3, S4, S35 | E2 (2026 status E3; ticks partly confirmed) |
+| NGX | Settlement | T+1 (earlier T+2 date unconfirmed) | 2026-06-01 | S9 | E2 |
 | NGX | Free float | 20% & ≥300 holders, or N20bn (Main) / N40bn (Premium) | 2019-05-06 | S5 | E2 |
 | NGX | Index circuit breaker | ASI ±5% 10:15–13:45 → 30-min halt; further 5% → close | 2016-02-05 | S6 | E2 (times pre-date 2026 hours) |
-| NGX | Dividend withholding | reported 10% (final for individuals) | 2026-01-01 (Tax Act) | S47 (secondary) | E3 → Doc 6 |
+| Nigeria | Dividend withholding | → Doc 6 rule `NG-DIV-WHT-FINAL-2026` (10%, Withholding Regulations 2024 from 1 July 2024; final via NTAA s.51(3)) | per Doc 6 | Doc 6 F12 | as graded in Doc 6; C7 status |
+| Nigeria | T-bill / CP / corporate-bond interest | → Doc 6 rule `NG-INT-SHORTTERM-FINAL-2026` (10% WHT from 28 Oct 2025; FGN bonds and OMO bills excepted) | per Doc 6 | Doc 6 F12; S55 | as graded in Doc 6 |
+| Nigeria | FGN bond interest | → Doc 6 rule `NG-BOND-EXEMPT-2026` (NTA s.162(1)(n)) | per Doc 6 | Doc 6 F12 | as graded in Doc 6 |
+| Nigeria | Gains on Nigerian-company shares | → Doc 6 rule `NG-CGT-SHARES-NGCO-2026` (₦150m proceeds / ₦10m gain / 12 months) | per Doc 6 | Doc 6 F13 | as graded in Doc 6 |
 | DFM/ADX | Trading hours | 10:00–14:45 continuous; closing auction to 15:00 GST; Mon–Fri | — | S30, S31 | E3 |
 | DFM/ADX | Daily price limit | +15% / −10% (ADX pauses at −5%, −9%) | — | S30, S31 | E3 |
 | DFM/ADX | Settlement | T+2 | — | S30, S31 | E3 |
 | DFM/ADX | Foreign ownership | company-specific within 15–100%; real-time FOL data on DFM | — | S30, S31 | E3 |
 | DFM/ADX | Tick sizes | AED 0.001 (<1) … 0.10 (≥100) | — | S30, S31 | E3 |
-| UAE | Taxes on listed securities | none (WHT/CGT/dividend) | — | S30, S31 | E3 → Doc 6 |
+| UAE | Taxes on listed securities | → Doc 6 (none reported for individuals) | — | S30, S31; Doc 6 F28 | E3 → Doc 6 |
+| UAE | Securities regulator | Capital Market Authority (CMA), successor to the SCA; Federal Decree-Laws 32 and 33 of 2025 | 2026-01-01 | S54; Doc 6 F36 | E3 |
 | US | Filing data | EDGAR XBRL APIs, no key | — | S19 | E2 |
-| Nigeria | MPR / corridor / CRR | 23.0% / +50,−300 bp / 45% & 16% | 2026-09-22 | S10 | E2 |
-| Nigeria | Official FX | NFEM volume-weighted average (CBN daily) | — | S11 | E2 |
-| Nigeria | CAR minimum | 15% (international, D-SIB) / 10% | 2021-09 guidelines | S52 | E2 |
+| Nigeria | MPR / corridor / CRR | 23.0% / +50,−300 bp / 45% commercial, 16% merchant, 75% non-TSA public-sector deposits | 2026-09-22 | S10 (re-fetched 2026-11-04) | E2 |
+| Nigeria | Liquidity ratio | 30% | 303rd MPC (2025-11) | S10 | E2 |
+| Nigeria | Official FX | CBN NFEM rate; field `central` with `price_type` and `fixing_date` per C5.1 (CBN describes the official rate as the NFEM volume-weighted average) | — | S11; C5.1 | E2 |
+| Nigeria | Capital minimums (national / international / D-SIB) | CET1 7.0 / 10.5 / 10.5%; Tier 1 7.5 / 11.25 / 11.25%; CAR 10 / 15 / 15% | 2021-09 guidelines | S52 Tables 1–2 | E2 |
+| Nigeria | Capital buffers | CCB1 1.0% (CET1, all banks); CCB2 as set by CBN (currently none found); HLA 1.0% (D-SIBs, CET1) | 2021-09 | S52 ¶30, ¶82, ¶94 | E2 |
+| Nigeria | Leverage-ratio minimum | 4% (5% D-SIB) | 2021-09 | S52 ¶98, App. 2 | E2 |
+| Nigeria | Maximum dividend payout | Appendix 2 matrix: CET1 band × NPL band × Composite Risk Rating; nil if NPL > 10%, rating High or leverage below minimum | 2021-09 | S52 ¶103–104, App. 2 | E2 |
+| Nigeria | FX revaluation gains not distributable | set aside as counter-cyclical buffer; not for dividends or operating expenses | 2023-09 (reiterated 2024-03) | S56 (press; circular not read) | E3, `candidate` |
+| Nigeria | Forbearance dividend suspension | no dividends, bonuses or new foreign-subsidiary investment while under credit or SOL forbearance | 2025-06-13 | S57 (press; circular not read) | E3, `candidate` |
+| Nigeria | Windfall levy on banks' realised FX gains | 70% passed by the National Assembly (July 2024), from new FX policy to end-2025; assent unverified | — | S58 | E3, `candidate` → Doc 6 |
 | Nigeria | Bank minimum capital | N500bn / N200bn / N50bn (commercial by licence) | 2026-03-31 deadline | S32 | E3 |
-| Nigeria | Pension equity limits | Fund II 33%; Fund I 35%; Fund III 15%; VI-Active 33% | 2026-02-09 | S12 | E2 |
+| Nigeria | Pension equity limits | Fund II 33%; Fund I 35%; Fund III 15%; VI-Active 33% | 2026-02-09 | S12 (`source_status = moved`: 404 on 2026-11-04) | E2 as read 2026-11-02; not re-checkable |
+| Nigeria | FGN securities page | instrument list, auction minimum | — | S16 (`source_status = moved`: 404 on 2026-11-04) | E2 as read 2026-11-02 |
 
-Every rule has a `next_check` of at most 90 days; rules that fail a check are marked `unconfirmed` and the user interface shows the last confirmed date.
+Every rule has a `next_check` of at most 90 days. A rule whose source has moved or disagrees at re-check is shown with its last confirmed date and its C3 status (`disputed` on disagreement), and it stops driving conclusions once its freshness reaches `stale` (C3.4).
 
 ### 4.6 Fixed income
 
 | Segment | Primary data | Analytics (all reproducible from stored inputs) | Nigeria/UAE specifics |
 |---|---|---|---|
-| FGN bonds and T-bills | DMO auction results and circulars; FMDQ closing prices/yields; NGX for retail bond trades (F16) | Yield to maturity, modified duration, convexity, real yield = (1+y)/(1+π_expected) − 1 under stated inflation scenarios; holding-period return under rate scenarios | No inflation-linked instruments: real-yield analysis is scenario-based; auction minimum N50,001,000 means retail access is via secondary market, FGN Savings Bonds or funds; DMO states FGN securities' interest is tax-exempt (confirm with Doc 6) |
+| FGN bonds and T-bills | DMO auction results and circulars; FMDQ closing prices/yields; NGX for retail bond trades (F16) | Yield to maturity, modified duration, convexity, real yield = (1+y)/(1+π_expected) − 1 under stated inflation scenarios; holding-period return under rate scenarios | No inflation-linked instruments: real-yield analysis is scenario-based; auction minimum N50,001,000 means retail access is via secondary market, FGN Savings Bonds or funds. **Tax per Doc 6:** FGN bond interest exempt (s.162(1)(n)); T-bill interest 10% WHT from 28 Oct 2025, final for individuals per Doc 6 (NTAA s.51(5)); OMO bills excepted from the directive. Real-return bands use after-tax yields from Doc 6 rule records |
 | FGN Eurobonds | DMO closing prices; dealer quotes (Doc 5c) | USD yield, spread to US Treasuries, duration | Sovereign rating B3 (July 2026 Damodaran sheet) — store rating with date |
 | UAE T-Bonds/T-Sukuk, corporate sukuk | MoF auction calendar; Nasdaq Dubai/ADX listings (Doc 5c) | Yield, profit-rate equivalents, duration; sukuk structure notes (asset-based vs asset-backed) | Dirham peg means USD rate scenarios drive AED yields; retail/fractional access reported (F17) |
 | US Treasuries | Official curve (Doc 5c) | Standard | The USD leg of the user's liabilities anchors the risk-free rate |
-| Credit (Nigerian commercial paper, corporate bonds) | FMDQ quotations | Spread, issuer analysis via §4.2/4.3 | Thin liquidity; rating agency coverage uneven |
+| Credit (Nigerian commercial paper, corporate bonds) | FMDQ quotations | Spread, issuer analysis via §4.2/4.3 | Thin liquidity; rating agency coverage uneven; 10% WHT per Doc 6 |
 
 "Inflation-linked thinking" in Nigeria: because no linker exists, the system expresses every NGN fixed-income holding as a *real-return band* under the house inflation scenarios (§4.8) and shows the break-even inflation at which the real return turns negative. This is arithmetic, not forecasting.
 
@@ -219,8 +359,8 @@ Every rule has a `next_check` of at most 90 days; rules that fail a check are ma
 |---|---|---|---|
 | Nigerian mutual funds (SEC-registered CIS) | SEC monthly/weekly NAV reports [S18, S39] | NAV trail, fees from prospectus, holdings concentration, currency (dollar funds), redemption terms | Dominated by money-market funds (68% of NAV, F18); equity funds are 2.4% — small and often illiquid |
 | NGX ETFs | NGX quotes; fund fact sheets (Doc 5c) | Premium/discount to NAV, tracking difference, market-maker presence | Industry ETF NAV about N33bn (F18): low liquidity; large bid–ask spreads likely |
-| UAE funds and ETFs | SCA/DFM/ADX (Doc 5c) | Same | Shari'a-compliant options via DFM classification [S22] |
-| US ETFs | Issuer sites, SEC filings | Expense ratio, index methodology, domicile (tax: US-domiciled vs UCITS, estate-tax exposure for non-residents — Doc 6) | Access route from Nigeria/UAE (international broker vs local digital sub-broker) and custody chain are unknown — Doc 5c/Legal to establish |
+| UAE funds and ETFs | CMA (formerly SCA) / DFM / ADX (Doc 5c) | Same | Shari'a-compliant options via DFM classification [S22] |
+| US ETFs | Issuer sites, SEC filings | Expense ratio, index methodology, domicile. Tax per Doc 6: 30% US WHT on dividends for non-resident aliens with no treaty relief for Nigeria or the UAE (F30); US-situs holdings above USD 60,000 trigger the estate-tax monitor (F31). Domicile is shown as a fact, not a recommendation | Access route from Nigeria/UAE (international broker vs local digital sub-broker) and custody chain are unknown — Doc 5c/Legal to establish |
 
 ### 4.8 Macro and emerging-market context without forecasting
 
@@ -238,77 +378,129 @@ Every rule has a `next_check` of at most 90 days; rules that fail a check are ma
 
 **Regime frameworks and their limits.** Growth/inflation quadrant maps and Markov-switching models (F22) are useful for *describing* which historical environments resemble the present and for generating stress scenarios (e.g., "2016 and 2023 FX episodes"). They are not used to shift allocations automatically because regime identification lags, parameters are unstable and the out-of-sample record of macro timing is poor (F21). **Disagreement preserved (§7):** the strategist argues a rules-based macro overlay with small tilts is standard institutional practice; the risk manager argues the evidence does not justify it for a single individual with no risk budget to absorb model error. Proposed resolution: macro may set *constraints* (e.g., minimum USD liquidity when FX convertibility risk is high) but not *tilts*, until Doc 5b shows out-of-sample benefit on local data.
 
-**What the product may say about returns.** It may show: historical ranges; the arithmetic of required saving under several assumed net returns; the valuation level relative to history with the dispersion of subsequent outcomes. It may not show: a single expected return; "will"; "on track to reach" without the assumption stated in the same sentence.
+**What the product may say about returns.** It may show: historical ranges; the deterministic arithmetic of required saving under several labelled net-return assumptions; the valuation level relative to history with the dispersion of subsequent outcomes. Any likelihood statement about a goal comes only from the C6 goal engine: a predictive count with quantiles, the adjustment needed and drift sensitivity, from a named assumption set. It may not show: a single expected return; "will"; "on track to reach" without the assumption stated in the same sentence.
 
 ### 4.9 From security to the individual: circumstances as explicit inputs
 
-The institutional analogue of "individual financial circumstances" is the investment policy statement. Portfolio OS captures the equivalent as a structured input record *before* research begins, and the record drives an **admissible-universe filter** that decides which securities are even analysed.
+The institutional analogue of "individual financial circumstances" is the investment policy statement. Portfolio OS captures the equivalent as a structured input record *before* research begins. The record drives a **constraint filter** that decides which securities are researched. Its output is a **research-coverage list** that gives the reason for every exclusion or flag. It is not an allocation, a weight or a recommendation.
 
-**Input schema (System A supplies; founder confirms — none may be assumed):**
+**Input schema (System A supplies; the user confirms; nothing may be assumed).** Every field record carries `value, type, unit, source (user | ledger | questionnaire), confirmed_by, confirmed_at, expiry_at, version`. An unconfirmed or expired field is `candidate` under C3 and cannot drive a conclusion.
 
-| Field | Example values | Status in brief |
-|---|---|---|
-| Tax residency and citizenship | Nigeria / UAE / other; dual | Unknown — founder to confirm (Doc 6) |
-| Income currency, source, stability, sector | NGN salary from a bank; AED consulting; USD dividends | Unknown |
-| Liabilities by currency and date | AED rent (annual, 12-month horizon), NGN school fees, USD tuition in 2031 | Unknown |
-| Goals by currency, amount, date, priority | "USD 100,000 by 2031, essential" | Example in brief |
-| Liquidity need | Months of expenses to hold in cash by currency | To be set |
-| Horizon per goal | 1, 5, 20 years | Per goal |
-| Loss tolerance per goal (not a single risk score) | "Rent bucket: no drawdown"; "Aspirational: can lose 50%" | Behavioural team to design elicitation |
-| Human capital | Present value and currency of future earnings; correlation with sectors (bank employee → bank stocks) | Unknown |
-| Access constraints | Brokerage accounts available in each market; custody; FX repatriation ability | Unknown |
-| Existing concentrations | Employer stock, property, family business | Unknown |
+| Field | Type / unit | Example | Confirmation and expiry | Status now |
+|---|---|---|---|---|
+| Tax residency and citizenship | enum per jurisdiction + day counts | Nigeria / UAE / both / unknown | Doc 6 annual residency questionnaire (signed attestation); 12 months | **Unknown — founder to confirm** (Doc 6) |
+| Income streams | per stream: ISO 4217 currency, amount per year, source, sector code, stability | NGN salary from a bank | Ledger (System A) + user; 12 months | Unknown |
+| Liabilities | list of (currency, amount, due date) | AED rent, quarterly | User + ledger; on change | Unknown |
+| Goals | list of (currency, amount, date, priority enum) | "USD 100,000 by 2031, essential" | User; on change | Example in brief |
+| Liquidity need | months of expenses per currency | 6 | User; 12 months | To be set |
+| Loss tolerance per goal | **user-stated** maximum drawdown constraint, % of bucket value | "rent bucket: 0%" | User statement, re-confirmed yearly | Not a psychometric measure (see below) |
+| Human capital | **user-confirmed assumptions**: income growth path, discount rate, sector link | "employer sector: banking" | User-entered, E5; never inferred from records (Doc 3 §4.7) | Unknown |
+| Access constraints | per market: broker, custody, FX repatriation | NGX via a Nigerian broker | User | Unknown |
+| Existing concentrations | employer stock, property, family business | — | User + ledger | Unknown |
+| Constraint parameters (rules 1–4) | user-set numbers, each with a logged reason | near-liability window; issuer, sector and country caps; minimum equity horizon | User; versioned; every override logged | **No defaults shipped** |
 
-**Admissible-universe rules (initial, E4/E5 — to be tuned):**
+**Relation to Doc 3 (R05a M6a).** Doc 3 adopts the SOEP general risk item and the DOSPERT financial items. Those describe the person, not a goal bucket, and Doc 3 names no instrument that elicits per-goal loss tolerance. This document therefore stores per-goal tolerance as a **user-stated constraint**, like a liability date. It is not a measured trait, and the SOEP item is never used to set it. Whether a validated per-goal instrument should be built is Doc 3's decision (deferred; owner Doc 3).
 
-1. *Currency matching (Sharpe & Tint; Chhabra safety bucket):* liabilities due within 24 months are funded in their own currency with instruments of matching duration; NGN assets are not admissible for AED/USD liabilities inside that window because NFEM convertibility is itself a risk (F7, F15).
-2. *Liquidity:* a security is admissible only if the intended position is ≤ 5% of its average daily traded value over 60 days (×20 cover) and it meets the exchange's free-float rule (F5); NGX names that have not changed price in 20 sessions (Group C volume thresholds, F3) are flagged "price stale by rule".
-3. *Concentration:* no single issuer above 5% of liquid net worth, no single sector above 25%, no single country equity market above a cap set by the goal structure (home-bias evidence, F26) — with employer/sector exposure counted through human capital (F25).
-4. *Horizon:* equities are admissible only for goals ≥ 5 years; single stocks only for the aspirational bucket.
-5. *Data quality:* a security without V2-validated price, shares, statements and dividend record is not admissible for valuation, whatever its merits.
-6. *Tax and access:* instruments the user cannot legally buy, or whose tax treatment is unknown for the user's residency, are "not yet admissible" rather than silently included.
-7. *Shari'a preference (if stated):* DFM classification list or stated screen applied as a hard filter.
+**Human capital (R05a M6b).** A present value of future earnings and a correlation with a sector are inferred quantities. They are E5 assumptions and enter only as values the user entered and confirmed. The system never infers them from transaction records.
 
-Worked example 3 (§4.11) shows how these rules shrink the universe for a synthetic household.
+**Provisional mode (R05a M6d).** While residency is unknown, which is the current state, the filter runs under each candidate residency scenario (Nigeria-resident; UAE-resident only; both) using Doc 6's rule records. Every output is labelled "provisional: residency unconfirmed" and carries the weakest C7 watermark of the rules used. Provisional outputs never feed a tax or other conclusion-driving calculation. An instrument whose treatment differs between scenarios is listed with the difference. The universe is therefore not emptied, and nothing is silently included.
+
+**Constraint rules (E5; advice-sensitive at commercialisation).** v0.1 shipped thresholds as house policy: 24 months, 5% per issuer, 25% per sector, five-year equity horizon, single stocks only in the aspirational bucket, "bank stocks beyond 0%" and "FGN Eurobonds only in a small slice". They had no source and no named discipline (R05a §3, M7). Applied to another person, they would be allocation advice. **They are withdrawn as defaults.** Each rule now evaluates a parameter the user sets:
+
+1. *Currency of near liabilities (structural check; Sharpe & Tint; Chhabra safety bucket).*
+   - 1a. Liabilities due inside the user's window are matched against assets in the same currency. NGN assets do not count towards AED or USD liabilities inside the window, because NFEM convertibility is a risk (F7, F15).
+   - 1b. Beyond the window, a currency mismatch is shown as a named risk with its FX sensitivity. It is a **flag, not an exclusion** (this fixes the v0.1 Example 3 inconsistency, R05a M6e).
+2. *Liquidity.* The intended position must be within the user-set share of 60-day average daily value traded, and the issuer must meet the exchange free-float rule (F5; a fact, not a preference). NGX names unchanged for 20 sessions are flagged "price stale by rule" (F3).
+3. *Concentration.* The user sets issuer, sector and country caps. Employer or sector exposure counts through human capital only if the user has confirmed the sector link (F25, F26).
+4. *Horizon.* The user sets a minimum horizon per asset class, if any.
+5. *Data quality (structural).* An instrument is not admissible for valuation unless every mandatory input is conclusion-eligible under C3.4.
+6. *Tax and access.* Instruments the user cannot legally buy are excluded. Tax treatment runs in provisional mode as above.
+7. *Shari'a preference (if stated).* The DFM classification list or the stated screen is applied as a hard filter.
+
+Every rule result carries `advice_sensitive: true` and names the regulatory trigger that would apply if the output were offered to another person (Doc 6 F35, SEC Nigeria robo-advisory rules; F36, UAE CMA "financial advisory"). Worked example 3 (§4.11) shows the filter for a synthetic household using that household's own parameters.
 
 ### 4.10 Research-quality and data-quality framework
 
-**Figure provenance model.** Every number that can reach the user is an object:
+**Figure model (CANONICAL_CONTRACTS C3; rendering per C2).** Every number that can reach the user is a C3 figure. It has a validation axis V (`candidate`, `auto_validated`, `validated`, `disputed`, `rejected`), freshness F computed at read time and never stored, lifecycle L, rights R, identity I, corroboration C and method M. It is rendered only through C2 tokens. The model never writes a digit. This document adds research fields:
+- `period` (e.g. `TTM-2026Q3`, `FY2025`);
+- `period_end`;
+- `period_kind` (`flow` | `stock` | `market`);
+- `scale`;
+- `filing_ref` (document, page/table, XBRL tag);
+- `formula_ref` and input IDs for derived figures.
 
-```
-figure {
-  value, unit, currency, scale (e.g. NGN millions), as_of_date, period (e.g. FY2025, Q2-2026),
-  source_type (filing | exchange_release | regulator | vendor | derived),
-  source_ref (document id, URL, page/table/XBRL tag), retrieved_at,
-  validation_status (V0 unvalidated | V1 single source | V2 two sources reconciled | V3 reconciled to filing page),
-  freshness_status (fresh | ageing | stale | expired), formula_ref (for derived figures), reviewer, review_date
-}
-```
+The v0.1 V0–V3 scale is retired using the C3.7 mapping:
 
-**Inputs that must be independently validated before any conclusion (minimum V2):** last price and its trade date; shares outstanding (and any bonus/rights adjustments); earnings per share (reported and computed from net income / weighted shares); operating cash flow and capex; dividends (declared, ex/closure-of-register date, payment date, withholding); corporate actions (bonus, rights, splits, delistings, suspensions); FX rate used (NFEM official vs other); period end and filing date; licence category and regulatory thresholds for banks; index membership if used for comparison.
+| v0.1 | C3 |
+|---|---|
+| V0 unvalidated | `candidate` |
+| V1 single source | `auto_validated` + `single_source` |
+| V2 two sources reconciled | `auto_validated` + `two_independent` |
+| V3 reconciled to filing page | `validated` with primary-document evidence |
 
-**Freshness tolerances (E5 — to be tested against observed update patterns):**
+**Inputs that must be eligible for a conclusion-driving calculation (C3.4) before any conclusion:**
+- last price and its trade date;
+- shares outstanding, period-end and period-weighted, with bonus and rights adjustments;
+- EPS, reported and recomputed from net income over weighted shares;
+- operating cash flow and capex;
+- dividends (declared, closure-of-register date, payment date, withholding per Doc 6);
+- corporate actions;
+- the FX rate used (C5.1);
+- period end and filing date;
+- licence category, D-SIB status and every regulatory threshold for banks (registry rows at C3 eligibility);
+- index membership, if used.
 
-| Data type | Expected cadence | "Ageing" after | "Stale" (shown with warning) after | "Expired" (blocked from valuation) after |
-|---|---|---|---|---|
-| Exchange closing price (NGX, DFM, ADX, US) | Daily | next trading day | 2 trading days | 5 trading days |
-| NFEM / FX fixings | Daily | 1 business day | 2 business days | 5 business days |
-| Interim financial statements | Quarterly | 45 days after period end | 120 days | next period published |
-| Audited annual statements | Annual | 120 days after year end | 270 days | next annual |
-| Shares outstanding | On corporate action | at any corporate action | 30 days after an unprocessed action | — |
-| Dividend record | Per declaration | at declaration | after closure of register if unconfirmed | — |
-| MPR / policy rates | Per MPC meeting (about every 2 months) | day after a scheduled meeting | 7 days after a meeting with no update | — |
-| CPI | Monthly | 45 days | 75 days | — |
-| Country risk premium edition | Semi-annual (Jan/Jul) | 7 months | 13 months | — |
-| Market rules | On change | 90 days since last check | 180 days | — |
+A single-source input, such as a country-risk edition, qualifies only through the C3.3 sampling rule; the internal-consistency checks are listed in Example 1.
 
-**Stale-figure detection and display.** Freshness is computed from `as_of_date` against the tolerance table, and additionally from *market events* (a price that has not changed while the index moved; a statement older than the latest filing announced on the exchange; an MPR unchanged across a scheduled MPC date). Display rule: a stale figure is rendered with its as-of date and a visible marker and is excluded from any computed value; a derived figure inherits the worst freshness of its inputs. The repository's hard-coded MPR of 27.50% would have shown as "expired" since February 2026 (F13).
+**Freshness thresholds.** The canonical table is **Doc 5c §4.3.2** (C3). The v0.1 table in this document conflicted with it (R05c M8; R05a m1) and is **withdrawn**. This document's contribution to the merge, for Doc 5c to decide:
+- *Fundamentals* should be judged against the filing calendar, not fixed day counts: `ageing` once the next filing is due under the registry's filing-deadline rule, and `stale` once it is overdue or a newer period has been published.
+- A *country-risk edition* is `fresh` for up to 7 months.
+- *Market events* also downgrade freshness: a price unchanged while the index moved, a newer filing announced on the exchange, or an MPR unchanged across a scheduled MPC.
 
-**Reviewer sign-off workflow.** Analyst (prepares note; writes invalidation conditions) → Quant check (recomputes every derived figure from stored inputs; checks units, currency consistency, real/nominal consistency, formula versions) → Independent data-quality check (confirms every mandatory input at V2+, freshness, corporate actions applied, rule registry values current) → Publication. Each stage records who/what signed and when; a note cannot be published with an open check. For the Personal MVP, the quant and data-quality checks are automated tests plus a mandatory human confirmation screen.
+**Note status is computed, never typed.** It is `invalidated` if any trigger has fired. Otherwise it is the worst F among the note's conclusion-driving inputs (`current` when that worst F is `fresh`). Display follows C3.4: a stale figure is shown with its badge and is excluded from conclusion-driving calculations, and a derived figure inherits the worst F and the minimum V of its inputs.
 
-**What must never be automated into a recommendation:** buy/sell/hold ratings; target prices; expected-return point estimates; tax positions; leverage or margin; order placement; any statement derived from inputs below V2; any figure produced by a language model rather than by a tool (System H restates computed values only, as text generated from the figure objects).
+The repository's hard-coded 27.50% MPR was **wrong when committed** on 2026-03-02: 26.50% had been in force since 24 February 2026, and 27.00% from 23 September 2025 (F13). The C3.5 entry-time check would have blocked it; a freshness rule alone would not.
 
-**Permitted language.** "Research view", "range", "scenario", "consistent with", "we could not establish", "as of <date> per <source>", "the price implies". Not permitted: "will", "guaranteed", "expected return of X%", "buy", "sell", "on track" (without the assumption in the same sentence), any figure without an as-of date. This is research and analysis, not investment advice; a regulated adviser must review before anything is relied upon or offered to third parties (brief §5.5).
+**Quant-check tests (run on every note; each is a CI test).**
+
+| ID | Test | Action on failure |
+|---|---|---|
+| Q1 | **Period alignment.** Every flow ratio uses one period (e.g. TTM to the same date). Stocks are dated at that period end (or its opening date, for averages). Share counts are weighted over the flow period | Block publication |
+| Q2 | Share count used for per-share figures matches the period (weighted for EPS; period-end for BVPS) and reflects every corporate action | Block |
+| Q3 | **Tax-effected normalisation.** Pre-tax items are never netted against post-tax profit. The tax attribution comes from the tax note; if the note is silent, both variants are shown | Block |
+| Q4 | **Sustainable growth.** g ≤ ROE × (1 − payout) at the declared payout. For justified P/B, the implied payout 1 − g/ROE lies in [0, regulatory distributable cap] | Cell marked "inconsistent" with the reason |
+| Q5 | g < k and ROE > g in every cell | Cell shows "n/a (g ≥ ROE)" |
+| Q6 | The **grid equals the stored route outputs** (§4.4); no hand-set column | Block |
+| Q7 | Currency, inflation and real/nominal consistency. The inflation in g equals the inflation in that column's k | Block |
+| Q8 | Units and scale consistency | Block |
+| Q9 | Header status computed from inputs; regulatory thresholds read from registry rows | Block |
+
+**Reviewer sign-off workflow.**
+1. The analyst prepares the note and writes the invalidation conditions.
+2. The quant check runs Q1–Q9 and recomputes every derived figure from stored inputs.
+3. The independent data-quality check confirms C3 eligibility, freshness, corporate actions applied and registry rows current.
+4. The note is published.
+
+Each stage records who or what signed and when. A note cannot be published with an open check. For the Personal MVP, the quant and data-quality checks are automated tests plus a mandatory human confirmation screen.
+
+**Never automated into a recommendation:**
+- buy/sell/hold ratings;
+- target prices;
+- expected-return point estimates;
+- tax positions;
+- leverage or margin;
+- order placement;
+- any statement derived from inputs that are not conclusion-eligible (C3.4);
+- any digit written by a language model (C2: System H writes connecting text, and values arrive as tokens).
+
+**Permitted language.** Permitted: "research view", "range", "scenario", "the price implies … under assumptions …", "we could not establish", "as of <date> per <source>". Not permitted:
+- "will", "guaranteed", "expected return of X%";
+- "buy", "sell", "hold";
+- "on track", unless the assumption is in the same sentence;
+- any figure without an as-of date;
+- **and, new in v0.2, any phrasing that ranks price against value as a call**: "overvalued", "undervalued", "cheap", "expensive", "attractive", "upside" or "downside to fair value", "not consistent with … at any …". v0.1's own Example 1 view was a call by paraphrase (R05a M7).
+
+Every note, research view and constraint rule carries `advice_sensitive: true`. This is research and analysis for the founder's own use, which is outside the SEC Nigeria and UAE CMA perimeters per Doc 6 §4.6. Offered to another person, security-specific output would be regulated advice (Doc 6 F35, F36). Legal must approve the exact wording and the linter's list before any such use (brief §5.5).
 
 ### 4.11 Worked examples (ALL NUMBERS SYNTHETIC)
 
