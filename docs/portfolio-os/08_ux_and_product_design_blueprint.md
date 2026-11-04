@@ -77,3 +77,275 @@ Evidence grades follow the Context Brief (E1–E6). Source numbers refer to §10
 
 **F16 — The AI assistant's value depends on explanation forms people actually ask for. (E2.)** Users want "why", "why not", "what if" and "how confident" questions answered, in that order of frequency [S18, S21]; explanations that are complete but not overwhelming build the most accurate mental models [S17]; guidelines for human–AI interaction stress making clear what the system can do, how well, and supporting efficient correction [S19]; explanation should be contrastive and selective rather than exhaustive [S20]. Implication: the assistant's entry points are phrased as those four questions, and every answer carries a Working panel (§4.2.4).
 
+## 4. Proposed framework / specification for Portfolio OS
+
+### 4.1 Design principles and the two universal components
+
+**Ten binding principles** (each traceable to §3):
+
+| # | Principle | Evidence | Testable consequence |
+|---|---|---|---|
+| P1 | Infer before asking; ask only at the moment a fact changes a number | F1, F16 | First-run contains zero free-text questions before the first upload is parsed |
+| P2 | Every figure carries an evidence strip | Brief §1, F3 | No numeral is rendered without source, as-of, currency and status fields present in the data contract |
+| P3 | Two disclosure levels per domain | F1 | Any datum is ≤ 2 taps from its domain summary or reached via a cross-link |
+| P4 | Uncertainty as counted futures with ranges and the size of adjustment | F4, F5 | No single "probability of success" is shown without the dotplot and adjustment framing |
+| P5 | Currency honesty: native amount, base-currency value, and FX effect separated | F6, F11 | Every period change has a "what you did / what FX did" decomposition |
+| P6 | Horizon-appropriate feedback: long horizons by default, short on request | F6 | Portfolio summary defaults to 1-year and since-inception views; daily P&L is a detail-layer element |
+| P7 | Observation, not judgement: no labels, scores, streaks or peer comparisons | F7–F9 | Copy lint rejects the banned vocabulary (§4.7) |
+| P8 | Reversible by design: every inference and correction can be undone | F2 | Undo available for 30 days on all ledger edits |
+| P9 | Explanations are verifiable and contrastive, with inputs shown | F3, F16 | Working panel present on 100 percent of assistant answers containing numbers |
+| P10 | Accessible and light by default | F14 | WCAG 2.2 AA audit passes; initial route ≤ 300 KiB compressed JavaScript |
+
+**Component A — the evidence strip.** Rendered beneath or beside any figure. Fields (data contract to be agreed with Doc 4 and Doc 7): `source` (institution or feed name, with licence class), `as_of` (timestamp, displayed relative and absolute: "as of 2 Nov, 17:40 WAT"), `unit_currency`, `validation` (Validated / Unvalidated / Stale / Conflict / Estimated), `confidence` (only for inferred facts: High ≥ 0.9, Medium 0.7–0.9, Low < 0.7 — thresholds are an E5 engineering assumption to be calibrated against correction rates), `method` (link to the calculation record). Visual states: Validated — normal numerals; Estimated — italic numerals plus "est."; Stale — grey numerals, "stale" chip, derived figures that depend on it inherit the chip; Conflict — amber chip, figure shown as a range of the conflicting values; Unvalidated — figure shown but never used in totals until confirmed. Text wireframe:
+
+```
+NGN 12,600,000.00   ·   Validated   ·   NG Bank statement p.3   ·   as of 31 Oct 2026   ·   How was this calculated? ›
+```
+
+**Component B — the Working panel.** Attached to every assistant answer and every derived figure. Shows (1) the inputs as a table with their own evidence strips, (2) the operation performed by a deterministic tool (name, version, parameters), (3) assumptions used, each flagged "default — change?", (4) what was *not* known, (5) a "Recompute" action. The model may paraphrase; it never produces the number (Doc 7 to enforce tool-only arithmetic).
+
+**Prohibited patterns (design-review checklist, derived from F8).** Confirmshaming copy; pre-ticked consents; countdowns or scarcity cues; celebratory animation after any financial action; leaderboards or peer rankings; streaks and badges; drip-disclosed fees or FX spreads; interstitials that delay reaching one's own data; opt-out defaults for data sharing; nagging after a declined intervention (one decline silences that intervention for 90 days); any colour-only encoding of gain/loss.
+
+**Worked example (synthetic) — the FX decomposition behind P5.** NGN current account: opening NGN 12,000,000, closing NGN 12,600,000; USD/NGN 1,530 at the start of the month and 1,480 at the end (synthetic rates). In USD base: opening USD 7,843, closing USD 8,514, total change +USD 670. Decomposition at closing rate: transactional ("what you did") +USD 405; revaluation of the opening balance ("what FX did") +USD 265. Shown as:
+
+```
+NG Bank · NGN current            Oct 2026
+Balance   NGN 12,600,000  (USD 8,514 at 1,480 NGN/USD, as of 31 Oct)
+Change    +USD 670  =  +USD 405 from your transactions  ·  +USD 265 from the naira strengthening
+          Rates: CBN/NAFEM closing, as of 31 Oct 2026 · Why two numbers? ›
+```
+
+The AED account over the same period moves from AED 85,000 to AED 79,500 (USD 23,145 to 21,647; change −USD 1,498, FX effect nil under the peg). A net-worth view that did not separate these would attribute a naira move to behaviour.
+
+### 4.2 Information architecture
+
+**4.2.1 Domains.** Eight top-level areas: Overview, Transactions (ledger and review queue), Insights (behavioural), Investments (holdings, risk, research), Goals (Goal Reality Engine and planning scenarios), Taxes, Documents (uploads, parsing status, provenance), Settings (profile facts, currencies, privacy, data). The assistant is not a ninth area: it is a drawer available on every screen, pre-filled with the context of the current object.
+
+**4.2.2 Navigation model.** Desktop: persistent left rail with the eight areas; content pane with summary layer on top and detail layer below (collapsed sections, not new pages); right-hand inspector for the selected object (its evidence strip, links, history). Mobile: bottom bar with five items (Overview, Transactions, Investments, Goals, More) and the assistant as a floating entry; same two layers vertically. Global: command palette (`/`) for keyboard users; search across transactions, securities, documents and settings.
+
+**4.2.3 Cross-linking.** Every object exposes its relations so a user can traverse: transaction → category → budget line → spending pattern (insight) → tax relevance (for example interest income or a deductible item, per Doc 6), and back. Links are rendered as a breadcrumb trail of chips at the top of the detail layer ("Transaction › Category: Utilities › Budget: Housing (Lagos) › Pattern: bills cluster after salary › Tax: not relevant").
+
+```mermaid
+graph TD
+  OV[Overview] --> TX[Transactions]
+  OV --> IN[Investments]
+  OV --> GO[Goals]
+  OV --> TXS[Taxes]
+  OV --> BI[Insights]
+  TX --> RQ[Review queue]
+  TX --> CAT[Categories and budgets]
+  CAT --> BI
+  BI --> INT[Optional interventions]
+  TX --> TR[Transfers and duplicates]
+  TX --> TXS
+  IN --> HOLD[Holdings and exposure]
+  IN --> RISK[Risk view]
+  IN --> RN[Research notes]
+  RN --> PROV[Provenance and freshness]
+  IN --> GO
+  GO --> SIM[Goal simulation]
+  SIM --> PROV
+  TXS --> CHK["Cannot-know-from-statements checklist"]
+  DOC[Documents and uploads] --> TX
+  DOC --> IN
+  DOC --> PROV
+  SET[Settings and privacy] --> DOC
+  AI((Assistant drawer)) -.-> OV
+  AI -.-> TX
+  AI -.-> IN
+  AI -.-> GO
+  AI -.-> TXS
+  AI -.-> BI
+```
+
+**4.2.4 "AI explain" entry points.** Four fixed verbs appear wherever a figure or insight is shown, matching the question types users actually ask (F16): **Why?** (what drove this number), **Why not?** (why a transaction was not matched, why a goal is not on track), **What if?** (opens the relevant scenario control pre-filled), **How sure?** (opens the evidence strip and the confidence rationale). Free-text questions are allowed but are routed through the same tools. The answer format is fixed: one-sentence answer with the number and its evidence strip; two to four bullet drivers; the Working panel; "What I could not know" line; optional next action. Example (synthetic):
+
+> **Why did spending rise in October?** Spending was NGN 1,420,000, NGN 145,000 above your six-month average (NGN 1,275,000). Drivers: school fees NGN 180,000 (annual, last seen Oct 2025); fuel and generator NGN 62,000 above average. Excluding school fees, October was NGN 35,000 *below* average. *Working:* 212 transactions, NG Bank statement Oct 2026 (validated), categories as confirmed by you on 3 Nov. *Not known:* whether the fees are for one term or the year.
+
+### 4.3 Onboarding by inference
+
+**4.3.1 First-run flow.** The only required action is uploading at least one statement (PDF, CSV or XLSX; multiple files at once; password-protected PDFs prompt for the password locally and do not store it unless asked). Everything else is proposed.
+
+```mermaid
+flowchart LR
+  A[Upload statements] --> B[Parse and detect format]
+  B --> C{Parsed?}
+  C -- no --> C1[Show page and reason; offer CSV export guide or manual column mapping]
+  C -- yes --> D[Propose provisional facts with confidence]
+  D --> E[User confirms, corrects or skips each card]
+  E --> F[Ledger built; evidence strips live]
+  F --> G[Overview shown with Estimated flags where facts unconfirmed]
+  G --> H[Just-in-time questions when a fact first changes a number]
+  E --> I[Corrections logged as training signal and rule updates]
+```
+
+**4.3.2 What is inferred, how it is shown, what it asks.** Confidence words follow the thresholds in §4.1 and are always accompanied by the evidence count ("seen 6 of 6 months").
+
+| Proposed fact | Inference basis (Doc 4 to specify algorithms) | Card copy (synthetic) | If confidence Low |
+|---|---|---|---|
+| Accounts and currencies | Statement header, IBAN/NUBAN format, currency codes | "We found 3 accounts: NG Bank NGN current, UAE Bank AED current, US Broker USD. Correct?" | Ask user to name the account; never guess the institution |
+| Salary or regular income | Same counterparty, similar amount, monthly cadence | "Income of about NGN 1,850,000 arrives around the 25th each month — seen 6 of 6 months. Treat as salary?" | Shown as "regular inflow" without the word salary |
+| Recurring bills | Cadence, counterparty, amount variance | "12 recurring payments found (rent, DEWA, data, school fees…). Review list ›" | Listed under "possibly recurring" |
+| Own-account transfers | Amount and date match across accounts, FX tolerance, descriptor cues | "NGN 3,000,000 out on 2 Oct and USD 1,960 in at US Broker on 3 Oct look like the same money (rate 1,531). Mark as transfer?" | Both legs stay in the review queue, excluded from spending totals until resolved |
+| Investment contributions | Transfers to known brokers or CSCS/NGX descriptors | "USD 800 to US Broker on the 5th monthly looks like an investment contribution" | Classified as transfer, not spending |
+| Duplicates | Hash of date, amount, descriptor across overlapping statements | "Two files cover 1–15 Oct; 41 duplicates removed. Show ›" | Kept, flagged |
+| Base currency | Majority of income currency | "Show totals in NGN? (most income is NGN). You can change this any time." | Ask |
+
+**4.3.3 How corrections teach the system.** Each correction is a typed event (`fact_id`, old, new, scope: this item / this counterparty / all similar) stored in the ledger's audit trail (Doc 4) and used to (a) create a user rule immediately, (b) adjust confidence calibration for that fact type, and (c) feed Doc 4's classifier evaluation. The user sees the consequence at once: "Applied to 11 similar transactions — undo". Correction rate per 100 proposals is a first-class product metric (§4.9).
+
+**4.3.4 The minimum questions that cannot be inferred, and when to ask.**
+
+| Question | Why statements cannot answer it | When asked | Default while unanswered |
+|---|---|---|---|
+| Tax residency and days present per jurisdiction (Doc 6 to define) | Residency is a legal status, not a cash flow | The first time a figure's tax treatment would change the display (for example interest income on an NGN savings account), or when opening Taxes | Taxes area shows "Not yet determined"; no tax amounts computed |
+| Employment type and employer location | Needed for PAYE vs self-assessment logic | Same trigger as above | Income shown as "regular inflow" |
+| Goals (amount, currency, date, purpose, flexibility) | Preferences | When opening Goals, or when the user asks "can I afford…" | No goal probabilities displayed |
+| Risk-capacity facts (dependants, emergency reserve months, insurance, debts not on statements, expected income stability) | Partly inferable (reserve months) but legally and ethically must be confirmed | When the first investment or goal simulation is requested; shown with the inferred values pre-filled for confirmation | Simulation runs but is labelled "capacity facts unconfirmed" |
+| Citizenship and visa status | Affects UAE/Nigeria obligations and account access | Only when Doc 6 logic needs it | Not asked |
+| Consent choices (analytics, cloud processing of documents) | Legal requirement (F15) | At first upload, as separate unticked choices | Off |
+
+Design rule: a question is asked once, in context, with "why we ask" and "what changes if you skip" sentences, and is never repeated in a wizard. The founder's profile facts live in Settings › Facts about you, each with its own evidence strip ("You told us on 3 Nov 2026").
+
+### 4.4 End-to-end journeys (synthetic data; the user is "the founder", devices unknown — desktop assumed unless stated)
+
+**Journey 1 — First upload and reconciliation (desktop, 25 minutes).** The founder drops five files: NG Bank NGN statements for May–October 2026 (two PDFs, password-protected), UAE Bank AED statement (PDF), US Broker activity CSV, and a Nigerian savings-app statement (PDF). *Screens:* Documents › Upload (progress per file, "page 3 of 14 parsed"); one PDF fails on a scanned page and the error names the page and offers "export CSV from your bank app" instructions. *Proposals:* 3 accounts (High), salary NGN 1,850,000 around the 25th (High, 6 of 6 months), 12 recurring bills (9 High, 3 Medium), 7 own-account transfers (5 High, 2 Low), 41 duplicates (High), base currency NGN (asked). The founder corrects one: "USD 1,960 in at US Broker" was a client payment, not a transfer; the system asks whether to treat future inflows from that counterparty as income (scope choice) and logs the correction. *Explanations:* each card shows "seen in" counts and the matched lines. *Overview* appears with two figures marked Estimated (AED balance, because the statement ends 15 Oct) and the stale chip on the AED/NGN rate (last fetched 31 Oct). *Success criteria:* ≥ 90 percent of proposals accepted without edit; time to first Overview ≤ 30 minutes; zero free-text questions before the first proposal; the founder can state, unprompted, which numbers are estimates (comprehension probe, §4.9).
+
+**Journey 2 — Monthly financial review (mobile then desktop, 15 minutes).** On 3 November a quiet notification (opted in, monthly) says "October is ready to review — 14 items need you". *Mobile screens:* Overview summary (net worth in NGN with FX decomposition; income; spending vs six-month average; savings rate; goals status line; "14 to review"); Review queue in swipe-free list form (tap to resolve; no gamified clearing). *Desktop:* Budget and cash-flow view shows October spending NGN 1,420,000 against the NGN 1,275,000 average, with the school-fees annual item separated so the recurring baseline reads NGN 1,240,000. The assistant's "Why?" answer is the example in §4.2.4. The founder asks "What if school fees are for the whole year?" — the scenario control spreads NGN 180,000 over 12 months and the monthly surplus mean becomes NGN 551,667 ± 75,093 (six-month mean and standard deviation). *Success criteria:* review completed in one session; Single Ease Question ≥ 6/7; no figure displayed without an evidence strip; the founder correctly recounts the FX versus real decomposition of net worth change.
+
+**Journey 3 — "Can I afford this, and what does it do to my goal?" (mobile, 5 minutes).** In Dubai, the founder considers a AED 14,000 purchase. From Goals, "Can I afford…?" takes amount, currency and date. *Data shown:* liquid balances by currency after committed bills for the next 30 days (AED 79,500 minus AED 23,400 committed = AED 56,100 free; NGN and USD shown separately, with the caution that moving NGN to AED would cost a quoted spread — shown in AED first, percentage second); effect on the emergency reserve (from 5.8 to 5.1 months of baseline spending); effect on the USD 100,000 goal: "In 60 of 100 simulated futures you reach USD 100,000 by Nov 2031 today; after this purchase, 57 of 100 — a small change, because the purchase is from AED cash, not from contributions." *Explanation:* the Working panel lists balances, committed items and the simulation version. *Success criteria:* answer in ≤ 3 taps; the founder can say which currency the money would come from and what the goal effect is; no "yes/no" verdict is given by the system — it shows consequences and the user decides.
+
+**Journey 4 — A behavioural insight is surfaced (desktop, 4 minutes).** Insights shows one new card: "Pattern — observed over 6 months: 38 percent of discretionary spending happens in the 4 days after salary arrives (NGN 310,000 of NGN 815,000 per month on average)." Evidence level per Doc 3's scale (card shows "Statistically measurable pattern — 6 months, 212 transactions; not yet a stable trait"). Alternative explanations are listed by default: bills are also paid in those days and may be mis-categorised; salary timing coincides with month-start school and household purchases; the pattern may simply reflect when money is available. The card asks nothing. A collapsed "If you want to test something" section offers one opt-in self-experiment (for example, a standing transfer to savings on salary day for two months, with the measurement plan: compare post-salary discretionary spending before and after, with the confounders named). *Success criteria:* the founder rates the card as non-judgemental (Likert ≥ 4/5), can repeat the alternative explanations, and chooses freely; no card uses the words in the banned list (§4.7).
+
+**Journey 5 — Investment research on an NGX or US stock (desktop, 20 minutes).** The founder opens Investments › Research and searches an NGX-listed bank (synthetic "NGX: BANKX") and a US name. *Research note view:* price and change with evidence strip (NGX closing price as of 3 Nov 2026 16:30 WAT, source and licence shown); fundamentals table with per-field as-of dates (half-year results, filing date, "Q3 not yet filed"); valuation ratios computed by tool with inputs listed; dividend history with ex-dates; macro context (the policy rate with its decision date and next MPC date, flagged "stale" if past). The US name shows an intraday price marked "delayed 15 min" and fundamentals from the latest 10-Q with the filing date. One field — analyst consensus — shows **Unvalidated: single unofficial source** and is excluded from any computed figure. A conflict state appears where two sources disagree on shares outstanding; the note shows both values and the range of the resulting market capitalisation. The assistant's note ends with "What I could not verify" and never with a buy/sell verdict. *Success criteria:* every figure in the note has a provenance badge; stale and conflict states are noticed by the founder in a seeded test (≥ 80 percent detection); no sentence states a return expectation as fact.
+
+**Journey 6 — Goal Reality Engine for "USD 100,000 targeting X percent" (desktop, 15 minutes).** Inputs (pre-filled from the ledger, confirmed): current USD investments USD 35,000; contributions USD 800/month; horizon 60 months; three candidate structures from Doc 5's instrument list. Outputs (synthetic, 20,000 paths, seeded, assumptions visible — nominal expected return and volatility are placeholders for Doc 5's validated parameters): a 60/40 global portfolio at 7 percent nominal and 11 percent volatility reaches USD 100,000 in **60 of 100** futures (10th–90th percentile USD 83,000–134,000; median USD 105,000); an all-equity structure at 9 percent and 17 percent volatility reaches it in 63 of 100 futures but with a wider spread (USD 77,000–160,000); a USD money-market structure at 4 percent reaches it in 0 of 100 (ends near USD 95,000–97,000). The screen then answers the question actually being asked: the return required to hit the target exactly with these contributions is about 5.2 percent a year nominal, and raising contributions to USD 1,000 and USD 1,200 per month moves the count to 84 and 95 of 100 futures respectively — the contribution lever dominates the return lever at this horizon. The target "X percent" is shown against the distribution rather than promised; the "size of adjustment" line reads "if you are in the lower third of outcomes, you would need to add about USD 150–300 a month in the last two years or extend by 8–14 months." *Success criteria:* the founder can state the probability as a frequency, the range, and the lever that matters most; no screen shows a single success percentage alone; the assumptions registry is opened at least once in testing.
+
+**Journey 7 — Tax-season preparation (desktop, 30 minutes; licensed review required).** Taxes shows two columns, Nigeria and UAE, each with "What we can compute from your records" and "What we cannot know from statements". Computable (per Doc 6's logic, with its effective dates displayed): interest income by account and currency, dividend receipts with withholding shown on the statement, capital transactions with dates and amounts, rent and other recurring items that may be relevant. The checklist of what statements cannot reveal: residency days, employment status and employer filings, allowances and reliefs claimed, assets held outside uploaded accounts, cash income, the tax treatment of specific instruments, and whether a figure is gross or net where the statement is silent. Each item has a status (Confirmed by you / Unknown / Practitioner to review). The workspace exports a filing-preparation pack with every figure carrying its evidence strip, and a prominent banner: "Prepared from your records; a licensed tax practitioner must review before filing." Nothing is filed from the product in the MVP. *Success criteria:* the founder can distinguish computed from unknown items; export contains zero figures without provenance; the practitioner banner is visible on every Taxes screen.
+
+### 4.5 Screen and component specifications (text wireframes; states listed per screen)
+
+Common states for every screen: *loading* (skeleton with the as-of of the last good data visible), *empty* (what to upload to populate it, one action), *stale* (grey numerals and chip; recompute offered), *error* (named cause, manual path), *offline* (last synced time; all read actions available; writes queued).
+
+**4.5.1 Overview dashboard.**
+```
+┌ Overview ──────────────────────────────── base: NGN ▾  as of 3 Nov 2026 09:10 WAT ┐
+│ Net worth  NGN 164.2M  (+NGN 2.1M in Oct: +1.3M yours · +0.8M FX)   [evidence strip] │
+│ Income Oct NGN 1.85M · Spending NGN 1.42M (6-mo avg 1.28M) · Saved 23%             │
+│ Goals: USD 100k by Nov 2031 — 60 of 100 futures  ·  Emergency reserve 5.8 months    │
+│ To review: 14 items  ›      Insights: 1 new observation  ›    Taxes: residency not set│
+├ Detail (collapsed sections) ─────────────────────────────────────────────────────────┤
+│ ▸ Accounts by currency   ▸ Cash-flow last 6 months   ▸ Holdings   ▸ Upcoming bills   │
+└──────────────────────────────────────────────────────────────────────────────────────┘
+```
+Rules: maximum seven figures in the summary; compact notation ("164.2M") allowed here only, full numerals in all tables; each figure deep-links to its domain detail.
+
+**4.5.2 Transaction ledger with review queue.** Dense table (date, description as printed, counterparty as resolved, amount native, amount base, category, account, status chip, links). Review queue is a filtered view, grouped by reason (Unmatched transfer leg, Low-confidence category, Possible duplicate, New counterparty, Currency conversion unclear). Bulk actions: accept all High, assign category to counterparty, mark as transfer. Keyboard: `j/k` move, `a` accept, `c` categorise, `t` transfer, `u` undo. Row density toggle (comfortable/compact). State: "Queue empty — nothing needs you" with no celebration graphic.
+
+**4.5.3 Transfer and duplicate resolution.**
+```
+┌ Possible transfer ──────────────────────────────────────────────────────┐
+│ OUT  2 Oct  NG Bank     −NGN 3,000,000  "TRF TO US BROKER"               │
+│ IN   3 Oct  US Broker   +USD 1,960      "WIRE IN"                        │
+│ Implied rate 1,531 NGN/USD · market 1,528–1,534 that day · fee NGN 2,500?│
+│ Confidence: Medium (amount within 0.3%, 1-day lag, descriptor match)    │
+│ [ Same money — mark transfer ]  [ Different — keep both ]  [ Not sure ]  │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+Duplicates show both source documents side by side with the overlapping date range highlighted.
+
+**4.5.4 Budget and cash-flow view.** Horizontal bars by category against a six-month baseline (not a user-set target unless one exists); annual or irregular items split out; "committed next 30 days" list; waterfall from income to surplus. Baseline bars use the neutral palette; over-baseline shows an outline, not red fill.
+
+**4.5.5 Net worth across currencies.** Stacked bars by currency in base terms, with a toggle "show in native currencies" that renders three small multiples; change decomposition table (transactions / FX / market moves / unknown residual, with the residual shown rather than forced to zero); rate source and as-of for each currency pair.
+
+**4.5.6 Behavioural insight card.**
+```
+┌ Observation ───────────────────────────────────────────────── evidence: Pattern ■■□ ┐
+│ 38% of discretionary spending happens in the 4 days after salary arrives.             │
+│ Basis: 6 months, 212 transactions, categories you confirmed. See the transactions ›   │
+│ Other explanations we cannot rule out:                                                │
+│  • Bills fall in those days too and some may be mis-categorised                       │
+│  • Month-start school and household purchases coincide with salary                    │
+│  • Spending follows availability of money, which is ordinary                          │
+│ ▸ If you want to test something (optional)                                            │
+│ [ Useful ] [ Not useful ] [ Hide this kind of observation ]                           │
+└───────────────────────────────────────────────────────────────────────────────────────┘
+```
+Evidence-level indicator maps to the Brief's taxonomy: ■□□ Observed (a single fact), ■■□ Pattern (statistically measurable), ■■■ Supported explanation (Doc 3 grade E1–E2 with the specific study cited). Hypotheses are shown only inside the "test something" section, never as the headline. No card is shown with fewer than Doc 3's minimum data window.
+
+**4.5.7 Portfolio exposure and risk view.** Summary: value in base, allocation by asset class, currency exposure (look-through, with the share of wealth exposed to NGN moves stated plainly), top-five concentration, 1-year volatility and maximum drawdown with as-of. Detail: correlation matrix (ordered, diverging palette, numbers printed in cells), drawdown chart, risk-adjusted measures with the window and benchmark named. Daily change is present but third in order and de-emphasised (P6).
+
+**4.5.8 Research note view.** Header with security, exchange, currency, price and badge row (Validated / Delayed / Stale / Conflict / Unvalidated); sections: Business, Financial statements (per-field as-of), Valuation (computed, inputs listed), Dividends, Risks, Macro context, "What could not be verified", Sources. Each number has a hover/tap evidence strip; conflicting values are shown as a range. No rating, target price or recommendation component exists.
+
+**4.5.9 Goal simulation view.**
+```
+┌ USD 100,000 by Nov 2031 ────────────────────── assumptions ▾  version sim-0.3  ┐
+│ In 60 of 100 simulated futures you reach the goal.                              │
+│  ●●●●●●●●●●●●●●●●●●●●  (20 dots = quantiles of final value, k USD)             │
+│  74 81 85 89 91 94 96 99 |101 104 106 109 111 114 117 121 125 130 138 151        │
+│ Middle half of outcomes: USD 93k–119k · Lower tenth below USD 83k               │
+│ If you land low: add ~USD 150–300/month in the last 2 years, or wait 8–14 months │
+│ Biggest lever: contributions (USD 1,000/mo → 84 of 100)  ▸ Try it               │
+│ [ Show 20 possible paths (animated) ]  [ Compare structures ]  [ Why these odds? ]│
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
+Required return to hit the target with current contributions is shown as a plain number with "this is not a forecast" copy; the "X percent" the user named is placed on the distribution ("a 12 percent average return sits above 80 of 100 historical five-year windows for this structure — Doc 5 to supply the actual base rate").
+
+**4.5.10 Tax workspace.** Two jurisdiction columns; per item: figure, evidence strip, status (Confirmed / Unknown / Practitioner to review); the "cannot know from statements" checklist pinned at top; rule effective dates visible ("rule in force from 1 Jan 2026 — checked 4 Nov 2026" to be populated by Doc 6); export pack; permanent practitioner banner.
+
+**4.5.11 Data-provenance and freshness indicators.** The evidence strip (§4.1) plus a Documents › Sources page listing each feed and file, its licence class, last successful refresh, failure count, and the figures that depend on it; a global "freshness" indicator in the header shows the oldest input currently on screen.
+
+**4.5.12 Empty, error and stale states.** Empty: one sentence on what to add and one button. Error: cause, where (file, page, field), what the system did (kept or discarded), manual path. Stale: numerals greyed, chip, "last good value as of…", recompute. Offline: banner with last sync; no features hidden that work on local data.
+
+**4.5.13 Settings and privacy controls.** Facts about you (each with "you told us on…", edit, delete); Currencies and base; Notifications (all off by default except parsing results; cadence choices weekly/monthly; no daily spending alerts offered in the MVP, F6/F7); Data: export everything (CSV and JSON, machine-readable, per NDPA/PDPL portability), delete everything (two-step, no retention dark pattern), where data is processed (local / cloud, per document), analytics opt-in with the exact event list shown; Access: device passcode or OS biometrics, session timeout; Assistant: allow or forbid cloud model calls per data class.
+
+### 4.6 Uncertainty display standard (applies to Monte Carlo, goal probabilities, forecasts, confidence of inferences)
+
+| Rule | Specification | Basis |
+|---|---|---|
+| U1 Frequency first | "N of 100 futures" with a fixed denominator of 100; percent in secondary text | F5 [S44–S47] |
+| U2 Distribution visible | Quantile dotplot of 20 dots (or 50 when space allows) as the default graphic; CDF available | F4 [S25, S26] |
+| U3 Range before point | Middle half (25th–75th) and lower tenth stated before any median | F4 [S23, S24] |
+| U4 Adjustment framing | Always pair the probability with the size of adjustment needed in low outcomes (currency and months) | F4 [S40] |
+| U5 Animated paths on demand | Hypothetical outcome plots behind a button, with pause/stop controls, static fallback | F4 [S27, S28]; WCAG 2.2.2 |
+| U6 No fan-chart-only displays | Fan charts allowed only with the dotplot beside them and a caption that widening means uncertainty, not growth | F4 [S33, S34] |
+| U7 Assumptions registry | Every simulation shows its parameters, their source and as-of, and a version id; changing one re-runs and shows the delta | Brief §5.1; F3 |
+| U8 Honest zero | When a structure cannot reach the target, say "0 of 100" and why (contribution arithmetic), not "unlikely" | F4 [S22] |
+| U9 Inference confidence | High/Medium/Low words with the evidence count; numeric confidence available on hover; calibration reviewed quarterly against correction rates | F3 [S10] |
+| U10 Never alone | No single probability, score or gauge appears without U2–U4 within the same view | F4, F8 |
+
+### 4.7 Copy principles and tone
+
+Principles: plain English at a reading level suitable for a general adult audience; expand terms on first use; active voice; lead with the effect on the reader; numbers per GOV.UK conventions (numerals, commas, no spurious decimals, "million" in words in prose, "%" with numerals, dates as "3 November 2026") [S109]; never patronise, never joke about money, own mistakes once and plainly [S110]; every assumption stated in the sentence that uses it ("using the CBN closing rate of 1,480 on 31 Oct"); every time-sensitive figure carries "as of".
+
+Banned vocabulary (lint rule): over-spender, under-saver, bad habit, guilty, splurge, treat yourself, you should, on fire, streak, badge, level up, congratulations (for financial actions), guaranteed, expected return (without "assumed"), will grow to, on track (without the frequency), score.
+
+Preferred patterns: "We noticed… " (observation), "One explanation… another… " (alternatives), "If you want to test…" (intervention), "We could not tell from your statements whether…" (unknowns), "This is an assumption you can change" (defaults).
+
+Sample strings: error — "We could not read page 7 of NG-Bank-Oct-2026.pdf (it looks scanned). The other 13 pages were used. You can export a CSV from the bank app and upload it, or type the 6 missing lines."; stale — "Price as of Fri 31 Oct, 16:30 WAT. Markets have traded since; values that depend on it are marked stale."; consent — "Send document text to a cloud model for parsing? Off by default. If off, parsing runs on this device and may be slower."
+
+### 4.8 Accessibility, performance, localisation and design system
+
+**Accessibility (WCAG 2.2 AA as the floor [S111]).** Contrast ≥ 4.5:1 for text, ≥ 3:1 for chart marks and UI boundaries; targets ≥ 24×24 CSS px everywhere and ≥ 44 px for primary mobile actions (platform guidance commonly cited; Apple page not retrievable at access time); all chart information available as a table (toggle on every chart); colour never the sole channel — sign, arrow glyph and label accompany colour; focus visible and never obscured by sticky headers; no redundant entry in onboarding (3.3.7); authentication by device biometrics or passkey, no cognitive puzzles (3.3.8); animations respect reduced-motion and HOPs have pause controls; screen-reader announcements for review-queue actions and undo; text resizable to 200 percent with tables reflowing to card lists.
+
+**Performance budgets.** Personal MVP (desktop web): LCP ≤ 2.0 s, INP ≤ 150 ms, CLS ≤ 0.05 on the founder's hardware; parsing of a 15-page statement ≤ 20 s with progress. Future Nigerian product (Android web/PWA first): tested on a Galaxy A24-class device over a throttled 9 Mbps/100 ms profile [S119]; initial route ≤ 300 KiB compressed JavaScript and ≤ 1.0 MiB total transfer; subsequent routes ≤ 100 KiB; Core Web Vitals at p75 within "good" [S118]; offline-first with local database, background sync, and a Data-saver mode (no automatic price refresh, SVG charts, no images or video); statement upload size shown before sending with an estimate of data cost at the user's tariff (E5 assumption: tariff entered by user or defaulted to the NCC floor [S100]).
+
+**Localisation.** Default locale `en-NG` for Nigerian users, `en-AE` for UAE, `en-US` otherwise; number and currency formats from CLDR via ICU [S107]; ISO currency codes in tables, symbols only when the glyph is verified in the shipped font; the new dirham sign U+20C3 adopted only after font coverage is confirmed [S106]; dates and times stored in UTC with the statement's time zone recorded (WAT UTC+1, GST UTC+4) and displayed in the user's zone; right-to-left readiness (logical CSS properties) for a later Arabic release; which Nigerian languages (Hausa, Yoruba, Igbo, Nigerian Pidgin) to support is unknown — founder and Doc 9/commercial team to decide on evidence of demand.
+
+**Design system approach.** Tokens: semantic colour roles (`positive`, `negative`, `neutral`, `estimated`, `stale`, `conflict`) mapped to an Okabe–Ito-derived palette (positive = blue #0072B2, negative = vermilion #D55E00, estimated = reddish purple #CC79A7, stale = neutral grey, conflict = orange #E69F00) [S113]; categorical chart series limited to six Okabe–Ito hues plus patterns; sequential and diverging scales perceptually uniform. Typography: a variable sans-serif with tabular lining figures enabled (`font-variant-numeric: tabular-nums`) for all numeric columns; right-aligned numbers with aligned decimal separators; minimum 14 px in tables on desktop, 16 px body on mobile; negative numbers with a true minus sign and parentheses optional via setting. Components: evidence strip, Working panel, confidence chip, state chips, dotplot, dense table, review card, insight card, jurisdiction column. Chart grammar: FT Visual Vocabulary categories as the selection rule [S117]; position-based encodings preferred, no pies or gauges [S114–S116].
+
+### 4.9 Validation plan
+
+**Phase 0 — heuristic and accessibility review (week 1 of any build).** Two reviewers apply the finance heuristics table (F2), the prohibited-pattern checklist and an automated WCAG 2.2 scan; defects logged by severity.
+
+**Phase 1 — n = 1 task-based protocol with the founder (first 8 weeks).** Weekly 45-minute sessions; think-aloud on the seven journeys with real files of the founder's choosing (processed locally); per task: success (binary, with assists counted), time, Single Ease Question (7-point) [S123], Paas mental-effort rating [S125]; monthly SUS [S120] and UMUX-Lite [S122]; comprehension probes after each explanation ("In your own words, what does 60 of 100 mean? What range of outcomes is likely? What would you change first?") scored against a rubric; a diary study [S131] using a two-question daily prompt ("Did you open Portfolio OS? Did anything surprise or confuse you?") for eight weeks. Feature-level evaluation uses n-of-1 logic [S132]: alternate conditions (for example dotplot-only versus dotplot plus HOPs; monthly versus weekly review prompts) in two-week blocks and compare comprehension and self-reported effort. Thresholds (indicative, not population claims): task success ≥ 90 percent unassisted by week 4; SEQ median ≥ 6; SUS ≥ 80 by month 2; correction rate on inferred facts ≤ 10 per 100 proposals by the third statement batch.
+
+**Phase 2 — 5–8 external users (before any multi-user release).** Recruit across the intended segments (Nigeria resident, diaspora, UAE resident; mixed numeracy using a short numeracy screen [S43]); five users per segment where segments differ materially [S129, S130]; same task protocol with synthetic statement packs; add a seeded-error block to measure appropriate reliance.
+
+**Instrumentation (privacy-preserving, opt-in, aggregate-only).** Events carry no amounts, counterparties, descriptors or document text — only event type, screen, duration, outcome and coarse counts. Local-first event store with user-visible log; export only aggregates; differential-privacy noise on any counts leaving the device if a multi-user service exists [S133]. Event list: `upload_started/parsed/failed` (with file type and page count bucket), `proposal_shown/accepted/corrected/skipped` (fact type, confidence bucket), `queue_item_resolved` (reason, action, time), `explain_opened` (verb, object type), `working_panel_opened`, `assumption_changed`, `stale_seen` and `stale_recomputed`, `insight_shown/rated/hidden`, `intervention_offered/declined/started/stopped`, `goal_sim_run` (version), `export_run`, `settings_privacy_changed`.
+
+**UX metrics that would show "remarkably easy" (HEART framing [S126]).** Happiness: SUS, UMUX-Lite, insight "useful" rate. Engagement: monthly review completed within 7 days of statement availability; median items in review queue after proposals. Adoption: share of accounts ingested; share of facts confirmed. Retention: months of consecutive reviews. Task success: unassisted success per journey; time to first Overview; corrections per 100 proposals; explanation comprehension score ≥ 80 percent; "what I could not know" recall.
+
+**Testing explanations for understanding and calibrated trust.** (1) Comprehension rubric above. (2) Seeded-error protocol in a clearly labelled sandbox: insert known-wrong inputs (a stale price, a transposed amount, an unvalidated field) into otherwise correct answers and measure detection when the evidence strip signals the problem; target ≥ 80 percent detection with signals, and record detection without signals as the baseline [S11–S13]. (3) Calibration: after each assistant answer in test sessions, ask "How confident are you this is right?" and compare with actual correctness; over-trust is a gap where stated confidence exceeds accuracy for flagged items. (4) A decision-first variant (user estimates before seeing the system's figure) in alternating blocks to see whether it improves calibration enough to justify the added effort [S12].
+
+**Limitations of this specification.** No behavioural claim in the cards is ours to make — Doc 3 owns the evidence levels and minimum windows; synthetic numbers in §4 are illustrations, not parameters; thresholds for confidence words and metric targets are E5 assumptions until calibrated; the device and connectivity context of the founder is unknown.
+

@@ -84,3 +84,232 @@ Each finding carries an evidence grade and source numbers. "Date seen" is 2026-1
 **F24. Language models restate and invent financial numbers unless constrained.** FinanceBench (arXiv:2311.11944, verified to exist via the arXiv API) reports that GPT-4-Turbo used with a retrieval system incorrectly answered or refused 81% of its questions in the authors' evaluation [S101]. The exact figure is quoted from the abstract as fetched on 2026-11-02 (see §10 note). (E2 — single study; benchmark-specific)
 
 **F25. Naming drift across the ecosystem is current and material.** NAFEX → NAFEM (2023) → "NFEM" on the CBN page [S22, S28]; SCA → CMA [S63]; Polygon.io → Massive [S75]; NGX Pulse → Kobo Terminal [S46]; TradingView lists the Nigerian exchange as "NSENG" with 30-minute delay, DFM/ADX 15 minutes, "real-time free after sign-up" for display [S51]; EODHD uses the MIC "XNSA" [S40]; the prototype uses Yahoo's `.LG` suffix and `^NGSEINDX` [S93]; ICE fee schedules that mention "NGX" refer to ICE NGX, the Canadian natural-gas exchange, not the Nigerian Exchange [S53]. (E2)
+
+## 4. Proposed framework / specification for Portfolio OS
+
+### 4.1 Source catalogue per market
+
+Columns: source · provides · official? · access · delay/freshness · history · licence and redistribution · cost (as seen, date) · reliability notes · verification status. "Checked" dates are 2026-11-02 unless noted. Abbreviations: EOD = end of day; RT = real time; CA = corporate actions; n.p. = not public; PI = personal/internal use; ND = non-display; RD = redistribution.
+
+#### 4.1.1 Nigeria
+
+| # | Source | Provides | Official? | Access | Delay / freshness | History | Licence & RD limits | Cost (as seen) | Reliability notes | Verified |
+|---|---|---|---|---|---|---|---|---|---|---|
+| N1 | NGX Market Data API v3 [S9, S10] | Prices RT/delayed/EOD, 10-yr OHLCV, dividends, index values/members, gainers/losers, news & CA, trade data, CapNet | Yes (exchange) | REST JSON/XML, token `_t`; subscribe via "Contact us" | RT; delayed 30 min; EOD; "intentionally delayed up to 3 minutes" note | Interday ≤10 yrs | Governed by Global Data Licence Agreement; no RD; ND fee separate; naira for local, USD for international end users [S6] | Annual: EOD prices NGN 125,000 / USD 1,000; Interday NGN 300,000 / USD 1,000; dividends NGN 250,000 (specific) / 600,000 (all); news & CA NGN 650,000 / USD 2,500; index values NGN 450,000 / USD 7,500 (page, 2026-11-02) | Docs contain malformed samples; no rate limits, no adjusted-price field, no schema published; individual eligibility unconfirmed | Reached; prices quoted verbatim |
+| N2 | NGX website Equities Price List [S11] | Prev close, O/H/L/C, change, trades, volume, value | Yes | Web table only | "Prices displayed on this website are delayed by 30 minutes" | Current day | Display only; policy forbids scraping/re-transmission [S5 §8.2.7] | Free to view | Table renders client-side ("Loading data…"); no export | Reached |
+| N3 | NGX X-DataPortal [S13] | RT L1/L2 trade floor, EOD statistics, historical equity L1 (generate & download), broker reports | Yes | Web portal, in-portal purchase | RT and historical | "Free access to 7 days Historical Price data" | Portal T&Cs (not read) | "affordable rate"; 2018 list: Equity L1 Historical query engine NGN 45,000 p.a. [S4]; 2026 list not itemised on page | No API; manual downloads | Reached (prices partly) |
+| N4 | NGX Historical Data (on request) [S8] | EOD quotes "as far back as 1996"; tick data 3 months | Yes | Request form, e-mail | Batch | 1996– | Internal use vs RD priced separately; RD of EOD historical NGN 1,250,000 / USD 5,000 p.a. [S3] | Price on application; students −50/−80% | Turnaround unknown | Page reached; policy PDF not reached [S7] |
+| N5 | NGX corporate disclosures / X-Issuer filings (doclib.ngxgroup.com) [S15, S16, S8] | Audited/unaudited statements, earnings forecasts, CA notices, directors' dealings, delistings [S14] | Yes | Web pages + PDF links; no API/RSS seen | Event-driven; issuers must file via X-Issuer (mandatory since 2022 per press) | Multi-year PDFs | Copyright of issuers/NGX; X-Gen News RD licence NGN 650,000 / USD 7,500 p.a. [S3] | Free to read | PDFs need parsing; delisting list uses mixed date formats ("2008", "7-May-2021", "5/20/2024") [S14] | Delisting page reached; X-Issuer FAQ snippet only |
+| N6 | CSCS daily price list [S17, S18] | Symbol, open, close, volume, value for NGX & NASD; bonds/CP/NTB directories | Semi-official (CSD) | Web table | "Market Numbers as of" 27 Oct 2026 seen on 2026-11-02 (i.e. 4 trading days old) | No archive | No data terms shown | Free to view | Useful free secondary for close/volume; staleness observed | Reached |
+| N7 | CSCS APIs & portal [S19, S20] | Account creation/validation, Portfolio View (holdings), detachment | Yes (CSD) | API via request form; investor portal | n/a | n/a | Participant agreement | Portfolio View (NGX) NGN 78,400 + VAT subscription, eff. 1 Jan 2026 | Not a price-data source; relevant for System A (holdings reconciliation) | Reached |
+| N8 | FMDQ Exchange website & e-Markets [S23, S25] | FGN bond, T-bill, CP quotations; NITTY, NIBOR; FX closing (table blank when seen); bond futures | Yes | Web; e-Markets portal (registration, 2-week trial, Q-Pay) | Homepage quotes dated T-1/T-2; delayed tiers 24 h | Historical via portal/licence | FMDQ T&Cs; RD licences [S21] | Non-member EOD Fixings (Single) NGN 161,250; Daily Quotations List NGN 322,500; API EOD end user NGN 322,500 p.a. (2023 framework, VAT-incl., "subject to change") | Methodology republishes previous close on thin data [S22] | Fees PDF extracted; sub-pages 503 |
+| N9 | CBN Data & Statistics [S27–S31] | NFEM official FX (VWAP, high/low/close, turnover), MPR, T-bill, deposit/lending rates, inflation, securities, reserves, crude | Yes (central bank) | Web tables + "Export to Excel"; Statistics Database | Daily (FX), monthly (others) | Long | No terms stated | Free | Tables render client-side; no API; naming NFEM vs NAFEM | Reached (structure); values not rendered |
+| N10 | Debt Management Office [S37, S38] | FGN bond auction results (monthly, PDF), issuance calendar, Eurobond daily prices (PDF/spreadsheet), savings bonds, sukuk, debt stock | Yes | PDF/spreadsheet downloads | Monthly / daily | Archive ≥ Apr 2025 visible, ~12 pages | Public documents | Free | PDFs; duplicate entries seen | Reached |
+| N11 | National Bureau of Statistics [S33, S34] | CPI (base 2024 = 100), GDP, labour; Open Data Portal, NADA | Yes | Web, PDF/e-library, ODP | Monthly CPI ~15th of following month | Rebased series from Jan 2025 | Public | Free | Back-series revisions observed (Sep-2025: 18.02% → 20.98%) | Reached |
+| N12 | SEC Nigeria | Regulatory registers, rules | Yes | Web | — | — | — | Free | Not a market-data source; not fetched this session | Not reached |
+| N13 | EOD Historical Data (XNSA) [S40, S41] | EOD prices, dividends/splits (per plan), fundamentals (separate plan) | No; "not using exchanges data feeds" | REST API | EOD; 15-min delayed live on free | 30+ yrs claimed generally; XNSA depth unstated | Personal vs Commercial/B2B plans; licence text not reached | Historian USD 19.99/mo; All-In-One USD 99.99/mo | 159 tickers; ETFs typed as Common Stock; accuracy disclaimer | Reached |
+| N14 | Mansa API [S44, S45] | NGX quotes, indices (ASI from 1996), dividends, disclosures, insider trades parsed from PDFs, fundamentals (weekly refresh) | No (not on NGX vendor list) | REST | "30-minute freshness during market hours" | Varies; JSE archive in cents | Terms/Licensing pages not read; Business tier "redistribution-lite" | Free 100 req/day; Starter USD 20; Pro USD 50; Business USD 200/mo | Sourcing not stated; useful filings cross-check | Reached |
+| N15 | Kobo Terminal (ex NGX Pulse) [S46] | NGX stocks, fundamentals, dividends, indices/ETFs, bonds, CBN auctions, disclosures, NASD, FX, news | No | REST | "30-min delayed and updated every 20 minutes" | Price history from Starter | "public availability does not grant commercial redistribution rights"; Professional adds commercial-use licence | NGN 0 / 29,000 / 75,000 / 350,000 per month | Sources named as "NGX chartdata", "cbn", Nairametrics/BusinessDay | Reached |
+| N16 | TradingView [S51] | Charts for "NSENG", 30-min delay; RT free after sign-up | No (licensed display vendor) | Browser only | 30 min | Charts | Display only; no API/download | Free tier | Not machine-readable | Reached |
+| N17 | Investing.com [S50] | Quotes/charts | No | Browser | Undisclosed; "not necessarily provided by any market" | — | Storing/reproducing prohibited | Free | Unsuitable as a source | Reached (footer terms only) |
+| N18 | Stears [S49] | Macro/country risk, private-market data for institutions | No | Platform, trial on request | — | — | "may not be reproduced … redistributed" | n.p. | Institutional; no API seen | Reached |
+| N19 | Nairametrics, Proshare, abokiFX-type aggregators [S39, S97] | News; parallel-market and NAFEM rate tables | No | Browser | Intraday | — | Publisher copyright | Free | Context and parallel-rate indication only | Partly reached |
+| N20 | Chaka / Bamboo / Trove | Retail brokerage apps | No (brokers, not vendors) | Apps | — | — | Customer terms | — | Not data vendors; developer APIs not verified (search budget exhausted) | Not reached |
+| N21 | Bloomberg / LSEG Workspace (cost ceiling) [S52, S12] | Full NGX RT/historical, filings, FX | Licensed vendors | Terminal / enterprise feeds | RT | Deep | Terminal licence; no RD | Aggregator estimates only: ≈ USD 22k–32k per user per year (unverified, not official) | Authorised NGX vendors [S12] | Pricing unverified |
+
+#### 4.1.2 United Arab Emirates
+
+| # | Source | Provides | Official? | Access | Delay / freshness | History | Licence & RD | Cost (as seen) | Notes | Verified |
+|---|---|---|---|---|---|---|---|---|---|---|
+| U1 | DFM MarketWatch / website [S55, S54] | Quotes, ticker, disclosures, CA pages | Yes | Browser; sign-in for RT | "Data delayed by 15 minutes" | Current | Disclaimer link; "DFM Fees List" PDF not rendered | Free view | Provider list did not render; developer portal "Filenotfound" [S57] | Reached (partial) |
+| U2 | DFM authorised data distributors (incl. LSEG) [S54, S58] | RT, delayed, historical, trade and market summary | Yes (via vendors) | Vendor feeds; LSEG DataScope (HTTP/SFTP/API) | LSEG: "free of charge 15 minutes delayed post-trade data" (snippet, ~439 days old) | Deep | Vendor contracts | n.p. | Enterprise-oriented | Snippet only |
+| U3 | DFM Disclosures page [S56] | Quarterly/annual financial statements, price-sensitive information; filters by type, company, date, keyword | Yes | Web; format and RSS/API not shown | Event-driven | Range unknown | Disclaimer | Free | Entries did not render ("Fetching Data…") | Reached (partial) |
+| U4 | ADX MCP server [S59, S61] | Live prices, L1 for all instruments, depth (paid), disclosures incl. XBRL, CA, history by tier | Yes (exchange) | MCP for Claude/ChatGPT; API keys | RT L1 on Starter; "real-time, delayed, or batch-based, depending on licensing" | Starter: current/last day; Premium: full depth | Entitlements by user/package/dataset; storage & RD terms unseen | Starter free (100 tool calls/mo); AED 9.99 / 29.99 / 49.99 per month; Premium 4,000 calls (price n.p.); Enterprise custom (press, 14 Aug 2026) | adx.ae blocked (403) to us; verify terms before use | Press report reached; exchange page not |
+| U5 | ADX via ICE / vendors [S62, S60] | L1–L3 MBO, RT/delayed/EOD/historical | Yes (via vendors) | ICE feeds/API/files | RT | Full tick | ICE licence | n.p. | Institutional | ICE page reached |
+| U6 | UAE Capital Market Authority (ex SCA) Open Data [S63] | Registers of licensed firms, funds, statistics, warnings, finfluencer list | Yes (regulator) | Web open-data pages; "Propose/Request Data" | Periodic | — | Open Data Policy (not read) | Free | No company-financials feed seen | Reached |
+| U7 | Central Bank of the UAE [S64] | Exchange rates (USD/AED peg), EIBOR, monetary statistics | Yes | Web/Excel (expected) | Daily/monthly | Long | Unknown | Free | HTTP 403 in this session; peg value 3.6725 observed via Frankfurter instead [S82] | Not reached |
+| U8 | FCSC / UAE Stat / Bayanat [S65, S66] | CPI, GDP, population; open-data API by resource GUID | Yes | Web; Bayanat GET endpoint | Monthly/quarterly | — | Terms not shown | Free | fcsc.gov.ae 403; Bayanat reached | Partly reached |
+
+#### 4.1.3 United States and international
+
+| # | Source | Provides | Official? | Access | Delay | History | Licence & RD | Cost (as seen) | Notes | Verified |
+|---|---|---|---|---|---|---|---|---|---|---|
+| I1 | SEC EDGAR APIs (submissions, companyconcept, companyfacts, frames) [S67–S69] | XBRL financial facts, filing index, tickers/exchanges | Yes | REST JSON, no key; bulk ZIP nightly ~3 a.m. ET | "updated in real-time as filings are disseminated" | Full XBRL era (2009–) | Public information; cite SEC; ≤10 req/s; declared User-Agent | Free | Facts are as-filed (restatements appear as new facts with later `filed` dates — keep vintages) | Reached |
+| I2 | FRED / ALFRED [S70–S72] | US macro, rates, some FX; vintages | Yes (Fed St. Louis) | REST with API key | Per series release | Long | Attribution notice mandatory; third-party series have own terms; no app that replicates FRED | Free | `series/vintagedates`; `realtime_start/end` for as-known values | Reached |
+| I3 | US Treasury par yield curve; Fiscal Data API [S73, S74] | Daily yields CSV/XML; interest rates, debt | Yes | CSV/XML; REST | Daily | Long | "offered free, without restriction" (Fiscal Data) | Free | Yield-curve XML feed subject to developer notices | Reached |
+| I4 | Massive (ex Polygon.io) [S75] | US stocks RT, 20+ yrs, websockets; financials & ratios | Licensed vendor | REST/WS | RT (Advanced) | 20+ yrs | "Individual use only"; business pricing separate | Stocks Advanced USD 199/mo; Financials & Ratios USD 29/mo | Rename = URL/brand change risk | Reached |
+| I5 | Alpha Vantage [S76] | US equities, FX, crypto, fundamentals | Vendor | REST | RT/15-min via entitlement "for personal use" | Deep | Personal use; RD not stated | Free 25 req/day; USD 49.99–249.99/mo | No African/UAE coverage claimed on page | Reached |
+| I6 | EODHD [S41] | Global EOD (150,000+ tickers), intraday, fundamentals, dividends/splits | Vendor (aggregated) | REST | EOD; 15-min live | 30+ yrs | Personal vs B2B | USD 19.99–99.99/mo personal | Same provider as N13 | Reached |
+| I7 | Twelve Data [S43] | US RT, global EOD equities/ETFs, fundamentals, fixed income (Pro) | Vendor | REST/WS | RT US; EOD global | Long | Basic "internal non-display"; Grow "internal display"; commercial separate | USD 0 / 79 / 229 / 999 per month | Page shows inconsistent credit limits | Reached |
+| I8 | Tiingo [S78] | US/China equities, ETFs/mutual funds EOD, IEX RT, fundamentals add-on | Vendor | REST | EOD; IEX RT | 30+ yrs | "Internal use … only … for your own personal use"; RD priced separately | Starter USD 0; Power USD 30/mo; business internal USD 50/mo | Strong free tier for US EOD | Reached |
+| I9 | Financial Modeling Prep | US/global fundamentals, prices | Vendor | REST | — | — | — | Not seen (403 ×2) | Cannot be recommended until terms are read | Not reached |
+| I10 | Nasdaq Data Link | Curated datasets | Vendor | REST | — | — | — | Not seen | Homepage returned title only | Not reached |
+| I11 | Yahoo Finance (unofficial endpoints) [S80, S81] | Quotes, history, FX, indices | No API offered | Undocumented JSON endpoints | Varies | Long | ToS: no automated collection; non-commercial; developer terms: purge within 24 h | Free | Used by the prototype; breaks without notice; legal exposure | Terms reached |
+| I12 | Financial Datasets MCP [S89, S90] | Prices, statements, SEC filings, insider trades, US macro | Vendor (SEC-sourced) | MCP via Claude Connectors Directory / Claude Code | — | 30+ yrs fundamentals | Terms not read | Free sign-up; plans n.p. | US-centric; no NG/UAE | Reached |
+| I13 | Distilla MCP [S91] | AI research workflows over filings/transcripts/financial data | Vendor | MCP/API | — | — | — | n.p. | No geographic scope stated | Reached |
+
+#### 4.1.4 Foreign exchange
+
+| # | Source | Rate type | Official? | Access | Freshness | History | Licence | Cost | Notes | Verified |
+|---|---|---|---|---|---|---|---|---|---|---|
+| X1 | CBN NFEM daily [S28] | Official window VWAP, high/low/close, turnover | Yes | Web + Excel export | Daily | Years | None stated | Free | "stands as the official exchange rate for the day" | Reached |
+| X2 | FMDQ NAFEM/NFEM fixing & closing [S21–S23, S25] | Noon fix; VWAP closing | Yes (benchmark administrator) | Website (24-h delayed), e-Markets, licence | Daily; delayed tiers | Via licence | Fees table §F9 | From NGN 107,500 p.a. (24-h delayed single fixing, non-member) | Republishes prior close when thin | Fees PDF extracted |
+| X3 | Parallel market aggregators [S39] | Street buy/sell | No | Browser | Intraday | — | Publisher | Free | 2026-11-02: 1,382/1,388 vs CBN 1,346.26 | Reached |
+| X4 | ECB reference rates [S83] | EUR crosses, 29 currencies, no NGN/AED | Yes | CSV/XML/SDMX files | ~16:00 CET daily | 1999– | "information purposes only" | Free | Needed for EUR legs only | Reached |
+| X5 | Frankfurter v2 [S82] | Aggregated central-bank rates, 228 currencies incl. NGN (16 providers) and AED (54) | No (aggregator of official sources) | REST, no key, open source | Daily | NGN 1999–, AED 1996– | Blended rates free incl. commercial; provider endpoints subject to provider terms | Free | USD/NGN 1,345.01 and USD/AED 3.6725 on 2026-11-02 | Reached + probed |
+| X6 | exchangerate.host [S84] | EOD and intraday rates | No | REST | Daily (free) to 60 s | Stated as available | Free tier non-commercial | USD 0 / 14.99 / 59.99 / 99.99 per month | Currency list not shown | Reached |
+| X7 | Open Exchange Rates [S85] | 173 currencies incl. NGN, AED | No | REST | Hourly (free) to 5 min | — | Terms not read; free tier USD base only | USD 0 / 12 / 47 / 97 per month | — | Reached |
+| X8 | USD/AED peg | 3.6725 | Central Bank of the UAE | — | Constant | Since 1997 (E4) | — | — | Official page 403; value observed via X5 | Partly |
+
+#### 4.1.5 Macro statistics
+
+| # | Source | Provides | Cadence & revisions | Access | Licence | Verified |
+|---|---|---|---|---|---|---|
+| M1 | NBS [S33–S35] | CPI (2024 = 100), GDP, labour | Monthly CPI ~15th; back-series revised after Jan-2025 rebasing; possible 2026 methodology change unverified | Web/PDF/ODP | Public | Reached |
+| M2 | CBN [S27–S31] | Rates, money & credit, reserves, inflation mirror | Daily to monthly; Statistical Bulletin annual/quarterly | Excel export | Not stated | Reached |
+| M3 | World Bank Indicators API v2 [S86, S87] | WDI | Annual, revised with each WDI release | REST, no key | General terms non-commercial; dataset terms separate (not read) | Reached |
+| M4 | IMF Data (SDMX 2.1/3.0) [S88] | IFS, WEO, BOP, CPI (expected) | Periodic; WEO semi-annual | SDMX, beta account | Copyright & usage page not read | Reached |
+| M5 | FRED/ALFRED [S70–S72] | US and some international series with vintages | Per release; vintages retained | REST key | Attribution | Reached |
+| M6 | FCSC / Bayanat [S65, S66] | UAE CPI, GDP | Monthly/quarterly | Bayanat API | Not shown | Partly |
+
+#### 4.1.6 Claude MCP connectors relevant to this product
+
+Verified: Financial Datasets (US, SEC-sourced) [S89, S90]; Distilla (scope unstated) [S91]; ADX's own MCP server (UAE, ADX only) [S61]. Not found/verified: any MCP connector covering NGX, DFM, FMDQ, CBN or NBS. The Connectors Directory page is dynamic and did not render the finance listings to us [S92]; do not claim coverage beyond the vendors' own documentation.
+
+### 4.2 Data pathologies to design for
+
+| # | Pathology | Concrete instance found | Detection rule | Control (→ §4.3) |
+|---|---|---|---|---|
+| P1 | Stale prices carried forward on zero-volume days | NGX stocks frequently do not trade; vendors either repeat the last close or omit the day; CSCS snapshot was 4 trading days old on 2026-11-02 [S18] | volume = 0 or missing day vs trading calendar; identical close ≥ 3 sessions | `last_traded_on` field separate from `as_of_date`; UI badge "no trade since dd-mmm"; liquidity metric uses zero-return days (E3, Lesmond et al. 1999 [unverified]) |
+| P2 | Bonus issues, scrip dividends, consolidations, rights issues | NGX bonus issues are common; no vendor documents NGX adjustment methodology (F1–F7) | Price gap on ex-date ≈ 1/(1+bonus ratio); share count step | Corporate-action engine with raw + adjusted series; factor audit against issuer notice |
+| P3 | Share-count changes not reflected | Vendor shares outstanding differ from latest filing | Market cap / price ≠ shares; EPS mismatch | Shares outstanding sourced from filings only (N5), vendor value = "unconfirmed" |
+| P4 | Restated financials and revised statistics | NBS Sep-2025 CPI 18.02% → 20.98% [S34]; SEC facts re-filed | Same (entity, period, concept) with new value | Vintage model: never overwrite; `supersedes` link; show "restated on" |
+| P5 | Scale/unit errors | NGN'000 vs NGN million statements; Mansa JSE history in cents vs quotes in rand [S44]; prototype labels CPI index as "%" [S93] | Magnitude jump ×10³ between periods; unit metadata mismatch | Mandatory `unit`, `scale`, `currency` fields; magnitude continuity test; series metadata registry |
+| P6 | Fiscal-year mismatch | Nigerian issuers with June and December year-ends; TTM aggregation across differing quarters | Period end dates not aligned | Period-aware fundamentals model; TTM built from explicit period IDs |
+| P7 | Reporting currency ≠ trading currency | Issuers reporting in USD while trading in NGN (e.g. dual-listed telecoms/oil names — E4, verify per issuer) | Statement currency ≠ listing currency | Convert only with dated official rate; store both; label |
+| P8 | Delisting, suspension, name/ticker change | STACO Insurance delisted 21/09/2026 (regulatory); MRS Oil 28-Jul-25 (voluntary) [S14] | Entity status feed; prices stop | Security master with status and effective dates; portfolio valuation falls back to last price flagged "suspended/delisted" |
+| P9 | Index reconstitution | NGX index members endpoint priced separately [S9]; semi-annual reviews (E4) | Membership diff | Store membership history; benchmark returns use point-in-time constituents |
+| P10 | FX regime breaks | 2016 managed float; June 2023 unification (NAFEM); 2024 EFEMS/NFEM renaming (E4, verify) | Return > 10% in official rate; name change in source | Rate records carry `regime_id`; charts annotate breaks; no splicing without method tag |
+| P11 | Holiday calendars and short-notice holidays | Nigeria declares some public holidays days ahead (E4) | Expected session with no data from all sources | Calendar as data with source and confidence; "unconfirmed holiday" state |
+| P12 | Time zones and session hours | Sources disagree on NGX hours: EODHD "10:00–14:20 (+01)" [S40] vs Kobo "9:00 AM to 4:00 PM WAT" [S46]; DFM/ADX GST; US ET | Timestamps without zone | Store UTC + exchange-local; session table per MIC verified against exchange rules (open item) |
+| P13 | Vendor silent symbol/brand/endpoint changes | Polygon.io → Massive; NGX Pulse → Kobo; SCA → CMA; NAFEX/NAFEM/NFEM; `NSENG` vs `XNSA` vs `.LG` [F25] | 301 redirects; symbol not found; schema drift | Entity master keyed by ISIN + MIC; vendor symbol maps versioned; schema-drift alarms |
+| P14 | API deprecations and unofficial endpoints | Yahoo v7/v8 used by prototype; ToS prohibits [S80]; prototype returns `[]` on failure [S93] | HTTP errors, empty payloads, cookie/crumb requirements | Only sources with a licence record may feed the store; health checks; explicit `fetch_failed` state |
+| P15 | Homonyms | "NGX" = ICE natural-gas exchange in ICE fee PDFs [S53]; "NSE" = Nigeria, India or Nairobi | Wrong MIC/currency on ingest | MIC-first identification; currency sanity check per MIC |
+| P16 | Documentation errors | NGX API samples malformed; 3-minute vs 30-minute delay text [S10] | Integration tests fail | Contract tests per endpoint; measured freshness |
+| P17 | Benchmark republication | FMDQ republishes previous close on thin data [S22] | Identical fixing on consecutive days | `republished` flag from source notes or detection; staleness clock continues |
+| P18 | Rebased or re-weighted series | CPI 2009 → 2024 base [S35]; headline drop 34.80% → 24.48% | Base-year attribute change | Series ID includes base; cross-base comparisons blocked or labelled |
+| P19 | LLM-generated numbers | Prototype prompt "Cite specific levels and spreads" to a 70B model [S93]; FinanceBench 81% incorrect/refused for GPT-4-Turbo with retrieval [S101] | Numeric tokens in model output without figure IDs | §4.3.12: tool-only numbers, renderer substitution, output validator |
+| P20 | Silent empties and cache-as-truth | `catch { return [] }`; cached closes served on error with no age [S93] | Data arrays shorter than expected; cache hits after failures | Every value carries `retrieval_timestamp`; cache serves only with age badge; empty ≠ zero |
+
+### 4.3 Validation and control framework
+
+#### 4.3.1 Provenance schema (attached to every stored figure)
+
+| Field | Type | Rule |
+|---|---|---|
+| `figure_id` | UUID | Immutable; referenced by UI, calculations and AI output |
+| `entity_id` | ISIN + MIC, or series code (e.g. `NBS:CPI:ALL:2024=100`) | From the security/series master, never free text |
+| `field` | enum (`close`, `volume`, `shares_outstanding`, `eps_basic`, `dividend_cash`, `fx_rate`, `policy_rate`, …) | Controlled vocabulary with definitions |
+| `value` | decimal (string in transport) | No floats in storage |
+| `unit`, `scale`, `currency` | enum / integer power of ten / ISO 4217 | Mandatory; `scale` 0, 3, 6, 9 |
+| `as_of_date` / `period_start`, `period_end` | date | Stock vs flow distinction; exchange-local date for prices |
+| `retrieval_timestamp` | UTC datetime | When fetched |
+| `source_id`, `source_url`, `source_record_id` | registry key, URL, vendor ID | Source registry holds owner, official flag, licence, SLA |
+| `licence_id`, `licence_scope` | registry key; enum (`personal`, `internal_display`, `non_display`, `redistribution`) | Blocks any surface not covered by scope |
+| `rate_type` (FX only) | enum (`official_nfem`, `fmdq_fixing`, `fmdq_closing`, `parallel_indicative`, `ecb_reference`, `peg`) | Shown on every conversion |
+| `method` | enum (`observed`, `derived`, `estimated`, `manual_override`) | Derived figures carry `calc_id` and input `figure_id`s |
+| `vintage` / `supersedes` / `superseded_by` | integer / UUID | Revisions never overwrite |
+| `confidence` | A (official, two-source agreed) · B (official, single) · C (vendor, reconciled) · D (vendor only / unofficial) | Drives UI colour and AI eligibility |
+| `validation_status` | `raw` → `auto_validated` → `validated` (human) · `disputed` · `stale` · `expired` · `superseded` · `fetch_failed` | State machine below |
+| `validator`, `validated_at`, `notes` | user/system id, datetime, text | Required for `validated`, `disputed`, `manual_override` |
+| `expiry_at` | datetime | Mandatory for event-driven facts (policy rates, shares, calendars) |
+
+Illustrative record (synthetic values):
+
+```json
+{"figure_id":"9f1c…","entity_id":"CBN:MPR","field":"policy_rate","value":"23.00","unit":"percent","scale":0,"currency":null,
+ "as_of_date":"2026-09-22","retrieval_timestamp":"2026-11-02T09:40:11Z","source_id":"press:nairametrics","source_url":"https://nairametrics.com/2026/09/22/cbn-resets-mpr-to-23/",
+ "licence_id":"fair-use-citation","licence_scope":"personal","method":"observed","vintage":1,"confidence":"B",
+ "validation_status":"auto_validated","expiry_at":"2026-11-30T00:00:00Z","notes":"Primary source (CBN communiqué) not yet attached; expiry set to provisional next-MPC window; weekly refresh job cbn_mpr_check"}
+```
+
+#### 4.3.2 Freshness service-level targets and stale states
+
+| Data type | Expected cadence | Fresh | Ageing (amber) | Stale (grey, value de-emphasised, badge mandatory) | Expired (hidden from conclusions) |
+|---|---|---|---|---|---|
+| NGX / DFM / ADX / US EOD price | Each trading day by 20:00 local | ≤ 1 trading day | 2–3 trading days | > 3 trading days | > 20 trading days |
+| Delayed intraday quote (licensed) | Continuous, 15–30 min lag | ≤ 45 min in session; "close" after session | 45–120 min | > 2 h in session | — |
+| Official FX (CBN NFEM, FMDQ) | Daily | ≤ 1 business day | 2 business days | > 2 business days or `republished` flag ≥ 2 days | > 10 business days |
+| AED peg | Constant | Equals 3.6725 ± 0.01% | — | Deviation → `disputed` + alert | — |
+| Policy rate (CBN, Fed, CBUAE) | Event-driven | Until `expiry_at` (next scheduled meeting + 7 days) | 7 days before expiry | Past expiry | Past expiry + 30 days |
+| CPI | Monthly, ~15th | ≤ 45 days after reference month | 45–75 days | > 75 days | > 120 days |
+| Quarterly fundamentals | Filing within exchange deadline | ≤ 135 days after period end | 135–180 | > 180 | > 400 |
+| Annual fundamentals | — | ≤ 300 days after FYE | 300–400 | > 400 | > 550 |
+| Shares outstanding | Event-driven | Until next CA notice | Any pending CA | CA effective but not applied | — |
+| Holiday calendar | Quarterly refresh | Covers ≥ 90 days ahead | 30–90 days | < 30 days coverage | — |
+| Vendor symbol map | On every ingest | Resolved | Resolved via alias | Unresolved → `fetch_failed` | — |
+
+UI rule: a figure in `stale`, `expired`, `disputed` or `fetch_failed` state is never rendered as a bare number. The badge and the `as_of_date` are part of the figure component, not optional decoration. A screen that cannot show the badge cannot show the number.
+
+#### 4.3.3 Two-source reconciliation rules for critical fields
+
+| Field | Primary | Secondary | Tolerance | On breach |
+|---|---|---|---|---|
+| NGX close | NGX API `pricesEOD` (N1) | CSCS daily list (N6) or Mansa/Kobo/EODHD | ≤ 0.5% or one tick (tick table per NGX rules — open item) | `disputed`; show both with sources; exclude from valuation until resolved |
+| NGX volume | N1 | N6 | ≤ 2% (block trades differ) | Flag only |
+| DFM/ADX close | ADX MCP / DFM licensed feed | Vendor EOD | ≤ 0.5% | `disputed` |
+| US close | Licensed vendor (I4/I8) | Second vendor or exchange summary | ≤ 0.1% | `disputed` |
+| Shares outstanding | Latest filing (N5 / EDGAR) | Vendor | Exact | Vendor value `unconfirmed`; filing wins |
+| EPS | Recomputed from net income and weighted shares | Vendor/filing EPS | ≤ 2% | `disputed`; show basic vs diluted separately |
+| Dividend amount/ex-date/pay-date | Issuer notice (N5) | NGX dividends endpoint / vendor | Exact | Vendor-only dividend = `unconfirmed`; never applied to adjusted series |
+| Official USD/NGN | CBN NFEM (X1) | FMDQ closing (X2) or Frankfurter (X5) | ≤ 0.5% (observed 2026-11-02: 1,346.26 vs 1,345.01 = 0.09%) | `disputed` |
+| Parallel USD/NGN | Aggregator | Second aggregator | Informational only | Never used for valuation or tax |
+| Index level | NGX index values (N1) | Vendor | ≤ 0.1% | `disputed` |
+| CPI, policy rate | Statistical office / central bank release | Press or vendor mirror | Exact | Official wins; press-only = confidence B with `expiry_at` |
+
+#### 4.3.4 Corporate-action adjustment checks
+
+1. Raw and adjusted series are both stored; adjusted is always derivable from raw plus the CA table (`method = derived`, `calc_id = ca_adjust_v1`).
+2. Every CA record requires an issuer document (N5 PDF or EDGAR filing) as `source_record_id`; vendor CA feeds populate `candidate` records only.
+3. Adjustment factors: cash dividend (close − D)/close on ex-date (optional, flagged); bonus n-for-m: m/(m+n); split k:1: 1/k; rights: theoretical ex-rights price over cum price; consolidation: inverse of split. Factors stored with the CA record.
+4. Test: ex-date adjusted return must lie within the stock's 99th percentile of absolute daily returns, else `disputed`.
+5. Shares outstanding and market capitalisation must change on the same effective date; a price adjustment without a share change (or vice versa) blocks the record.
+6. Recompute all per-share metrics from adjusted shares; never ingest vendor "adjusted EPS" as observed.
+
+#### 4.3.5 Outlier and discontinuity checks
+
+Daily return > 4 standard deviations or beyond the exchange's daily limit without a CA record; close outside the day's high–low; identical close for ≥ 3 sessions with non-zero reported volume (suspect feed); magnitude jump ×10³ in any fundamental between consecutive periods (scale error); FX move > 5% in a day in the official rate (regime event or error); missing session with no holiday record from all sources; vendor symbol resolving to a different ISIN than last time. Each produces a `disputed` state and a dashboard item, never a silent correction.
+
+#### 4.3.6 The "no silent constants" rule
+
+No numeric constant that describes the world (policy rates, tax rates, tick sizes, trading hours, holiday dates, index memberships, pegs, thresholds derived from regulation) may appear in application code. Each is a dated, sourced record in the store with `expiry_at`, a named refresh job, and a test that fails when the record is past expiry. The repository's `cbRate: 27.50` and the "accurate as of March 2026" table are exactly what this rule forbids [S93]. Engineering constants (retry counts, cache TTLs) are exempt but must be documented.
+
+#### 4.3.7 Golden-dataset regression tests
+
+A hand-verified set, maintained by the audit function, of roughly 20 securities × 5 years across NGX, DFM/ADX and US, plus the official FX and CPI series, with every corporate action, delisting, restatement, rebasing boundary and FX-regime break confirmed against primary documents. CI re-ingests the set from the configured sources on every change to ingestion or adjustment code and compares adjusted series, shares, EPS, dividends and FX to the golden values within the §4.3.3 tolerances. Known traps included deliberately: a bonus issue, a USD-reporting NGX issuer, an NGN'000 statement, the January 2025 CPI rebasing boundary, the June 2023 FX unification, a delisted name, a suspended name, a vendor symbol rename.
+
+#### 4.3.8 Data-quality dashboard
+
+Per source: last successful fetch, measured latency vs SLO, error rate, schema-drift alerts, licence expiry date and scope. Per data type: counts in each `validation_status`, reconciliation breaks open/closed, coverage of the user's holdings (% of positions with fresh, validated prices). Per surface: number of figures rendered with stale/disputed badges; AI answers blocked by the output validator (§4.3.12). Reviewed weekly by the audit function; thresholds trigger alerts.
+
+#### 4.3.9 Audit log
+
+Append-only. Every write of a figure, every state transition, every manual override (user, reason, before/after), every licence or source-registry change, and every AI answer (prompt hash, figure IDs supplied, figure IDs cited, validator result). Retention aligned with the tax and ledger teams' requirements (open item).
+
+#### 4.3.10 Independent sign-off workflow
+
+Figures are "conclusion-driving" when they feed a valuation, risk metric, goal evaluation, tax computation or any AI-stated conclusion. For these, `validated` requires a second actor distinct from the ingesting process: in the personal MVP, the founder acting as validator through a review queue with the evidence (source page snapshot, reconciliation result) alongside; in the commercial product, a data-quality analyst with no product-delivery KPI. The AI layer may cite `auto_validated` figures with their badge but may only state conclusions on `validated` ones. Overrides expire and are re-reviewed monthly.
+
+#### 4.3.11 When sources disagree or data is missing
+
+Show the gap. A missing price is rendered as "no data (source X unavailable since …)", not as the previous value and not as zero. A disagreement renders both values with sources and the tolerance that failed. Interpolation or carry-forward is permitted only as an explicitly labelled derived figure (e.g. "month-end NGN valuation uses last trade of 27 Oct — 6 days old"), produced by a named method and visible as such in every surface including AI prose and exports.
+
+#### 4.3.12 Preventing AI-generated numbers
+
+1. The model never receives raw numbers in its prompt as free text; it receives figure objects (`figure_id`, value, unit, as-of, status) through tool calls, and the tool refuses to return figures in `expired`, `fetch_failed` or (for conclusions) `disputed` states.
+2. Arithmetic is performed by a calculation tool that returns a `calc_id` and inputs; the model reports results by reference.
+3. The renderer substitutes values from the store for `{{figure:…}}` and `{{calc:…}}` tokens; the model's own digits are not rendered.
+4. An output validator rejects any response containing numeric tokens (beyond dates, ordinals and list numbers) that are not tokens, and triggers one regeneration, then a refusal template ("I do not have a validated figure for …").
+5. Temperature 0 for figure-bearing answers; the answer stores the set of figure IDs it used (audit log).
+6. Regression suite of adversarial prompts ("what is the CBN rate", "estimate the price") must produce zero unreferenced numbers.
+This design responds directly to the prototype's `ChatPanel.buildContext()` pattern and to F24.

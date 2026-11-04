@@ -5,7 +5,7 @@ Version: 0.1 draft  ·  Date: 2026-11-02  ·  Status: for cross-department revie
 Reviewers required: Data Architecture & Ingestion (Doc 1), Behavioural Finance (Doc 2), Investment Research (Doc 3), Portfolio & Quant (Doc 4), Forecasting & Goals (Doc 5), AI Explanation Layer (Doc 7), Commercialisation & Legal (Doc 8/9); plus a licensed Nigerian tax practitioner, a UAE-registered tax agent and a Nigerian data-protection lawyer before any reliance
 ```
 
-> **Standing caveat.** Everything below is the work of simulated specialists. Nothing in this document is tax, legal or accounting advice. Every rule stated carries an *effective date* and a *checked-on* date (all checks were made on 2026-11-02). Items marked **unconfirmed** could not be verified from a primary or authoritative source in this session and must not be coded as facts.
+> **Standing caveat.** Everything below is the work of simulated specialists. Nothing in this document is tax, legal or accounting advice. Every rule stated carries an *effective date* and a *checked-on* date (all source checks were made on 2026-11-02; the document was finalised on 2026-11-04 without re-checking). Items marked **unconfirmed** could not be verified from a primary or authoritative source in this session and must not be coded as facts.
 
 ## 1. Executive summary
 
@@ -26,7 +26,7 @@ Reviewers required: Data Architecture & Ingestion (Doc 1), Behavioural Finance (
 
 **What we could not access.** The Joint Revenue Board's *Personal Income Tax Guidelines* dated 24 February 2026 (URL returned 404); the official NDPC GAID 2025 text (the official site returned 403; thresholds are therefore cited from law-firm summaries); the FTA guide *Taxation of Natural Persons under the Corporate Tax Law* (not surfaced in the FTA guide index page we could fetch); the UAE Ministry of Finance treaty dashboard; the Nigeria Revenue Service treaty page (404); the FTA's own tax-agent eligibility page; any court record of the substantive constitutional challenge to the 2025 Acts; and any evidence of National Assembly ratification of the Nigeria–UAE treaty. Per the brief, the founder's Drive and Gmail were not consulted, and nothing under `src/` was modified.
 
-**Conventions.** Section references are to the NTA 2025 unless marked NTAA. Evidence grades follow the brief (E1–E6). "Checked on" is 2026-11-02 for every row below.
+**Conventions.** Section references are to the NTA 2025 unless marked NTAA. Evidence grades follow the brief (E1–E6). "Checked on" is 2026-11-02 for every row below; the document was completed on 2026-11-04.
 
 ## 3. Findings
 
@@ -99,3 +99,237 @@ Findings are numbered F1–F40. Grades: E2 = read in the gazette/regulator text;
 | F38 | NDPA 2023 and GAID 2025 | GAID issued 20 Mar 2025, in force 19 Sep 2025. Controllers/processors of major importance must register (Art. 9): Ultra-High Level (> 5,000 data subjects in six months; sector list names commercial banks, telecoms and **fintechs**), Extra-High Level (1,000–5,000), Ordinary-High Level (200–1,000, or sensitive data of > 200) — tiers per law-firm summaries of the NDPC Guidance Notice, **primary text not retrieved**. DPO required; DPIA required for offering financial services; cross-border transfers need an adequacy decision or an approved instrument (SCCs, BCRs, codes) — consent is not a stand-alone basis in the GAID; CAR filing by 31 March for UHL/EHL; penalties up to the higher of ₦10 m or 2 % of revenue (secondary). Personal/household processing is outside the Act's commercial scope but the GAID still asserts a duty of care | 19 Sep 2025 | E3 | S34, S35 |
 | F39 | UAE PDPL | Federal Decree-Law 45/2021 in force 2 Jan 2022; regulator the UAE Data Office (Decree-Law 44/2021); Executive Regulations: most credible sources say **still not issued** as of late 2026, a few SEO pages claim otherwise — unresolved; DIFC has its own Data Protection Law No. 5 of 2020 and ADGM its 2021 regulations; banking and credit data also fall under Federal Law 6/2010 on credit information | 2 Jan 2022 | E2 / E3 | S36 |
 | F40 | Financial data classification | Neither NDPA nor GAID lists financial data as "sensitive personal data", but financial services trigger a mandatory DPIA and "data-driven financial assets entrusted by data subjects" is a factor in major-importance designation; treat statements as high-risk data in design regardless | 19 Sep 2025 | E3 + E4 | S34 |
+
+## 4. Proposed framework / specification for Portfolio OS
+
+### 4.1 Ledger and audit-control specification
+
+| Element | Specification | Uncertainty handling | Validation |
+|---|---|---|---|
+| **Journal** | Append-only, double-entry. Every posting: `posting_id, account_dr, account_cr, amount, currency, fx_rate, fx_rate_source, value_date, booking_date, source_type (statement/document/user/system), source_ref (statement id + line), created_by, created_at, reason, reverses_posting_id` | Postings with `source_type = user` carry a confidence of "asserted" until a document is attached | Trial-balance identity on every commit; property test that no posting is ever mutated |
+| **Corrections** | Reversal entry + replacement entry; original stays visible; UI shows "corrected" badge | — | Audit log replay reproduces every balance at any date |
+| **Reconciliation** | Per account and statement period: `opening_stmt + Σ postings = closing_stmt`; difference → `UNEXPLAINED_DIFFERENCE` item with age and owner; statement continuity check; transfer matching (amount ± fees, FX tolerance, ±3 days) | Tolerances are configurable and logged; a matched transfer below tolerance is still shown as "matched with difference" | Synthetic statement suite with planted gaps, duplicates, missing pages, mismatched transfers; target 100 % detection, < 2 % false flags (E5) |
+| **Cut-off** | Value date drives period allocation; booking-date variances listed at period close | Items dated in the last/first 3 days of a period are flagged for cut-off review | Period-close checklist (below) |
+| **Classification** | Fixed taxonomy with versioned category tree; each category maps to (a) cash-flow type, (b) tax relevance (income / deductible / relief evidence / exempt / capital), (c) behavioural tag (Doc 2) | Classifier confidence stored; items < threshold go to a review queue; re-classification journaled | Consistency metric: same counterparty + same amount pattern must classify identically across periods |
+| **Control totals** | Per import: count, Σ debit, Σ credit, min/max, hash of raw file | Re-import of same file is idempotent (hash) | Duplicate-import test |
+| **Period close** | Monthly: all accounts reconciled or differences owned; FX revaluation posted; categorisation queue empty or deferred with reason; control totals signed by user; snapshot hash stored | A period can be re-opened only via a journaled "reopen" event | Close report is reproducible from the journal alone |
+| **Retention** | Raw statements, documents and journal retained ≥ 6 years after the year of assessment (NTAA s.31(5)) with WORM-style storage; deletion only via journaled policy | Retention clock per jurisdiction stored as data | Retention audit script |
+| **Forensic checks** | Duplicates, near-duplicates, round-amount clustering of cash items, dormant-then-active accounts, unmatched transfers, large single items vs 12-month distribution, Benford only on sets > 1,000 heterogeneous items | Every flag has a severity and a "why this fired" text; flags never auto-post anything | Back-test on synthetic data with injected anomalies |
+| **Auditability** | Any displayed figure answers: *who* (source system or user), *what* (postings and rule versions), *when* (as-of and computed-at), *how* (formula or rule id) via a drill-down endpoint | Figures lacking a full chain are rendered with an "unaudited" marker | Random-sample "trace to source" test each release |
+
+**Reconstructing history from partial statements.** Order statements by period; where a gap exists, carry the last known closing balance forward as an *opening estimate* flagged `GAP`, never as a fact; require the user to upload the missing statement or accept an explicit "unknown period" that excludes the account from completeness-dependent analytics (savings rate, net worth deltas) for that span. Cost basis for holdings predating records: ask for contract notes; if unavailable, record `basis_source = user_estimate` with a note that the tax engine will flag the disposal for professional review.
+
+**Investment sub-ledger.** Lots with `(instrument, quantity, trade_currency, unit_cost, fx_rate_at_trade, fees, acquired_at, source_ref)`; realised P&L computed under a configurable method (default weighted average for currency holdings; FIFO for securities unless a practitioner confirms otherwise — **unconfirmed** legal position, F5); unrealised P&L revalued at each close with price source and timestamp; dividends recorded gross/withheld/net; corporate actions as explicit events. Multi-currency reporting: NGN is the tax-reporting currency for a Nigerian resident; native currency and NGN values are both stored at the transaction-date rate, with the rate source recorded (CBN official window rate as default — acceptability for tax **unconfirmed**).
+
+### 4.2 Versioned tax-rule engine ("rules as data")
+
+Rules are data, not code. Each rule record carries jurisdiction, taxpayer class, validity window, parameters, source, verification status and test cases; the engine selects rules by `(jurisdiction, tax_type, date_of_event)` and refuses to compute when the only matching rule is `status != confirmed` unless the user opts into an "indicative" mode that watermarks the output.
+
+```json
+{
+  "rule_id": "NG-PIT-BANDS-2026",
+  "jurisdiction": "NG", "tax_type": "personal_income_tax", "taxpayer_class": "individual_resident",
+  "effective_from": "2026-01-01", "effective_to": null, "supersedes": "NG-PIT-BANDS-PITA-2011",
+  "parameters": {"bands": [[800000,0.00],[2200000,0.15],[9000000,0.18],[13000000,0.21],[25000000,0.23],[null,0.25]]},
+  "source": {"instrument": "Nigeria Tax Act 2025", "section": "Fourth Schedule; s.58", "gazette": "No. 117 of 26 June 2025, Act No. 7",
+             "url": "https://nass.gov.ng/documents/download/11249", "checked_on": "2026-11-02"},
+  "status": "confirmed_text_unreviewed_by_practitioner",
+  "confidence": 0.9,
+  "review": {"required_before_reliance": true, "reviewer_role": "licensed Nigerian tax practitioner", "signed_off": false},
+  "test_cases": [{"chargeable_income": 25160000, "expected_tax": 4716800}, {"chargeable_income": 800000, "expected_tax": 0}]
+}
+```
+
+Companion rule records needed for the personal MVP (all Nigeria 2026 unless stated): `NG-PIT-DEDUCTIONS-2026` (s.30 list incl. rent relief 20 %/₦500k), `NG-RESIDENCY-2026` (s.202 limbs, disjunctive), `NG-CGT-SHARES-NGCO-2026` (₦150 m "less than" / ₦10 m "does not exceed" / 12 months / reinvestment), `NG-CGT-FOREIGN-ASSETS-2026` (no threshold; currency chargeable), `NG-DIV-WHT-FINAL-2026` (10 %, FII), `NG-INT-SHORTTERM-FINAL-2026` (s.51(5)), `NG-INT-DEPOSIT-2026` (**status: unconfirmed, two candidate treatments**), `NG-BOND-EXEMPT-2026` (s.163(1)(n)), `NG-FOREIGN-PASSIVE-REMITTED-EXEMPT-2026` (s.163(1)(s)), `NG-FTC-UNILATERAL-2026` (s.119), `NG-TREATY-UAE` (**status: not_in_force**), `NG-STAMP-ETRANSFER-2026` (₦50, exemptions), `NG-VAT-RATE` (7.5 %), `NG-PENALTIES-2026`, `NG-DEADLINES-2026` (31 Jan employer; 31 Mar individual — anchor unconfirmed), `AE-RESIDENCY-2023` (CD 85/2022 tests), `AE-CT-NATURAL-PERSON-2024` (AED 1 m; 0/9 %; AED 375k; SBR AED 3 m), `AE-VAT-RATE`, `US-NRA-FDAP-30`, `US-ESTATE-NRA-60K`, `US-W8BEN-VALIDITY`.
+
+**Rule update process.** (1) Weekly monitor of NRS, JRB, LIRS, FTA, MoF, IRS pages and two Big-Four alert feeds; (2) any change creates a *draft* rule with `effective_to` on the old one; (3) draft must cite the primary instrument and be independently checked against a second source (Big-Four or law-firm alert) before `status = confirmed_text`; (4) a licensed practitioner's sign-off moves it to `confirmed_reviewed`; (5) all three states are visible to the user on every computation. Divergent sources are stored as `disputes[]` on the rule, not resolved silently.
+
+### 4.3 Calculation audit log and explainability
+
+Every run writes `calc_id, engine_version, rule_ids_and_versions[], input_snapshot_hash, inputs (with provenance), steps[] (label, formula, operands, result), output, flags[], computed_at, as_of_date`. The explanation layer (Doc 7) may only *render* `steps[]`; it may not restate numbers from memory. Confidence is the minimum over the rules used; a run is marked **"needs professional review"** whenever any of the following is true: residency not confirmed by the user's own day-count declaration; any foreign-source gain or currency gain; any treaty or foreign-tax-credit claim; bank-deposit interest treatment (until F12 is resolved); any rule with `status != confirmed_reviewed`; estimated cost bases; or total liability change > 10 % between rule versions.
+
+### 4.4 What the system must ask (statements cannot tell it)
+
+A yearly **residency and circumstances questionnaire**, stored with timestamps and the user's attestation: days in Nigeria / UAE / elsewhere (travel log import optional); domicile claim; homes available for use in Nigeria; immediate family location; employment type and employer country; benefits in kind; employer and employee pension and NHF/NHIS contributions (from payslips); rent paid, landlord name and address (relief condition, s.30(2)(a)(vi)); other assets and accounts not ingested; business or freelance activity and licences (AED 1 m and Nigerian presumptive-tax relevance); Tax ID / NIN status and prior filings; foreign taxes withheld (US 1042-S, if issued); W-8BEN on file and expiry; treaty positions taken; joint ownership shares; gifts and loans among transfers; US-situs holdings total (estate-tax monitor).
+
+### 4.5 Human-review gates and disclaimer design
+
+Gate 1 (ingestion): unexplained differences > 0 block the period from feeding tax. Gate 2 (classification): tax-relevant categories (income, deductible, capital, exempt) require user confirmation on first occurrence of each counterparty. Gate 3 (computation): any "needs professional review" flag disables export of a filing-ready schedule and offers a practitioner pack instead. Gate 4 (filing): the system never submits; it produces a schedule mirroring the eTax/Rev360 form fields with sources, and a checklist of documents to upload. Disclaimer text appears on every output, not in a footer: *"Computed from your data under rule versions [ids] checked on [date]. Simulated specialists, not licensed advice. Items marked ⚠ require a licensed Nigerian tax practitioner / UAE tax agent before you rely on them."*
+
+### 4.6 Regulatory-perimeter design rules
+
+Personal MVP: single user, own data, no third-party access → outside SEC Nigeria, CMA/DFSA and CBN perimeters; NDPA applies in spirit (security, retention), formally in full once a second person's data is processed. Commercial phase triggers: (a) any security-specific buy/sell/hold output to another person → SEC Nigeria registration (robo-advisory rules) and, for UAE onshore users, CMA "financial advisory" licence; (b) connecting to bank APIs → CBN open-banking registration/licence when live; (c) > 200 data subjects in six months → NDPC registration tier and DPO; (d) cross-border hosting of Nigerian users' data → adequacy or approved transfer instrument. Design the product so research outputs are *explanations of the user's own portfolio* with ranges and no recommendations (consistent with the brief's standard 6) until counsel approves a licensed path.
+
+### 4.7 Filing-support boundary (what automation is permitted)
+
+| Step | Nigeria (resident individual) | UAE (natural person) | Permitted automation |
+|---|---|---|---|
+| Register | Tax ID with State IRS (NTAA s.4); banks require it (s.8(2)) | CT registration only if business turnover > AED 1 m | Checklist + prefilled data; user submits |
+| Compute | PIT on worldwide income, reliefs, gains, credits | Nil for personal investment income; CT if in business | Full, with audit log and flags |
+| Prepare | Schedule mirroring eTax / Rev360 self-assessment fields | EmaraTax return if registered | Full; export PDF/CSV |
+| Submit | Taxpayer on eTax/Rev360, or accredited tax agent (s.33) | Taxpayer via UAE Pass on EmaraTax, or FTA-registered agent | **None** by the system in MVP |
+| Pay | Bank/portal payment reference captured | — | Reminder + reconciliation of the payment posting |
+| Evidence | Keep 6 years | Keep per FTA requirements (not re-verified) | Vault with hashes |
+
+### 4.8 Worked examples (synthetic figures; computed with the retained Python script)
+
+**Example 1 — Nigerian-resident individual, 2026 year of assessment.** Inputs: Lagos employee; gross salary ₦18,000,000; employee pension 8 % = ₦1,440,000 (s.30(2)(a)(iii)); rent paid ₦3,000,000 → rent relief min(20 % × 3,000,000 = 600,000; 500,000) = **₦500,000** (s.30(2)(a)(vi)); bank-deposit interest ₦600,000 gross, 10 % WHT ₦60,000; NGX dividends ₦400,000 gross, 10 % WHT ₦40,000 (final — franked investment income, NTAA s.51(3); excluded from total income by s.28(2)(b)(iv)); US stock: 100 shares bought 1 Mar 2024 at USD 150 with ₦1,500/USD → cost ₦22,500,000; sold 15 Jun 2026 at USD 200 with ₦1,550/USD → proceeds ₦31,000,000; **gain ₦8,500,000** (of which ₦750,000 is pure FX movement on the cost) — chargeable with no threshold because the s.34(1)(a) exemption covers Nigerian-company shares only; US dividends USD 300 gross, US WHT 30 % = USD 90 (F30), net USD 210 remitted to a Nigerian domiciliary account through an authorised dealer → **exempt** under s.163(1)(s) as foreign dividend "brought into Nigeria through approved channels" (⚠ confirm that the remittance route qualifies).
+
+| Step | Treatment A (deposit interest aggregated, WHT credited) | Treatment B (deposit-interest WHT final) | Rule |
+|---|---|---|---|
+| Total income | 18,000,000 + 600,000 + 8,500,000 = **27,100,000** | 18,000,000 + 8,500,000 = **26,500,000** | s.28(2)(a) |
+| Eligible deductions | 1,440,000 + 500,000 = 1,940,000 | 1,940,000 | s.30(2)(a) |
+| Chargeable income | **25,160,000** | **24,560,000** | s.30(1) |
+| Tax: 800,000 @ 0 % | 0 | 0 | Fourth Schedule |
+| 2,200,000 @ 15 % | 330,000 | 330,000 | |
+| 9,000,000 @ 18 % | 1,620,000 | 1,620,000 | |
+| @ 21 % | 13,000,000 → 2,730,000 | 12,560,000 → 2,637,600 | |
+| @ 23 % | 160,000 → 36,800 | — | |
+| **Gross PIT** | **4,716,800** | **4,587,600** | |
+| Less WHT credit on interest | (60,000) | n/a (final) | NTAA s.51 |
+| Less PAYE already deducted on salary (chargeable 16,060,000 → 2,802,600) | (2,802,600) | (2,802,600) | NTAA s.51(6)–(7) |
+| **Balance on direct assessment** | **₦1,854,200** | **₦1,785,000** | filed with LIRS by 31 March 2027 (deadline anchor ⚠) |
+
+Flags raised: ⚠ deposit-interest treatment (difference ₦69,200); ⚠ FX rate basis for the USD cost and proceeds; ⚠ whether the pure-FX component is computed separately under s.34(1)(b); ⚠ US-situs holdings USD 20,000 before sale — below the USD 60,000 estate threshold, monitored. Sensitivity: had the US dividends been kept abroad, ₦465,000 would be added to income, PIT would rise to ₦4,823,750, and the unilateral credit (s.119) would be capped at the Nigerian tax attributable — ₦81,373 of the ₦139,500 US tax — leaving ₦58,127 unrelieved.
+
+**Example 2 — UAE-resident individual with Nigerian rental income.** Inputs: 290 days in the UAE, 40 in Nigeria; UAE residence permit and rented apartment in Dubai; owns a Lagos flat let at ₦6,000,000 a year, collected by a managing agent; spouse and children in Dubai; no Nigerian home kept for own use; not domiciled claim: born in Nigeria (domicile of origin — ⚠ legal concept, needs counsel).
+*UAE side*: 183-day test met → UAE tax resident (Cabinet Decision 85/2022 Art. 4(2)); TRC available (AED 50 + AED 1,000); rental income is personal real-estate investment income → no Corporate Tax; no UAE personal tax.
+*Nigerian side*: non-resident status requires **all** of s.202(a)–(f). Days (40 < 183) ✔; no permanent place available for domestic use (the flat is let) ✔; no habitual abode ✔; "substantial economic and immediate family ties" — family abroad, but a Nigerian property and bank accounts exist ⚠; domicile ⚠. If non-resident: rent is Nigerian-source; 10 % WHT (₦600,000) is the **final tax** (NTAA s.51(2)); the NRS, not LIRS, is the relevant authority (NTAA s.3(1)(a)(iv)); the agent's withholding and remittance evidence must be kept; a Tax ID may not be required for passive income (s.6(1) proviso) but information must be supplied. If the facts instead make her resident (e.g., she is held domiciled, or keeps a home available), worldwide income — UAE salary included — becomes chargeable: on the rent alone the PIT would be ₦870,000 rather than ₦600,000 final WHT, and the salary would be taxed with no UAE tax to credit. Treaty relief: none (F14). CRS: her UAE accounts are reportable to Nigeria if the UAE bank records her as Nigerian tax resident — the self-certification she gives her bank should match the position taken.
+*What the system must ask*: day counts with evidence; property use; agent arrangement and WHT receipts; family location; domicile facts; other Nigerian income; Tax ID status; bank CRS self-certifications; and it must route the residency conclusion to a practitioner before relying on it.
+
+**Example 3 — Ledger reconciliation with a reversed transaction and an FX revaluation.** NGN current account, June: opening ₦1,000,000; salary +1,500,000; rent −600,000; transfer to USD account −310,000; rent posted twice in error (−600,000) and **reversed** by a new entry (+600,000, `reverses_posting_id` set); bank charge −1,050 (₦1,000 + 7.5 % VAT ₦50 shown separately in the sub-ledger, F21); electronic-transfer stamp duty −50. Ledger closing = **₦1,588,900** = statement closing → reconciled, difference 0. Had the statement shown ₦1,563,900, the system would post nothing and raise `UNEXPLAINED_DIFFERENCE ₦25,000` with age and owner.
+USD account: opening USD 10,000 at weighted-average cost ₦1,500 = ₦15,000,000. Month-end rate ₦1,550 → revaluation entry Dr USD account ₦500,000 / Cr Unrealised FX gain ₦500,000 (monetary item at closing rate, IAS 21 logic). Next month USD 2,000 sold at ₦1,560: proceeds ₦3,120,000; realised gain vs cost ₦120,000 (Dr NGN 3,120,000 / Cr USD account 3,000,000 / Cr Realised FX gain 120,000); the unrealised gain previously booked on the sold portion (₦100,000) is reversed, leaving ₦400,000 unrealised on USD 8,000 (cost ₦12,000,000). The tax engine receives only the realised ₦120,000, flagged ⚠ as a potential chargeable gain on currency (s.34(1)(b)).
+
+### 4.9 Limitations
+
+The framework computes positions; it cannot establish residency, domicile, "approved channels" or acceptable FX rates — these are facts and legal judgments. Rules cited are those in the gazetted texts available on 2 November 2026; re-gazetting or the pending suit (F22) may change them. UAE Corporate Tax detail for natural persons rests partly on FTA summaries rather than the Cabinet Decision text.
+
+## 5. Alternatives considered and rejected
+
+| Alternative | Why rejected |
+|---|---|
+| Hard-coding tax rates in application code | Repeats the stale-constant anti-pattern in the brief (CBN rate in `countryProfiles.ts`); no effective dates, no provenance, silent breakage when Nigeria re-gazettes |
+| Letting the LLM compute tax from a prompt | Brief lesson 4: numbers restated by a model drift; tax arithmetic must be deterministic, logged and testable; the model may only render `steps[]` |
+| Editable ledger rows (spreadsheet model) | Destroys the audit trail; reversing entries cost little and keep reconstruction honest |
+| Automatic submission to eTax / Rev360 / EmaraTax via scripted sessions | NTAA s.33 treats a return as duly filed only if filed by the taxpayer or an accredited agent; scripted logins also breach portal terms and expose credentials (brief lesson 5) |
+| Relying on the Nigeria–UAE treaty for planning | Not ratified by the National Assembly; s.120(1) makes it ineffective in Nigeria until then |
+| Treating the UAE TRC as settling Nigerian residency | s.202 is a domestic, disjunctive test; a foreign certificate does not displace it absent an effective treaty tie-breaker |
+| Single-currency (NGN-only) cost basis | Loses the FX component the tax law may tax separately and makes UAE/US reporting impossible |
+| Full Benford-style forensic suite in the MVP | Statistically unsuitable for a few hundred regular transactions; high false-positive cost (auditor/product disagreement recorded in §7) |
+| Open-banking API ingestion in the MVP | Regime not operational; licence will be required; statement upload is lawful today |
+
+## 6. Cross-department dependencies
+
+**We need from others.** Doc 1 (Data): provenance fields on every ingested line; statement-period metadata; a currency-rate service with source and timestamp (CBN official window, FTA/UAE Central Bank, US reference rates); a document vault with hashes. Doc 3 (Research): corporate-action feeds (bonus, rights, splits) for NGX, DFM/ADX and US holdings with as-of dates; dividend declarations gross of tax. Doc 4 (Quant): position and lot data in a shape the sub-ledger can consume; agreement on weighted-average vs FIFO defaults. Doc 5 (Forecasting): consume *after-tax* cash flows and the flags, never raw pre-tax figures. Doc 7 (AI layer): render-only contract for `steps[]`; disclaimer placement; question flows for §4.4. Doc 8/9 (Commercialisation/Legal): a decision on whether any output will ever be security-specific; budget for licensed review (practitioner, UAE tax agent, data-protection counsel).
+
+**Others need from us.** The rule-record schema and the first 20 rule records (§4.2); the questionnaire (§4.4); the review-flag taxonomy; the retention policy (six years, NTAA s.31(5)); the perimeter triggers (§4.6); the after-tax yield definitions for Nigerian instruments (FGN bonds exempt; T-bills and corporate bonds net of 10 % final WHT; dividends net of 10 % final WHT; deposit interest ⚠).
+
+## 7. Risks, open uncertainties and disagreements
+
+1. **Deposit-interest finality (F12).** Unresolved in the Acts' text as read. Position A (tax-administration perspective): WHT is a payment on account; aggregate and credit. Position B (practitioner reading of continuity with PITA practice): WHT on individuals' passive income is final. Resolution path: written opinion from a licensed practitioner; JRB/NRS circular if issued; until then, show both.
+2. **Residency breadth (F10).** The disjunctive s.202 definition can capture diaspora Nigerians who keep a home or ties. Interpretive sources conflict on whether the 183-day limb is stand-alone. Resolution: practitioner opinion; monitor JRB guidelines (not retrievable) and early Tax Appeal Tribunal decisions.
+3. **Foreign currency as a chargeable asset (F4/F13).** Potentially taxes every USD→NGN conversion at a gain; computation method, rate source and de-minimis treatment are unknown. Resolution: practitioner opinion; NRS circular watch.
+4. **Text instability (F22).** Re-gazetting ordered; constitutional suit pending; KPMG catalogue of errors. Risk that rule records built on the June 2025 gazette need re-cutting. Mitigation: rules as data with `source.gazette` and `disputes[]`.
+5. **Nigeria–UAE treaty status (F14).** UAE side reportedly says "in force", Nigerian law says not until ratified. Resolution: check National Assembly votes and proceedings; NRS treaty page when restored.
+6. **Individual filing deadline anchor (F17).** 31 March is LIRS practice; the statutory text we read in NTAA s.13–15 did not state it. Resolution: locate the provision (First Schedule or regulations) or treat as administrative practice.
+7. **UAE natural-person registration deadline and Cabinet Decision 49/2023 text (F24).** Primary text not retrieved. Resolution: fetch the FTA natural-persons guide and FTA Decision on registration timelines.
+8. **NDPC thresholds (F38) and UAE PDPL executive regulations (F39).** Secondary sources only / conflicting. Resolution: counsel; official NDPC and UAE Data Office (or successor authority) publications.
+9. **Disagreement — auditor vs product on friction.** Audit view: no figure reaches the user without a reconciled period, confirmed categories and a signed questionnaire; unreconciled data is worse than none. Product view: a first-time user who must reconcile five accounts and answer 30 questions before seeing anything will leave. Proposed resolution: a two-tier display — *indicative* analytics available immediately with a visible "unaudited" watermark and no tax figures; *audited* mode unlocks tax schedules only after gates 1–3. Both positions recorded; founder to confirm.
+10. **Disagreement — forensic sensitivity.** Forensic accountant wants duplicate/near-duplicate and gap checks on by default; behavioural team (Doc 2) worries that frequent anomaly prompts train users to ignore them. Resolution: default-on only for checks with demonstrated < 2 % false-flag rate on the synthetic suite; others opt-in.
+11. **Estate-tax exposure (F31).** Easily ignored; no treaty protection for Nigerians or UAE residents. Mitigation: standing monitor of US-situs value against USD 60,000 with a prompt to seek advice, not a structuring recommendation.
+12. **Data-protection exposure of the ingestion path.** Statement uploads concentrate highly sensitive data; a breach before any commercial launch would still be reportable if a second person's data is involved. Mitigation: encryption at rest, local-first storage option, DPIA before any multi-user pilot.
+
+## 8. Recommendations, ranked
+
+| # | Recommendation | Class | Five-question test (1 problem · 2 who · 3 evidence · 4 build/validate · 5 success metric) |
+|---|---|---|---|
+| R1 | Build the append-only double-entry ledger with reconciliation identity, reversing entries and provenance fields before any analytics | Personal-MVP must-have | 1 Unreconciled, editable data cannot support tax or behavioural conclusions · 2 Founder first; every later user · 3 Audit assertions (ISA 315, E3) and the brief's own failure history · 4 Synthetic statement suite with planted defects; trial-balance property tests · 5 100 % planted-gap detection, zero silent plugs, any figure traceable to source in < 3 clicks |
+| R2 | Implement the versioned rule engine with the 20 rule records in §4.2, each with source, status and test cases; refuse to compute on unconfirmed rules outside indicative mode | Personal-MVP must-have | 1 Nigerian rules changed on 1 Jan 2026 and may change again · 2 Founder (Nigerian and UAE positions) · 3 Gazette texts read (E2) · 4 Golden test cases per rule; re-run on every rule change · 5 Example-1 reproduces to the naira; rule change to recompute < 1 day |
+| R3 | Ship the residency and circumstances questionnaire and "needs professional review" flags with the first tax screen | Personal-MVP must-have | 1 Statements cannot establish residency, reliefs or foreign facts · 2 Founder straddling NG/UAE · 3 s.202, s.30, s.119 requirements (E2) · 4 Flag taxonomy reviewed by a practitioner · 5 Zero tax figures displayed without a current questionnaire |
+| R4 | Commission a licensed Nigerian practitioner review of items in §9 before any reliance; budget it now | Personal-MVP must-have | 1 Simulated specialists cannot sign off · 2 Founder · 3 Brief standard 5 · 4 Written opinion mapped to rule ids · 5 All MVP rules at `confirmed_reviewed` |
+| R5 | Investment sub-ledger with lots, dual-currency basis, corporate actions, realised/unrealised split | Personal-MVP must-have | 1 Gains on US and NGX holdings are taxable at different rules · 2 Founder · 3 s.34, s.28 (E2); IAS 21 logic (E3) · 4 Replay against synthetic trade histories · 5 Realised P&L matches broker statements within fees/FX tolerance |
+| R6 | US-situs estate-tax monitor and W-8BEN expiry reminder | Personal-MVP must-have (low cost) | 1 Material, overlooked exposure · 2 Any direct US stock holder · 3 IRS 706-NA instructions (E2) · 4 Threshold check on valuation snapshot · 5 Alert fires when USD 60,000 crossed; W-8BEN expiry never missed |
+| R7 | Filing-support pack mirroring eTax/Rev360 fields, with document checklist; no submission | Personal-MVP must-have | 1 Filing is required of every taxable person; software may not file · 2 Founder · 3 NTAA s.13, s.33, s.34(3) (E2) · 4 Field mapping validated against the live portal form each season · 5 Pack accepted without re-keying errors |
+| R8 | After-tax yield service for Nigerian instruments feeding Docs 3–5 | Later (after R2 reviewed) | Depends on resolution of the deposit-interest question |
+| R9 | UAE Corporate Tax module for a natural person in business | Later (only if founder's turnover approaches AED 1 m) | Trigger-based |
+| R10 | Open-banking connector | Do-not-build (yet) | Regime not live; licence required; revisit on CBN go-live |
+| R11 | Automated submission / tax-agent service | Do-not-build (yet) | Requires accreditation (NTAA s.33) and professional-liability cover |
+| R12 | Security-specific recommendations to third parties | Do-not-build (yet) | Crosses SEC Nigeria and CMA perimeters; needs licences and capital |
+| R13 | Benford-style forensic suite | Do-not-build (yet) | Statistically unsuited to personal volumes; revisit at multi-year scale |
+
+## 9. Required validation before implementation
+
+**Licensed sign-off required (Nigerian tax practitioner unless stated).** (a) Residency conclusions under s.202 for the founder's actual facts; (b) deposit-interest treatment (F12); (c) foreign-currency gains under s.34(1)(b), acceptable FX rates, and computation of foreign-share gains; (d) scope of "approved channels" in s.163(1)(s); (e) cost-basis method for share disposals and any pre-2026 reset; (f) statutory anchor of the 31 March deadline; (g) whether an employee without business income is a "taxable person" for Tax ID and filing purposes; (h) PAYE/direct-assessment interplay and payment timing for non-salary income; (i) T-bill interest finality under NTAA s.51(5) and the FIRS October 2025 directive; (j) treaty status (also a lawyer); (k) stamp-duty exposure on the system's own transaction types. **UAE-registered tax agent**: natural-person CT threshold application, registration deadline, TRC process, VAT treatment of any future subscription fees. **Nigerian data-protection counsel**: NDPA/GAID applicability at single-user and pilot scale, DPIA, cross-border hosting. **UAE counsel**: CMA Decree-Law 33/2025 perimeter for any UAE user-facing output; PDPL status.
+
+**Engineering validation.** Synthetic statement suite (≥ 50 statements, three currencies, planted gaps, duplicates, missing pages); golden tax test cases per rule (examples 1–3 plus boundary cases: ₦800,000; ₦150 m proceeds exactly — fails the "less than" test; ₦10 m gain exactly — passes "does not exceed"); audit-log replay producing identical outputs; rule-change drill (simulate a re-gazetted band and measure time to green tests); trace-to-source sampling; retention and deletion tests.
+
+**Freshness re-check before build.** Re-fetch every §10 primary source; check the National Assembly re-gazetting outcome, the FCT suit, any JRB PIT guidelines, NRS circulars on individuals, FTA guide on natural persons, and the IRS Table 3 revision.
+
+## 10. Sources
+
+All accessed 2026-11-02 unless stated. "Read in full text" means downloaded and text-extracted; "fetched" means read via web fetch; verification status is stated for each.
+
+**Nigeria — primary**
+- S1. *Nigeria Tax Act, 2025* (Act No. 7), Federal Republic of Nigeria Official Gazette No. 117, Vol. 112, 26 June 2025, commencement 1 January 2026. National Assembly. https://nass.gov.ng/documents/download/11249 — read in full text (215 pp.). [verified primary]
+- S2a. *Nigeria Tax Administration Act, 2025* (Act No. 5), Official Gazette No. 117, 26 June 2025. Hosted by the Tax Appeal Tribunal. https://tat.gov.ng/Nigeria-Tax-Act-2025.pdf — read in full text. [verified primary]
+- S2b. *Nigeria Tax Administration Act, 2025* — "Approved copy to print", January 2026, hosted by Premium Times. https://media.premiumtimesng.com/wp-content/files/2026/01/Approved-Copy-to-Print-NIGERIA-TAX-ADMINISTRATION-ACT-2025.pdf.pdf — read in full text; diffed against S2a. [verified copy; provenance of print unverified]
+- S3. *Nigeria Revenue Service (Establishment) Act, 2025* (Act No. 4), gazette, commencement 26 June 2025. Nigeria Revenue Service. https://www.nrs.gov.ng/uploads/NIGERIA_REVENUE_SERVICE_ESTABLISHMENT_ACT_2025_84bc74e1bf.pdf — read in full text. [verified primary]
+- S4. *Nigeria Tax Administration Act 2025* gazette copy, NRS site (27 MB scan). https://www.nrs.gov.ng/uploads/NIGERIA_TAX_ADMINISTRATION_ACT_2025_8c945071a7.pdf — downloaded; not relied on beyond S2a/S2b. [verified primary]
+- S5. Joint Revenue Board of Nigeria, *Personal Income Tax Guidelines*, 24 February 2026. https://www.jrb.gov.ng/assets/2026-pit-guidelines-TJG3n9-T.pdf — **not retrievable (HTTP 404)**; cited from search-result description only. [unverified]
+
+**Nigeria — authoritative practitioner (E3)**
+- S6. PwC, *Worldwide Tax Summaries — Nigeria, Individual: Taxes on personal income*, last reviewed 29 May 2026. https://taxsummaries.pwc.com/nigeria/individual/taxes-on-personal-income — fetched. [verified]
+- S7. PwC, *Worldwide Tax Summaries — Nigeria, Individual: Significant developments* and *Foreign tax relief and tax treaties*, last reviewed 29 May 2026. https://taxsummaries.pwc.com/nigeria/individual/significant-developments ; https://taxsummaries.pwc.com/nigeria/individual/foreign-tax-relief-and-tax-treaties — fetched. [verified]
+- S8. SPA Ajibade & Co (O. Ehinmosan), *Individual Tax Residency and Implications under the Tax Reform Acts*, Legal 500 / Mondaq, 27 October 2025. https://www.legal500.com/intelligence/nigeria/tax/individual-tax-residency-and-implications-under-the-tax-reform-acts — fetched. [verified]
+- S9. *Deduction of Tax at Source (Withholding) Regulations 2024* — commentary/gazette extract hosted by ISC (effective 1 July 2024; 10 % on dividends, interest, rent). https://isc.ng/wp-content/uploads/2024/08/DEDUCTION-OF-TAX-AT-SOURCE-WITHHOLDING-REGULATIONS-2024-Final-Review.pdf — read in text; PwC highlights PDF returned 403. [partially verified]
+- S10. Stren & Blan Partners, *FIRS Imposes 10% Withholding Tax on Interest from Short-Term Instruments*, Legal 500, 10 December 2025 (directive effective 28 October 2025). https://www.legal500.com/intelligence/nigeria/tax/firs-imposes-10-withholding-tax-on-interest-from-short-term-instruments — fetched. [verified]
+- S11. KPMG Nigeria (I. Ike), *Capital Gains Tax under the Nigeria Tax Act 2025 — No Longer Business as Usual*, Legal 500, 2 March 2026. https://www.legal500.com/intelligence/nigeria/tax/capital-gains-tax-under-the-nigeria-tax-act-2025-%E2%80%93-no-longer-business-as-usual — fetched. [verified]
+- S12. Lagos State Internal Revenue Service, *Publications* (notices of 21 Jan, 30 Jan, 24 Feb, 10 Mar, 30 Mar, 11 Apr and 28 Sep 2026). https://lirs.gov.ng/publications — fetched. [verified]
+- S13. ThisDay, *FIRS Turns Nigeria Revenue Service, Unveils Official Logo as New Tax Laws Take Effect*, 1 January 2026. https://www.thisdaylive.com/2026/01/01/firs-turns-nigeria-revenue-service-unveils-official-logo-as-new-tax-laws-take-effect/ — search result. [unverified beyond headline]
+- S14. Orbitax, *Nigeria Approves Pending Tax Treaty with the UAE* (FEC approval 17 January 2024). https://orbitax.com/news/archive.php/Nigeria-Approves-Pending-Tax-T-54757 — page returned 404 on fetch; content from search summary; corroborated by TheCable, *FG approves tax agreement to eliminate double taxation between Nigeria, UAE*, January 2024, https://www.thecable.ng/fg-approves-tax-agreement-to-eliminate-double-taxation-between-nigeria-uae/ . [partially verified]
+- S15. Legal 500, *Nigeria Signs Double Tax Treaty with United Arab Emirates* (signed 18 January 2016). https://www.legal500.com/intelligence/nigeria/tax/nigeria-signs-double-tax-treaty-with-united-arab-emirates — search result. [unverified]
+- S16. Manifield Solicitors, *NTAA Compliance and the TIN Requirements: Legal Position on Bank Account Access*. https://manifieldsolicitors.com/nigeria-tax-administration-act-ntaa-compliance-and-the-tin-requirements-legal-position-on-bank-account-access/ — search result. [unverified]
+- S17. Techeconomy, *LIRS Urges Taxpayers to File Individual Annual Returns ahead 31st March 2026 Deadline*; Guardian Nigeria, *Again, LIRS extends the tax filing deadline to April 21*, April 2026. https://techeconomy.ng/lirs-urges-taxpayers-to-file-individual-annual-returns-ahead-31st-march-2026-deadline ; https://guardian.ng/business-services/again-lirs-extends-the-tax-filing-deadline-to-april-21/ — search results, corroborated by S12. [verified via S12]
+- S18. Forvis Mazars Nigeria, *REV 360: Nigeria's New Digital Tax Platform* (Rev360 replaced TaxPro-Max, 30 April 2026). https://www.forvismazars.com/ng/en/services/tax/tax-alerts/rev-360-new-digital-tax-platform-by-nrs — search result. [unverified]
+- S19. Guardian Nigeria, *N'Assembly orders re-gazetting of tax laws, issuance of certified true copies*; Premium Times, *How FG allegedly altered tax reform laws passed by National Assembly — Reps panel*, December 2025; BusinessDay, *Court refuses to stop FG from proceeding with January rollout of new tax laws*, December 2025. https://guardian.ng/featured/nassembly-orders-re-gazetting-of-tax-laws-issuance-of-certified-true-copies/ ; https://www.premiumtimesng.com/news/headlines/851571-how-fg-allegedly-altered-tax-reform-laws-passed-by-national-assembly-reps-panel.html ; https://businessday.ng/news/article/court-clears-fg-to-proceed-with-january-rollout-of-new-tax-laws/ — search results. [unverified individually; consistent across outlets]
+- S42. KPMG Nigeria, *Nigeria: New Tax Laws — Inherent Errors, Inconsistencies, Gaps and Omissions*, January 2026. https://kpmg.com/ng/en/home/insights/2026/01/nigeria-new-tax-laws-inherent-errors-inconsistencies-gaps-and-omissions.html — search result. [unverified]
+
+**UAE**
+- S20. Federal Tax Authority, *Tax Procedures Guide — Tax Resident and Tax Residency Certificate* (TPGTR1), October 2024. https://tax.gov.ae/Datafolder/Files/Guides/VAT/VAT%20Guides/Tax-Resident-and-TRC--18-10-2024.pdf — read in full text. [verified primary]
+- S21. UAE Ministry of Finance, *Following Cabinet Decision 85 of 2022* (Ministerial Decision 27/2023; effective 1 March 2023), 1–2 March 2023. https://mof.gov.ae/en/news/following-cabinet-decision-85-of-2022/ — fetched. [verified primary]
+- S22. UAE Government portal, *Corporate tax* (Federal Decree-Law 47/2022; 0 %/9 %; AED 375,000; FYs from 1 June 2023), last updated 28 October 2026. https://u.ae/en/information-and-services/finance-and-investment/taxation/corporate-tax — fetched. [verified]
+- S23. Federal Tax Authority, *Registration for VAT* (5 %; AED 375,000 / AED 187,500). https://tax.gov.ae/en/taxes/Vat/vat.topics/registration.for.vat.aspx — fetched. [verified]
+- S24. UAE Government portal, *Excise tax* (rates per Cabinet Decision 52/2019; Federal Decree-Law 7/2017; from 1 October 2017), last updated 28 October 2026. https://u.ae/en/information-and-services/finance-and-investment/taxation/excise-tax — fetched. [verified]
+- S25. Federal Tax Authority, *Small Business Relief* topic page; and *Basic Tax Information Bulletin — Small Business* (Corporate Tax), issued 30 July 2026. https://tax.gov.ae/en/taxes/corporate.tax/corporate.tax.topics/small.business.relief.23.aspx ; https://tax.gov.ae//Datafolder/Files/Pdf/2026/CT_TaxB_ulletin_EN_V5.pdf — fetched / read in text. [verified primary]
+- S26. Federal Tax Authority, *Tax Agents* and *Corporate Tax FAQs* pages. https://tax.gov.ae/en/tax.support/tax.agents.aspx ; https://tax.gov.ae/en/taxes/corporate.tax/faqs.aspx — fetched (partial content). [partially verified]
+- S33. PwC Middle East, *UAE Excise Tax: New tiered-volumetric model of Excise Tax for sweetened drinks* (effective 1 January 2026), 2025; FTA news on sugar conformity certificates. https://www.pwc.com/m1/en/services/tax/me-tax-legal-news/2025/uae-excise-tax-new-tiered-volumetric-model-of-excise-tax-for-sweetened-drinks.html — search result. [unverified]
+- S36. UAE Government portal, *Data protection laws* (Federal Decree-Law 45/2021 in force 2 January 2022; UAE Data Office; DIFC Law No. 5 of 2020), last updated 4 December 2025. https://u.ae/en/about-the-uae/digital-uae/data/data-protection-laws — fetched. [verified]
+- S39. King & Spalding, *A New Era for UAE Federal Securities Regulation: The 2025 CMA Decree-Laws*, February 2026 (Federal Decree-Laws 32/2025 and 33/2025, effective 1 January 2026). https://www.kslaw.com/insights/articles/a-new-era-for-uae-federal-securities-regulation-the-2025-cma-decree-laws-february-2026 — fetched. [verified]
+- S40. DFSA Rulebook, *GEN 2.11.1 Advising on Financial Products*. https://dfsaen.thomsonreuters.com/rulebook/gen-2111 — fetched. [verified]
+- S48. Lexis Middle East, *UAE CT — Cabinet Decision No. 49/2023* (natural persons; AED 1,000,000). https://www.lexismiddleeast.com/eJournal/2023-05-24_19/en — search result; the reallaw.ai copy of the Decision was truncated. [unverified primary text; corroborated by S20 §4.2 footnotes]
+
+**United States and international**
+- S27. Internal Revenue Service, *Table 3 — List of Tax Treaties (Updated through September 26, 2025)*. https://www.irs.gov/pub/irs-lbi/table-3-list-of-tax-treaties.pdf — read in full text; neither Nigeria nor the UAE listed. [verified primary]
+- S28. Internal Revenue Service, *Fixed, Determinable, Annual, Periodical (FDAP) Income*, page updated 23 July 2026; and *NRA Withholding*, updated 14 March 2026. https://www.irs.gov/individuals/international-taxpayers/fixed-determinable-annual-periodical-fdap-income ; https://www.irs.gov/individuals/international-taxpayers/nra-withholding — fetched. [verified]
+- S29. Internal Revenue Service, *Instructions for Form W-8BEN* (rev. 10/2021) and *About Form W-8 BEN* (page updated 2 October 2026). https://www.irs.gov/instructions/iw8ben ; https://www.irs.gov/forms-pubs/about-form-w-8-ben — fetched. [verified]
+- S30. Internal Revenue Service, *Instructions for Form 706-NA* (rev. 09/2025; page updated 30 April 2026). https://www.irs.gov/instructions/i706na — fetched. [verified]
+- S31. OECD Global Forum, *Status of commitments for the automatic exchange of financial account information* (last update 30 September 2026). https://www.oecd.org/tax/transparency/documents/AEOI-commitments.pdf — read in full text. [verified primary]
+- S32. US Department of the Treasury, *Foreign Account Tax Compliance Act (FATCA) — Agreements and Understandings*. https://home.treasury.gov/policy-issues/tax-policy/foreign-account-tax-compliance-act — fetched. [verified]
+
+**Nigeria — regulatory perimeter and data protection**
+- S34. Banwo & Ighodalo, *Synoptic Analysis of the Nigeria Data Protection Act General Application and Implementation Directive (GAID) 2025*. https://www.banwo-ighodalo.com/grey-matter/synoptic-analysis-of-the-nigeria-data-protection-act-general-application-and-implementation-directive-gaid-2025/ — fetched. [verified]
+- S35. Mandel Solicitors, *How to Register as a Data Controller or Data Processor with the NDPC*; DOA Law, *Unpacking the GAID — Series 1* (October 2025). https://mandelsolicitors.com/how-to-register-as-a-data-controller-or-data-processor-with-the-nigeria-data-protection-commission/ ; https://www.doa-law.com/wp-content/uploads/2025/10/Gaid-Serie-1.pdf — fetched / read in text. [verified secondary; NDPC primary text not retrieved]
+- S37. Securities and Exchange Commission Nigeria, *Rules on Robo-Advisory Services*, executed 30 August 2021. https://sec.gov.ng/documents/1292/Rules-on-Robo-Advisory-Services_Executed-30-August-2021.pdf — read in full text. [verified primary]
+- S38. Securities and Exchange Commission Nigeria, *Investment Adviser (Individual) Registration Requirements*, 22 May 2025. https://sec.gov.ng/about/resources/checklists/individual-registration-requirements-for-each-cmo/investment-adviser-individual-registration-requirements/ — fetched. [verified]
+- S41. The Trusted Advisors, *Review of the Investment and Securities Act of 2025*, Legal 500 (assent 31 March 2025; s.357 digital assets). https://www.legal500.com/intelligence/nigeria/corporate-commercial-law/review-of-the-investment-and-securities-act-of-2025 — fetched. [verified]
+- S47. Legal 500 (Nigeria), *Open Banking and Digital Lending in Nigeria: Opportunities, Risks and Regulatory Readiness*, 31 July 2026; Central Bank of Nigeria, *Operational Guidelines for Open Banking in Nigeria*, March 2023. https://www.legal500.com/intelligence/nigeria/finance-and-banking/open-banking-and-digital-lending-in-nigeria-opportunities-risks-and-regulatory-readiness ; https://www.cbn.gov.ng/Out/2023/CCD/Operational%20Guidelines%20for%20Open%20Banking%20in%20Nigeria.pdf — fetched / search result. [verified / unverified]
+
+**Accounting standards and academic**
+- S43. IFRS Foundation, *IAS 21 The Effects of Changes in Foreign Exchange Rates* (standard page). https://www.ifrs.org/issued-standards/list-of-standards/ias-21-the-effects-of-changes-in-foreign-exchange-rates/ — fetched (page confirms scope; detailed measurement rules summarised from the standard, E3). [verified page]
+- S44. IAASB, *ISA 315 (Revised 2019) — Identifying and Assessing the Risks of Material Misstatement*, 19 December 2019. https://www.iaasb.org/publications/isa-315-revised-2019-identifying-and-assessing-risks-material-misstatement — fetched (assertion list summarised from the standard, E3). [verified page]
+- S45. Nigrini, M. J. and Mittermaier, L. J. (1997), "The Use of Benford's Law as an Aid in Analytical Procedures", *Auditing: A Journal of Practice & Theory*, 16(2). DOI 10.2308/ajpt-1302507. **[verified via Crossref on 2026-11-02; OpenAlex/reference-lookup tools unavailable (rate-limited/timeout)]**
+- S46. Hill, T. P. (1995), "A Statistical Derivation of the Significant-Digit Law", *Statistical Science*, 10(4). DOI 10.1214/ss/1177009869. **[verified via Crossref on 2026-11-02]**
+
+**Calculation script.** `/tmp/claude-0/-home-user-Terminal-/db376c7d-be49-5fe4-a185-5e7cc59446a3/scratchpad/calc_examples.py` (Python 3; reproduces every figure in §4.8).
+
+*End of Document 6, v0.1 draft.*

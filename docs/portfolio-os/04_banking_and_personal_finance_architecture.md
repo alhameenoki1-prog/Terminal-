@@ -50,3 +50,300 @@ Evidence grades follow the brief (E1–E6). Source numbers refer to §10.
 **F9. UAE payments context.** UAEFTS is the CBUAE-owned real-time gross settlement system, operational since 2001; IBAN is mandatory for domestic and international electronic payments [S35]. Aani (Al Etihad Payments, launched October 2023) offers 24/7 instant transfers by mobile-number proxy and QR, request-to-pay and split payments; AEP's site cites a limit of AED 50,000 while a 2025 press report cites AED 5,000 per proxy transaction — the two must be reconciled [S36]. The dirham has been fixed at AED 3.6725 per US dollar since November 1997 [S37]. Private-sector salaries must be paid through the Wage Protection System (WPS): Ministerial Resolution 340 of 2026 (12 May 2026, effective 1 June 2026) requires payment by the first day of the following month, with escalating sanctions from day 2 [S38]. VAT at 5% applies to explicit bank fees and commissions; margin- or interest-based services are exempt [S39]. **Grade E2/E3.**
 
 **F10. Plaid's Personal Finance Categories are the right public yardstick.** Version 1 had 16 primary and 104 detailed categories; version 2 (December 2025) has 18 primary and 127 detailed, adding `LOAN_DISBURSEMENTS` and `OTHER`, richer `INCOME` (`SALARY, CONTRACTOR, GIG_ECONOMY, RENTAL, DIVIDENDS, INTEREST_EARNED, …`) and transfer subtypes (`ACCOUNT_TRANSFER, INVESTMENT_AND_RETIREMENT_FUNDS, SAVINGS, WIRE, CRYPTO, WITHDRAWAL, TRANSFER_IN_FROM_APPS, …`). Plaid exposes a `confidence_level` enumeration `VERY_HIGH (>98%) / HIGH (>90%) / MEDIUM / LOW / UNKNOWN` and typed counterparties (`merchant, financial_institution, payment_app, marketplace, payment_terminal, income_source`) [S51]. Plaid's recurring-stream detection groups by description, amount and cadence, treats a stream as mature after three occurrences and reports weekly/biweekly/semi-monthly/monthly frequencies [S52]. **Grade E3 (vendor documentation; widely used de-facto standard).**
+
+**F11. Mature open-source ledgers converge on the same primitives.** Beancount: every transaction must balance (posting weights sum to zero); `@`/`@@` price annotations participate in balancing; `{}` records cost basis; `balance` assertions are evaluated at the start of their date and check one currency; `pad` books the difference to an equity account; `price` directives drive valuation [S55]. hledger: `=` asserts one commodity, `==` asserts it is the only commodity, `=*` includes sub-accounts; costs are ignored for assertions; valuation can be "then", "end" or "now" from `P` price records [S56]. Firefly III: a transaction *group* holds one or more *journals*, each with exactly two legs (source and destination); withdrawals go asset → expense, deposits revenue → asset, transfers asset → asset; a journal may carry a foreign currency and foreign amount; splits are journals within a group [S53]. Actual Budget: a transfer is a linked pair whose payee is the other account, with category "Transfer" and no budget effect; import de-duplication uses the file's transaction ID first, then "around the same date, same amount, similar payee"; it recommends importing one side and letting the other reconcile to avoid duplicate transfers [S54]. **Grade E3.**
+
+**F12. Record linkage has a formal basis.** Fellegi and Sunter (1969) give the probabilistic framework for deciding match / possible match / non-match from field agreement weights with explicit error bounds — the correct foundation for fuzzy duplicate and transfer matching rather than ad-hoc thresholds [S79, verified]. **Grade E1 (classic, replicated).**
+
+**F13. Budgeting method evidence is weaker than practice suggests.** Mental budgeting is real and measurable: consumers set category budgets and then under- or over-consume relative to them (Heath & Soll 1996 [S62]; Thaler 1999 [S63]; review in Zhang & Sussman 2018 [S64]). Partitioning and earmarking money increased saving among low-income Indian households in a field experiment (Soman & Cheema 2011 [S65]); cash and immediate payment forms reduce spending relative to cards (Soman 2001 [S67]; Prelec & Loewenstein 1998 [S66]). This supports *envelope-style* allocation as a plausible intervention (E2, single or few studies). We found **no** peer-reviewed causal evidence for zero-based budgeting in households, and the 50/30/20 rule traces to a practitioner book [S93] (E4). Financial-education meta-analyses disagree on effect size: Fernandes et al. (2014) find small, decaying effects [S68]; Kaiser et al. (2022), pooling 76 randomised experiments, find positive effects on knowledge and behaviours [S69] (E1, conflicting). **Implication:** present budgets as tools with measured outcomes, not as doctrine.
+
+**F14. Personal-finance software data has been used to show how people actually behave.** Olafsson & Pagel (2018), using an Icelandic aggregation app, document "liquid hand-to-mouth" behaviour — spending responds to paycheque arrival even among people with liquidity [S70]; Carlin, Olafsson & Pagel (2023) find that mobile-app access is associated with lower bank fees and less high-interest debt [S71]; Gelman et al. (2014), Ganong & Noel (2019) and Baugh et al. (2021) show spending tracks income timing and falls sharply when income stops [S75–S77] (E2 each; E1 as a body of evidence on income-timing sensitivity). **Implication:** cash-flow forecasting should be paycheque-anchored, not monthly-average.
+
+**F15. Emergency-fund evidence favours measurable buffers over fixed multiples.** Lusardi, Schneider & Tufano (2011) found roughly half of US adults could not raise $2,000 in 30 days [S72]; the Federal Reserve's 2026 report (survey October 2025) reports 63% would cover a $400 expense with cash or equivalent [S74]; Despard et al. (2020) link emergency savings to financial capability rather than income alone [S73] (E2). The "three to six months of expenses" rule is a professional convention (E4); a working-paper threshold estimate (Sabat & Gallagher 2019) could not be verified [S84, unverified]. **Implication:** express the buffer as *months of essential expenses covered by liquid assets*, show the number, and let the user set the target.
+
+**F16. Risk should be modelled as three separate quantities.** Practice literature distinguishes *risk need* (risk required to meet a goal), *risk capacity* (ability to absorb loss, objective: net worth, income, horizon) and *risk tolerance* (willingness, subjective, measured by validated questionnaire) and warns that plans fail when portfolios exceed tolerance (Ryack, Kraten & Sheikh 2016 [S59], E3). The Grable–Lytton 13-item scale (1999) is the most used instrument [S60, verified; E2]; a 15-year retrospective judged it acceptable but imperfect [S61, unverified]. CFP Board's Practice Standards (effective 1 October 2019) list risk tolerance among the *qualitative* inputs of step 1 [S57]. **Grade E2/E3.**
+
+**F17. The financial-planning process is standardised and software-adaptable.** CFP Board's seven steps: (1) understanding the client's personal and financial circumstances (qualitative: health, family, values, risk tolerance, goals; quantitative: age, dependants, income, expenses, savings, assets, liabilities, insurance, estate); (2) identifying and selecting goals; (3) analysing the current course of action and alternatives; (4) developing recommendations; (5) presenting; (6) implementing; (7) monitoring and updating [S57]. FPSB's 2021 Practice Standards (as adopted by affiliates such as FPAM, revision 17 May 2021) use a six-step relationship model that starts with establishing the engagement and collecting information and documents [S58]. **Grade E3.**
+
+**F18. Credit information is accessible but not central to the personal MVP.** Nigeria has three CBN-licensed bureaus (CRC, CreditRegistry, FirstCentral) under the Credit Reporting Act 2017; CRC reports contain identity, address and employment history, enquiries, facility history, security, dishonoured cheques and suits, with disputes by email/phone; secondary sources report one free report per year and a USSD channel (`*565*8#`) [S81] (E3). The UAE's Etihad Credit Bureau sells a credit score for AED 10.50 and a credit report quoted at AED 157.50 on its FAQ, while 2026 secondary sources quote AED 84 for individuals — to be verified at purchase [S82] (E3, conflicting). Debt-repayment behaviour deviates from optimal: Gathergood et al. (2019) show "balance matching" across cards instead of paying the highest rate first [S78] (E2) — relevant once liabilities exist in the ledger.
+
+**F19. Household saving-rate and liquidity ratios have standard definitions.** National-accounts practice defines the household saving rate as saving divided by disposable income (OECD indicator; page not fetchable, E3 unverified) [S88]; personal-finance textbooks define the liquidity (basic) ratio as liquid assets divided by monthly essential expenses (E3). The system should compute both from the ledger with their definitions printed beside them.
+
+**F20. Multi-currency accounting has an accepted reference.** IAS 21 distinguishes functional from presentation currency; transactions are initially recorded at the spot rate of the transaction date, monetary items are retranslated at the closing rate, and exchange differences are recognised in profit or loss (IFRS Foundation overview fetched; paragraph-level rules cited from the standard, E3) [S80]. For an individual, this translates to: record each posting in its native currency, store the reference rate at transaction date, revalue monetary balances at period end, and show translation effects separately from real flows.
+
+**F21. Nigerian tax residency now matters for the ledger's income tagging.** The Nigeria Tax Act 2025 taxes residents' income "regardless of whether the income is received in Nigeria or abroad" and removes the former unilateral foreign-tax-credit mechanism in favour of treaty/section-45 relief (law-firm analysis) [S23] (E3). The ledger must therefore tag every income posting with source country, currency and payer, and record the user's residency status as a confirmed input — the Tax department owns the rule, we own the data.
+
+**F22. Investment platforms rarely offer machine-readable exports; brokers do.** Interactive Brokers' Flex Queries are the only fully programmatic source among the accounts reviewed [S44]; Bamboo, Sarwa, Risevest and PFAs deliver PDFs (monthly or quarterly) [S45–S47, S50]; CSCS statements are per-CHN and historically required paid portal registration [S49]; PiggyVest, Cowrywise, Trove and Chaka export formats were not found. **Grade E3/E5.** Implication: investment ledgers will be reconstructed from PDF statements plus manual confirmation for the foreseeable future, and position valuation must come from the Investment Research data layer, not from the statements.
+
+## 4. Proposed framework / specification for Portfolio OS
+
+### 4.1 Data acquisition: what the personal MVP can rely on
+
+| Tier | Source type | Accounts (examples) | Machine-readable? | MVP decision |
+|---|---|---|---|---|
+| 1 | Structured exports (CSV/XLSX/XML) | Wise (CSV/XLSX/CAMT.053/MT940), Revolut (CSV), IBKR (Flex XML/CSV), Kuda, Moniepoint, OPay (XLSX) | Yes | **Must-have**: one adapter per format, column maps versioned |
+| 2 | Text PDF statements | GTBank, Zenith, First Bank, UBA, Access, Stanbic IBTC, PalmPay, Emirates NBD, FAB, ADCB, Mashreq, Wio, Liv, RAKBANK, Bamboo, Sarwa, Risevest, PFA RSA statements, CSCS | Yes, with layout-specific parsing and mandatory reconciliation | **Must-have**: PDF text extraction with per-institution templates; reject files that fail balance checks |
+| 3 | Image/scanned PDFs, screenshots | Older statements, some fintech receipts | Only via OCR; error-prone | **Later**: OCR behind a human-review queue |
+| 4 | Aggregator APIs | Mono Connect (Nigeria); licensed UAE TPPs (e.g., Lean) | Yes, but consent model proprietary, pricing quote-based, coverage per bank unverified | **Later**: second adapter once reliability is measured on the founder's own banks |
+| 5 | Regulated open banking | CBN open banking (not live, F1); CBUAE AlTareq (licence required, F8) | Not available to an individual | **Do-not-build (yet)**; design interfaces so it slots in |
+| 6 | Manual entry | Cash, informal loans, physical assets, opening balances | n/a | **Must-have**, with evidence attachment and "manual" provenance flag |
+
+Provenance rule (brief §5.1): every imported row stores `source_file_id, source_row_no, source_hash, parser_version, imported_at`; every displayed amount can be traced back to a row or to a manual entry with a reason.
+
+Consent and security posture for Tier 4 (specialist judgment, E4): the user, not the system, initiates any aggregator link; credentials never enter Portfolio OS; tokens are stored server-side encrypted, never in browser storage (the repository's localStorage anti-pattern, brief §1.5).
+
+### 4.2 Ledger design
+
+**Single-entry versus double-entry.** A single-entry transaction list is what every bank export is, and it is sufficient for *one* account. It fails the moment money moves between the user's own accounts (counted twice as spending and income), crosses currencies (the "loss" between ₦1,000,000 sent and $715 received is invisible or mis-booked), is reversed (a double POS swipe and its reversal inflate both spending and income), or buys a security (cash falls, but wealth does not). Double entry forces each movement to name where value came from and where it went, which is exactly the question the founder's requirements ask (transfers, contributions, FX, duplicates). Beancount, hledger and Firefly III all prove that this is tractable for an individual [F11]. Actual Budget shows the cost of the alternative: it bolts transfer-pairing and de-duplication onto a single-entry model and must document import order to avoid duplicates [S54].
+
+**Recommendation:** double-entry postings, with a *presentation layer* that still looks like a transaction list (one row per bank line, expandable into its postings). Users never type debits and credits; the import pipeline and rules engine generate postings, and the user confirms.
+
+**Chart of accounts for an individual (NGN/AED/USD).** Account identifiers are hierarchical, each leaf has exactly one currency (securities use the security code as commodity, as in Beancount).
+
+| Top level | Examples | Notes |
+|---|---|---|
+| Assets:Cash | `Assets:Cash:NGN:Wallet`, `Assets:Cash:AED:Wallet` | Manual |
+| Assets:Bank | `Assets:Bank:NG:GTB:Current:NGN`, `Assets:Bank:NG:GTB:Dom:USD`, `Assets:Bank:AE:ENBD:Current:AED`, `Assets:Bank:NG:Kuda:Spend:NGN` | Domiciliary accounts are separate leaves per currency |
+| Assets:EMoney | `Assets:EMoney:Wise:USD`, `Assets:EMoney:Wise:AED`, `Assets:EMoney:OPay:NGN` | Wise jars/currency balances are separate leaves |
+| Assets:Savings | `Assets:Savings:PiggyVest:Flex:NGN`, `Assets:Savings:Cowrywise:Plan1:NGN` | Contributions are transfers |
+| Assets:Brokerage | `Assets:Brokerage:IBKR:Cash:USD`, `Assets:Brokerage:IBKR:Positions:<TICKER>`, `Assets:Brokerage:NGX:<Broker>:Positions:<TICKER>` | Positions carried at cost lots; market value from price table |
+| Assets:Pension | `Assets:Pension:RSA:<PFA>:FundII` | Units × unit price from quarterly statement |
+| Assets:Receivable | `Assets:Receivable:Loans:<Person>` | Informal lending |
+| Liabilities | `Liabilities:Cards:<Bank>:AED`, `Liabilities:Loans:<Lender>:NGN`, `Liabilities:Payable:Rent` | Credit cards are liabilities, repayments are transfers |
+| Equity | `Equity:OpeningBalances`, `Equity:Adjustments:Reconciliation` | Only the system writes here |
+| Income | `Income:Salary:NG:<Employer>`, `Income:Salary:AE:<Employer>`, `Income:Business:<Client>`, `Income:Dividends:<Market>`, `Income:Interest`, `Income:Rental`, `Income:FXGain:Realised` | Tagged with source country and payer (F21) |
+| Expenses | taxonomy in §4.3.5 plus `Expenses:BankCharges:{TransferFee, StampDuty, SMSAlert, CAMF, AccountFee, CardFee, VAT}`, `Expenses:FX:ConversionCost`, `Expenses:Investing:Commission`, `Expenses:Tax:Withholding` | Charges are split by regulatory type so they can be audited against the Guide to Charges |
+| Suspense | `Suspense:PendingReversal`, `Suspense:Unmatched` | Must be empty at period close |
+
+**Core entities.**
+
+| Entity | Key fields | Rules |
+|---|---|---|
+| `account` | id, path, currency/commodity, institution, country, type (asset/liability/income/expense/equity/suspense), opened_on, closed_on, external_identifiers (masked IBAN/NUBAN), base_currency_override | One currency per leaf; multi-currency products are several leaves |
+| `statement` | id, account_id, period_start, period_end, opening_balance, closing_balance, printed_total_in, printed_total_out, file_hash, parser_version, reconciliation_status | Immutable once reconciled; overlapping statements allowed, duplicates resolved at line level (§4.3.4) |
+| `source_line` | id, statement_id, row_no, raw_date, value_date, raw_narration, debit, credit, running_balance, raw_reference, line_hash | Raw, never edited; `line_hash = sha256(account_id|date|amount|normalised_narration|reference|running_balance)` |
+| `transaction` | id, date, value_date, description, counterparty_id, kind (spend/income/transfer/investment/fee/reversal/opening/revaluation), status (imported/auto_posted/needs_review/confirmed/disputed/void), confidence (0–1), rule_id, created_by (parser/rule/model/user), source_line_ids[] | A reversal links to the transaction it reverses; a transfer links its two sides |
+| `posting` | id, transaction_id, account_id, amount, currency, ref_rate_to_base, ref_rate_source, ref_rate_asof, base_amount, cost_lot_id, evidence_id | Σ(base_amount) over a transaction = 0; FX cost is an explicit posting, never a plug |
+| `counterparty` | id, canonical_name, aliases[], type (merchant/person/employer/institution/government/self), default_category, country | Self-counterparties are the user's own accounts (transfer detection) |
+| `category` | id, path, plaid_pfc_detailed (mapping), is_essential (bool), is_transfer (bool), is_investment (bool) | Mapped to Plaid PFC v2 for comparability (F10) |
+| `fx_rate` | currency_pair, date, rate, source (CBN/NFEM, FMDQ, CBUAE peg, parallel-market survey, provider-implied), as_of, retrieved_at | Several sources per day may coexist; display names the source |
+| `price` | commodity, date, price, currency, source | From the Investment Research layer with validation status |
+| `evidence` | id, type (statement, receipt, contract, screenshot, note), file_hash, uri, linked_entity | Attachments for any transaction or account |
+| `rule` | id, pattern (narration regex / counterparty / amount band / account), action (category, counterparty, kind), precision_observed, created_by, active | Rules learn from confirmations; precision is measured, not assumed |
+| `review_item` | id, entity, reason (low confidence, unmatched transfer, failed assertion, possible duplicate, gap), state (open/resolved), resolved_by | The human-in-the-loop queue |
+
+**FX at transaction date and revaluation at period end.** Each posting stores the native amount and a reference rate to the user's base currency as of the transaction date (source named: NFEM/CBN for NGN, CBUAE peg 3.6725 for AED/USD). Where a transfer's *implied* rate differs from the reference rate, the difference is posted to `Expenses:FX:ConversionCost` (or `Income:FXGain:Realised` if favourable) so that spread is visible and auditable (F7, F20). At each period end the system writes a `revaluation` transaction per monetary account that restates its balance at the closing reference rate, posting the difference to `Income:FXGain:Unrealised` / `Expenses:FXLoss:Unrealised`; these entries are reversible and excluded from the cash-flow view. Users may also choose a *second* reference series (parallel market) for NGN; the display then shows both figures with their sources rather than a blended number.
+
+**Confidence and review states.** `confidence` is a number in [0,1] attached to the *classification* (kind, category, counterparty, transfer match), never to the amount — amounts are facts from the statement. Surfaced as four bands mirroring Plaid's enumeration (≥0.98 very high, ≥0.90 high, ≥0.70 medium, else low) [F10]. Anything below 0.90 or produced by a model rather than a deterministic rule enters `needs_review`. A confirmed item records who confirmed it and when, and feeds rule precision statistics.
+
+### 4.3 Transaction intelligence
+
+#### 4.3.1 Income detection
+
+Inputs: credits across all asset accounts, counterparty, narration, periodicity. Method (deterministic first, statistical second):
+
+1. **Regular salary.** A credit stream qualifies when ≥3 occurrences (Plaid's maturity threshold, F10) fall within a tolerance of ±3 calendar days of a monthly anchor (or semi-monthly/biweekly), amounts within ±15% of the stream median, and the counterparty is not one of the user's own accounts. Nigeria-specific cues raise confidence: narration containing `SALARY`, `SAL`, `PAYROLL`, employer name; UAE cue: `WPS` in the narration (F9). Confidence: deterministic rule ≥0.95 when ≥3 matches and employer cue present; 0.80 when periodicity only.
+2. **Irregular / business income.** Credits from non-self counterparties that do not match a stream are `Income:Business:<Client>` candidates only if the counterparty recurs (≥2 credits in 12 months) or the user has tagged the payer; otherwise they are `needs_review` with a default of `TRANSFER_IN:OTHER` — never auto-booked as income (behavioural and tax consequences). Dividend, interest and refund credits are detected by narration (`DIV`, `INT`, `REVERSAL`, `REFUND`) and broker statement sections.
+3. **Outputs.** An `income_stream` object (payer, currency, frequency, median amount, last date, predicted next date, variance) feeds forecasting (§4.4.6) and the Tax department (source country, payer).
+4. **Validation.** Precision/recall against the founder's own confirmed history; target ≥0.95 precision on salary before the stream is used in forecasts.
+
+#### 4.3.2 Transfer matching between own accounts
+
+Candidates: a debit D in account X and a credit C in account Y (both owned), where:
+
+| Test | Same-currency rule | Cross-currency rule |
+|---|---|---|
+| Amount | |C| = |D| exactly, or |D| − |C| equals a known fee in X | |C| × ref_rate(date_D) within ±6% of |D| (covers observed 2–3.5% spreads plus fee, F7, §4.6); configurable |
+| Date window | value_date(C) ∈ [date_D − 1, date_D + 3] business days (NIP is near-instant; IMTO 0–2 days) | [date_D − 1, date_D + 5] business days (FX settlement T+2 common) |
+| Counterparty | narration of C contains the user's name, X's institution, or a shared reference; or Y is the destination named in D | same, plus provider identifiers (Wise/IMTO reference) |
+| Uniqueness | one-to-one; if several candidates, prefer the smallest date distance, then shared reference | same |
+
+Scoring follows Fellegi–Sunter: each test contributes an agreement weight; matches ≥ the upper threshold are auto-linked (`confidence` ≥0.95), between thresholds queued, below rejected [F12]. A matched pair becomes one `transfer` transaction with postings: X −D, Y +C, fees to `Expenses:BankCharges:*`, stamp duty/VAT to their own accounts, and the residual (|D| − fees − |C|×ref_rate) to `Expenses:FX:ConversionCost` with the reference rate's source and date stored. **Investment contributions** (bank → brokerage/savings platform) are transfers under this logic; the subsequent *purchase* inside the brokerage is a separate transaction (cash → position at cost). Neither appears in spending; both appear in a "contributions" view.
+
+Edge cases (E5, to be tested): one debit split into several credits (Wise multi-currency), credits arriving before the debit's value date (fintech pre-funding), transfers to a third party with the user's own name in narration (false positives — require Y to be an owned account), and reversed transfers.
+
+#### 4.3.3 Investment contributions are not spending
+
+Rule: any posting whose destination account is under `Assets:Savings`, `Assets:Brokerage`, `Assets:Pension` or `Liabilities` (debt repayment) is excluded from spending and income aggregates and reported under *Saving & investing flows*. Only fees, commissions, withholding taxes and FX conversion costs attached to these flows count as expenses. This matches Plaid's `TRANSFER_OUT:INVESTMENT_AND_RETIREMENT_FUNDS` and `LOAN_PAYMENTS` separation [F10] and Actual Budget's off-budget treatment [S54].
+
+#### 4.3.4 Duplicate detection
+
+Three layers:
+
+1. **Exact file-level**: identical `file_hash` → reject with message.
+2. **Deterministic line hash** (`line_hash`, §4.2) → skip silently and record the overlap in the statement's provenance. Including `running_balance` in the hash distinguishes two genuine identical purchases (the running balance differs) from a re-uploaded line (identical) — this is the main weakness of hashing date+amount+narration alone (Firefly III's "classic" approach suffers from it; search summary only, page blocked).
+3. **Fuzzy** (Fellegi–Sunter over date distance ≤2 days, amount equality, narration similarity ≥0.85 Jaro–Winkler, same account): flags *possible duplicates* for review, never auto-deletes. A **bank-side duplicate with later reversal** (double POS swipe) is *not* a duplicate: both debits and the reversal are real lines and must be kept so the statement reconciles; the second debit and its reversal are linked as a `reversal` pair and netted out of spending (§4.6).
+
+Overlapping statements (e.g., a Jan–Mar PDF then a Mar–Jun PDF) are expected; the system reconciles each statement independently and then checks that the earlier statement's closing balance equals the running balance at the overlap boundary.
+
+#### 4.3.5 Categorisation taxonomy
+
+Proposed first level (12 groups) with Plaid PFC v2 mapping, so that figures remain comparable with external benchmarks and any later aggregator feed [F10]:
+
+| Portfolio OS group | Plaid PFC v2 primary | Nigeria/UAE-specific detail leaves |
+|---|---|---|
+| Housing & utilities | RENT_AND_UTILITIES | rent (annual/quarterly instalments flagged), service charge, DEWA/EKEDC/IKEDC, generator fuel/diesel, estate levy |
+| Food & groceries | FOOD_AND_DRINK | supermarket, market/cash, dining, delivery |
+| Transport | TRANSPORTATION | fuel, ride-hailing, Salik/tolls, flights (domestic) |
+| Health | MEDICAL | HMO premium, pharmacy, hospital |
+| Family & giving | GOVERNMENT_AND_NON_PROFIT / GENERAL_SERVICES | remittances to family (not own transfers), religious giving, school fees (education leaf) |
+| Telecoms & subscriptions | GENERAL_SERVICES / ENTERTAINMENT | airtime, data, streaming |
+| Shopping & personal | GENERAL_MERCHANDISE / PERSONAL_CARE | |
+| Travel | TRAVEL | |
+| Government & taxes | GOVERNMENT_AND_NON_PROFIT | PAYE visible on payslip (manual), withholding tax, visa/Emirates ID fees |
+| Bank charges & levies | BANK_FEES | NIP fee, stamp duty, SMS alert, CAMF, card fee, VAT on fees, FX conversion cost |
+| Debt service | LOAN_PAYMENTS | interest (expense) vs principal (transfer to liability) split |
+| Transfers & investing (excluded from spending) | TRANSFER_IN/OUT, LOAN_DISBURSEMENTS | own-account transfers, savings/brokerage contributions, pension, dividends reinvested |
+
+Each leaf carries `is_essential` (for liquidity ratios) and a Plaid detailed code. Categories are user-editable; edits create aliases, not deletions, so history remains comparable.
+
+#### 4.3.6 Rules engine with human confirmation
+
+Order of precedence: (1) statement structure (broker sections, fee lines printed separately) → (2) deterministic narration rules per institution (versioned, with observed precision) → (3) counterparty memory (what the user confirmed for this counterparty before) → (4) statistical/LLM suggestion with a confidence score and the evidence it used, never allowed to change amounts or dates. Every automatic classification is reversible; the user confirms in a review queue sorted by financial materiality × uncertainty. Rules whose observed precision falls below 0.90 over the trailing 100 applications are demoted to suggestions automatically.
+
+#### 4.3.7 Reconciliation controls
+
+| Control | Formula / check | On failure |
+|---|---|---|
+| Statement balance | opening + Σcredits − Σdebits = closing (tolerance 0.00) | Statement rejected; parser diagnostic shows first row where the running balance breaks |
+| Row chaining | running_balance(i) = running_balance(i−1) − debit(i) + credit(i) where the bank prints a running balance | Flags dropped or merged rows (bankstract's documented failure mode, F4) |
+| Printed totals | Σdebits = "Total Money Out", Σcredits = "Total Money In" when printed | Statement rejected |
+| Continuity | closing(statement n) = opening(statement n+1); gaps > 1 day between statements raise a `gap` review item | Period marked *incomplete*; aggregates for that period shown with an "incomplete data" badge |
+| Ledger assertion | after posting, ledger balance at period_end = statement closing (Beancount-style balance assertion, F11) | `Equity:Adjustments:Reconciliation` entry only with user approval and a reason |
+| Suspense | `Suspense:*` balances = 0 at period close | Close blocked |
+| Cross-account | each `transfer` has exactly two owned-account legs; unmatched own-transfers older than 10 business days raise a review item | |
+| Investment | units per position = Σ(trades) and match the broker's position section; cash = broker cash report | Differences itemised (corporate actions, fees) |
+
+### 4.4 Cash-flow and planning intelligence
+
+#### 4.4.1 Budgets
+The system offers three budget *views* over the same ledger — category envelopes (allocation per category, with the carry-over behaviour the user chooses), zero-based (every unit of expected income assigned), and percentage guides (needs/wants/saving) — and measures the same outcomes for each: adherence (actual ÷ planned by category), spending volatility, and the savings rate. It states the evidence honestly (F13): envelope/partitioning has field-experiment support; zero-based has none we could find; percentage rules are heuristics. Whether a budget view improves outcomes for *this* user is an experiment the Behavioural department designs (eight-question test), not an assumption.
+
+#### 4.4.2 Emergency fund and liquidity
+Metrics (all from the ledger, definitions printed on screen): essential monthly spend (trailing 6-month median of `is_essential` categories, per currency and in base currency); liquid assets (cash, current/savings accounts, e-money, money-market balances; *not* pensions, *not* volatile securities); **months covered = liquid assets ÷ essential monthly spend**; and a stress variant using the parallel-market rate for NGN liquidity held against AED/USD obligations. The target is a user input with a suggested range (3–6 months) labelled as convention, plus two evidence anchors: "could you raise the equivalent of $2,000 within 30 days from liquid assets?" (Lusardi et al.) and "$400 unexpected expense" (Federal Reserve) [F15].
+
+#### 4.4.3 Savings-rate measurement
+Savings rate = (income − spending − fees − taxes paid from the accounts) ÷ income, computed on a *cash* basis per month and on a trailing-12-month basis, with transfers and investment contributions excluded from spending (§4.3.3) and shown separately as "of which invested". Gross versus net income is a stated choice (payslip data, where available, allows the gross basis). Report alongside the OECD-style definition so the number is comparable (F19).
+
+#### 4.4.4 Risk capacity, tolerance and need
+Captured separately (F16): **capacity** is computed (months covered, income stability from §4.3.1, horizon of each goal, share of net worth in volatile assets, liabilities); **tolerance** is measured with a validated questionnaire (Grable–Lytton 13-item, licensed/attributed) and re-measured annually; **need** is derived by the Goal Reality Engine (required return for each goal). The system shows the three side by side and flags conflicts (e.g., need > tolerance) as a decision for the user, never as a recommendation to take more risk.
+
+#### 4.4.5 Credit and liabilities
+Liabilities are ledger accounts with interest, fees and principal split per statement; the system computes debt-service ratio (debt service ÷ income) and total liabilities ÷ liquid assets. Credit-bureau reports (CRC/CreditRegistry/FirstCentral; Etihad Credit Bureau) are *user-uploaded documents* (F18) parsed for open facilities and enquiries, cross-checked against the liabilities ledger; the system never pulls bureau data itself. Repayment guidance, when liabilities exist, uses the evidence on balance-matching (F18) and presents the interest cost of alternatives as ranges.
+
+#### 4.4.6 Cash-flow forecasting
+Two methods, both reproducible from stored inputs: (a) **recurring-pattern projection** — income streams and recurring outflows (rent instalments, subscriptions, school fees, annual rent due dates) projected on their detected cadence with a ± band from historical variance, anchored on paycheque dates (F14); (b) **scenario overlays** — user-defined shocks (income stops for n months, NGN depreciates x%, rent increases y%) applied to (a). No stochastic forecasting of spending at MVP; the Forecasting department owns long-horizon models.
+
+#### 4.4.7 Net-worth statement across currencies
+Base-currency choice is an explicit setting, with the recommendation to show **two views by default**: USD (stable numeraire for a person with AED and USD assets; AED is pegged) and NGN (the currency of most spending). Each monetary account is translated at the closing reference rate of the period (IAS 21 logic, F20); securities at validated prices; pensions at the latest statement value with its as-of date. The period change is decomposed into *net saving*, *market gains/losses*, and *FX translation effect*, each labelled; a secondary line shows NGN assets valued at the parallel rate as a sensitivity, never as the headline (§4.5). Liabilities translate the same way.
+
+#### 4.4.8 Planning workflow adapted to software (CFP Board / FPSB steps, F17)
+
+| Step | Ask the user | Infer from records | Output |
+|---|---|---|---|
+| 1 Circumstances | residency (NG/AE/other) and days of presence, citizenship(s), employment type, dependants, health/insurance, values, risk-tolerance questionnaire | accounts, balances, income streams, spending structure, liabilities, FX exposure | Fact-find record with confirmation stamps |
+| 2 Goals | goals, horizons, priorities, currency of each goal | historical saving capacity | Goal register (feeds Goal Reality Engine) |
+| 3 Analysis | — | savings rate, months covered, debt ratios, FX mismatch between income and obligations, fee leakage, conversion costs | Diagnostic report with evidence grades |
+| 4–5 Recommendations & presentation | choices among alternatives | ranges and trade-offs | Alternatives with assumptions, never promised returns |
+| 6 Implementation | what was done | ledger shows contributions/changes | Action log |
+| 7 Monitoring | changes in circumstances | monthly reconciliation and KPI drift | Alerts with thresholds the user set |
+
+Ask-versus-infer principle: anything that is a legal status, a preference or a goal is asked and confirmed; anything observable in statements is inferred and shown with its evidence; inferred facts that carry tax or legal weight (residency, income source) are *never* treated as confirmed until the user says so.
+
+### 4.5 Recording and displaying amounts across currencies without misleading the user
+
+1. **Native first.** Every amount is stored and displayed in its native currency with its ISO code (₦/NGN, AED, USD); converted figures are secondary and always carry the rate, the rate source and the as-of date (e.g., "≈ $2,894 at NFEM ₦1,346.91/$ (CBN, 29 Oct 2026)").
+2. **One reference series per currency pair, named.** NGN: CBN/NFEM weighted average as the default reference; parallel-market survey as an optional secondary series shown side by side for NGN-denominated liquidity and for what-if views; never blended. AED: fixed 3.6725 (state "pegged since 1997").
+3. **Spread is an expense line, not a rounding error.** Implied rates on own transfers are computed and the difference from the reference rate is booked and displayed (§4.3.2).
+4. **Translation effects are labelled.** Net-worth changes separate real flows from FX translation; a user whose NGN balance "grew" in NGN but shrank in USD must see both.
+5. **Inflation is a distinct lens.** Real-terms views use the rebased NBS CPI (2024 = 100) and state the base; old-series comparisons are disallowed by the data layer (F6).
+6. **No silent defaults.** If a rate for a date is missing, the amount is shown unconverted with a "rate missing" badge; aggregates that include unconverted items are marked incomplete.
+7. **Rounding and precision.** Store amounts as integers in minor units (kobo/fils/cents) or decimals with four places for rates; display with the currency's conventional precision; totals are computed from stored precision, not from displayed values.
+
+### 4.6 Worked example (synthetic data, October 2026)
+
+All figures are synthetic and were produced by a small decimal-arithmetic script (`worked_example.py`, kept with the research notes) so that they can be re-run. Reference rates: AED 3.6725/USD (peg); NFEM ₦1,329.00/$ on 30 Sep (assumption), ₦1,350.00 on 18 Oct, ₦1,352.00 on 20 Oct (assumptions), ₦1,346.91 on 31 Oct (CBN weighted average published for 29 Oct 2026, used as month-end). Three accounts: **A1** NGN current account (opening ₦1,250,000.00), **A2** AED current account (opening AED 18,400.00), **A3** USD brokerage (opening cash $2,150.00; 12 units of an ETF at cost $240, price $250 on 30 Sep). No liabilities.
+
+**A1 — NGN current account, as imported (running balance reproduced by the parser check)**
+
+| Date | Narration (as printed) | Debit ₦ | Credit ₦ | Balance ₦ | System posting |
+|---|---|---:|---:|---:|---|
+| 03 Oct | POS/WEB PURCHASE TRANSACTION SHOPRITE LEKKI | 48,500.00 | | 1,201,500.00 | Expenses:Groceries |
+| 05 Oct | NIP/ZEN/ADEBAYO LANDLORD/RENT OCT | 400,000.00 | | 801,500.00 | Expenses:Housing:Rent |
+| 05 Oct | NIP TRANSFER FEE | 50.00 | | 801,450.00 | BankCharges:TransferFee |
+| 05 Oct | VAT ON NIP FEE | 3.75 | | 801,446.25 | BankCharges:VAT |
+| 05 Oct | STAMP DUTY (NTA 2025) | 50.00 | | 801,396.25 | BankCharges:StampDuty |
+| 10 Oct | USSD AIRTIME TOPUP 0803XXXXXXX | 5,000.00 | | 796,396.25 | Expenses:Telecoms:Airtime |
+| 12 Oct | POS PURCHASE TOTAL ENERGIES IKOYI 12/10 09:41 | 27,300.00 | | 769,096.25 | Expenses:Transport:Fuel |
+| 12 Oct | POS PURCHASE TOTAL ENERGIES IKOYI 12/10 09:42 | 27,300.00 | | 741,796.25 | Suspense:PendingReversal (possible duplicate flagged) |
+| 14 Oct | REVERSAL OF POS TXN 12/10 TOTAL ENERGIES | | 27,300.00 | 769,096.25 | Suspense:PendingReversal (pair closed) |
+| 19 Oct | NIP/IMTO PARTNER/REMITTANCE REF AE7781 | | 1,780,000.00 | 2,549,096.25 | Transfer from A2 (match T1) |
+| 20 Oct | FX PURCHASE USD 715.00 FOR BROKERAGE FUNDING | 1,000,000.00 | | 1,549,096.25 | Transfer to A3 (match T2) |
+| 20 Oct | NIP TRANSFER FEE / VAT / STAMP DUTY | 50.00 + 3.75 + 50.00 | | 1,548,992.50 | BankCharges (three postings) |
+| 26 Oct | SALARY OCT 2026 ACME NIGERIA LTD | | 2,350,000.00 | 3,898,992.50 | Income:Salary:NG:ACME |
+| 31 Oct | SMS ALERT CHARGES 12 @ N4 + VAT | 48.00 + 3.60 | | 3,898,940.90 | BankCharges:SMSAlert, VAT |
+| 31 Oct | ACCOUNT MAINTENANCE FEE (₦0.5/mille) + VAT | 740.40 + 55.53 | | 3,898,144.97 | BankCharges:CAMF, VAT |
+
+Reconciliation A1: 1,250,000.00 + 4,157,300.00 − 1,509,155.03 = **3,898,144.97** = printed closing balance → statement accepted. Charge audit: CAMF base = customer-induced debits net of the reversed duplicate = ₦1,480,800 × 0.0005 = ₦740.40; VAT 7.5% = ₦55.53 — consistent with the 2026 cap (F5), so no "unexpected charge" alert. Stamp duty appears twice (two outward transfers ≥ ₦10,000, sender pays, 2026 rule); the salary credit carries none (exempt).
+
+**A2 — AED current account**
+
+| Date | Narration | Debit AED | Credit AED | Balance AED | Posting |
+|---|---|---:|---:|---:|---|
+| 01 Oct | WPS SALARY SEP 2026 GULF EMPLOYER LLC | | 22,000.00 | 40,400.00 | Income:Salary:AE (WPS cue) |
+| 02 Oct | STANDING ORDER RENT INSTALMENT | 9,000.00 | | 31,400.00 | Expenses:Housing:Rent |
+| 06 Oct | POS CARREFOUR MOE | 612.35 | | 30,787.65 | Expenses:Groceries |
+| 09 Oct | DEWA BILL PAYMENT | 540.00 | | 30,247.65 | Expenses:Utilities |
+| 12 Oct | AANI TRANSFER TO +9715XXXXXXX | 250.00 | | 29,997.65 | Expenses:Dining:SharedBills (not an own account) |
+| 18 Oct | OUTWARD REMITTANCE NGN BENEF SELF REF AE7781 | 5,000.00 | | 24,997.65 | Transfer to A1 (match T1) |
+| 18 Oct | REMITTANCE FEE + VAT 5% | 15.00 + 0.75 | | 24,981.90 | BankCharges:TransferFee, VAT |
+| 25 Oct | ACCOUNT FEE + VAT 5% | 25.00 + 1.25 | | 24,955.65 | BankCharges:AccountFee, VAT |
+| 28 Oct | POS RESTAURANT JBR | 180.00 | | 24,775.65 | Expenses:Dining |
+
+Reconciliation A2: 18,400.00 + 22,000.00 − 15,624.35 = **24,775.65** → accepted.
+
+**A3 — USD brokerage (cash section)**
+
+| Date | Line | Debit $ | Credit $ | Cash $ | Posting |
+|---|---|---:|---:|---:|---|
+| 22 Oct | DEPOSIT (wire from FX provider) ref NG-5520 | | 715.00 | 2,865.00 | Transfer from A1 (match T2) |
+| 23 Oct | BUY 2.8 ETF @ 250.00 | 700.00 | | 2,165.00 | Assets:Brokerage:Positions:ETF (cost lot) |
+| 23 Oct | COMMISSION | 1.00 | | 2,164.00 | Expenses:Investing:Commission |
+| 30 Oct | DIVIDEND ETF 12 × 0.80 (gross) | | 9.60 | 2,173.60 | Income:Dividends:US |
+| 30 Oct | WITHHOLDING TAX 30% | 2.88 | | 2,170.72 | Expenses:Tax:Withholding:US |
+
+Positions: 12 → 14.8 units; price $250.00 → $257.50; market value $3,000.00 → $3,811.00; unrealised gain in the month = 3,811.00 − 3,000.00 − 700.00 = **$111.00**. Position check: units from trades (12 + 2.8) = broker position section.
+
+**Transfer matches**
+
+| Match | Legs | Date gap | Implied rate | Reference rate (source) | Conversion cost booked | Score |
+|---|---|---|---|---|---|---|
+| T1 | A2 −AED 5,000.00 (18 Oct) → A1 +₦1,780,000.00 (19 Oct), shared ref AE7781 | 1 day | ₦356.00/AED | ₦367.60/AED (NFEM ₦1,350.00 ÷ 3.6725, 18 Oct) | ₦57,985.02 (3.15%) + explicit fee AED 15.75 | auto-link (amount within 6%, date in window, reference shared, both accounts owned) |
+| T2 | A1 −₦1,000,000.00 (20 Oct) → A3 +$715.00 (22 Oct) | 2 days | ₦1,398.60/$ | ₦1,352.00/$ (NFEM, 20 Oct) | ₦33,320.00 (3.33%) + ₦103.75 fee/VAT/stamp | auto-link |
+
+Postings generated for T2 (base currency USD, rate ₦1,352.00): A1 −₦1,000,000.00 (−$739.64); A3 +$715.00; Expenses:FX:ConversionCost +₦33,320.00 (+$24.64); the transaction's base amounts sum to zero. The same transfer in a single-entry list would have shown ₦1,000,000 of "spending" and $715 of "income".
+
+**Duplicate and reversal handling.** The two 12 Oct fuel debits differ only by the printed time and running balance; the deterministic line hash (which includes the running balance) treats them as distinct lines, the fuzzy layer flags the second as a *possible duplicate*, and the 14 Oct reversal closes the pair: net fuel spend ₦27,300, statement still reconciles because all three lines are kept. When the founder later uploads an overlapping 1 Oct–15 Nov statement, every October line hashes identically and is skipped; the overlap is recorded on the new statement's provenance and the boundary balance (₦3,898,144.97 at 31 Oct) is re-asserted.
+
+**October cash-flow (USD view at month-end NFEM ₦1,346.91; AED at 3.6725)**
+
+| Item | NGN | AED | USD | Total USD |
+|---|---:|---:|---:|---:|
+| Income (salaries, gross dividend) | 2,350,000.00 | 22,000.00 | 9.60 | 7,744.80 |
+| Spending (excl. charges; fuel counted once) | 480,800.00 | 10,582.35 | — | 3,238.48 |
+| Bank charges, levies, withholding tax | 1,055.03 | 42.00 | 3.88 | 16.10 |
+| Implicit FX conversion cost on own transfers | 91,305.02 | — | — | 67.79 |
+| **Net saving** | | | | **4,422.44** (57.1% of gross income) |
+| of which invested (ETF purchase) | | | 700.00 | 700.00 |
+
+Note how the two "costs of moving money" (₦91,305 implicit, ₦1,055 + AED 42 explicit) are four times the visible bank charges — exactly the figure a single-entry list hides.
+
+**Net worth**
+
+| As of | A1 NGN | A2 AED | A3 cash $ | ETF $ | Net worth USD | Net worth NGN | Rate used |
+|---|---:|---:|---:|---:|---:|---:|---|
+| 30 Sep 2026 | 1,250,000.00 | 18,400.00 | 2,150.00 | 3,000.00 | 11,100.77 | 14,752,920.46 | ₦1,329.00/$ |
+| 31 Oct 2026 | 3,898,144.97 | 24,775.65 | 2,170.72 | 3,811.00 | 15,622.12 | 21,041,592.23 | ₦1,346.91/$ |
+| Change | | | | | +4,521.35 | +6,288,671.78 | |
+
+Decomposition (USD view): net saving +4,422.44, market gain +111.00, FX translation on the opening NGN balance −12.51 (naira weakened from 1,329.00 to 1,346.91), residual +0.42 from converting all October flows at the month-end rate rather than transaction-date rates (the production system uses transaction-date rates, so the residual is zero). In the NGN view the same month shows an FX translation *gain* of ₦181,969.38 on the opening AED and USD holdings — the display rule in §4.5(4) requires both to be shown with labels, because the user's "wealth grew" is true in one numeraire and partly an FX artefact in the other.
