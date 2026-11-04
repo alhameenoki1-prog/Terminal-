@@ -105,3 +105,110 @@ Reproduction note: every number in §4.5 Steps 1–8 matched my re-run (ratio 8.
 - m5. Step 5(c) derives a monthly price drift of about 1.1% from the 14.6% year-on-year rate, but September 2026 month-on-month was 0.06% [S103]. Use the month-on-month series.
 - m6. S160: give the retraction notice (10.1177/09567976261488042, 2 Sep 2026 per Crossref) rather than "publisher metadata".
 - m7. F12 promises "a one-notch discount" for mechanism claims not replicated in field data. It is not applied in §4.8: implementation intentions and the questionnaires remain E1.
+
+## 3. Evidence-grade audit
+
+| Location | Claim | Given | Supportable | Reason |
+|---|---|---|---|---|
+| F27 | DellaVigna & Linos as "most credible point estimate" | E1 | E2 | One study; take-up outcomes only |
+| F27 | Allcott & Rogers persistence | E1 | E2 | One programme (multi-site) |
+| F26 | Karlan et al. reminders | E1 | E2 | One paper |
+| F7 | Attention-driven buying | E1 | E2 | Two papers, same author group |
+| F2 | λ ≈ 1.96 as the magnitude | E1 | E2–E3 | A competing meta-analysis gives 1.31 (M5) |
+| F25 | Non-ergodicity as a bar to group-to-individual inference | E1 | E2 | Contested (Adolf & Fried 2019) |
+| F28 | Implementation intentions, applied to money | E1 | E3 | Mostly lab and health outcomes; the meta-analysis d was not verified |
+| F28 | Goal-setting theory [S149] | E1 | E3 | A review by the theory's originators |
+| §4.8, §8 rec 4 | Questionnaires "E1 psychometrics" | E1 | E2 (US), E4 (NG/UAE use) | Single development reports; no invariance evidence |
+| F17 | FX conversion is "minimum-variance, not present bias" | E2 | E4 | Macro model applied to an individual's timing |
+| F27 working prior | "Defaults and friction by much more" | implied E1 | E4 | Bias-corrected "structure" effect is undecided; finance-domain effect is null |
+
+Claims stated as fact without a source: "Bank-data studies find a similar after-income pattern in most people" (Step 7 template); "no evidence of durable financial benefit" for gamification (§5; plausible, but unsourced); "Ramadan/Eid timing shifts ~11 days a year" (correct, but unsourced and only needed for user-declared calendars, see §6 below).
+
+## 4. Citation and source spot-check
+
+Academic references (Crossref API unless stated; OpenAlex budget exhausted mid-session; checked 2026-11-04):
+
+| Ref | Check | Status |
+|---|---|---|
+| S160 Ariely & Wertenbroch 2002 | Crossref `updated-by` retraction 10.1177/09567976261488042 (2026-09-02) | Verified; retraction confirmed |
+| S8 Brown et al. 2024 | OpenAlex abstract: 607 estimates, 150 articles, 1.955 [1.820, 2.102] | Verified; numbers match |
+| S3 Ruggeri et al. 2020 | OpenAlex abstract: N = 4,099, 19 countries, 94% of 17 items, 12/13 contrasts | Verified; numbers match |
+| S142 Mertens et al. | d = 0.45 [0.39, 0.52] matches; **correction 10.1073/pnas.2204059119 not disclosed** | Verified; incomplete |
+| S143 Maier et al. 2022 | Crossref + PMC full text | Verified; finance-domain null omitted |
+| S144 Szaszi et al. 2022 | Crossref | Verified |
+| S145 DellaVigna & Linos 2022 | Crossref; NBER w27594 abstract gives 33.5% / 8.1% and "full difference"; published values not re-fetched | Verified (metadata); numbers partially checked |
+| S47 Kaiser et al. | Crossref: JFE, Aug 2022 | Verified; year error |
+| S46 Fernandes et al. 2014 | Crossref | Verified |
+| S76 Levi & Benartzi | Crossref: JF, 30 Sep 2026 | Verified |
+| S74 Einav et al. 2025 | Crossref | Verified |
+| S56 Olafsson & Pagel 2025 | Crossref | Verified |
+| S114 Dohmen et al. 2011 | Crossref | Verified |
+| S126 Fisher et al. 2018 | Crossref | Verified |
+| S110 Kuzniak et al. 2015 | Crossref | Verified |
+| S90 Squires 2024 | Crossref | Verified |
+| S30 Ben-David & Hirshleifer 2012 | Crossref | Verified |
+| S148 Gollwitzer & Sheeran 2006 | Crossref | Verified (d not checked) |
+| S21 Imai et al. 2020 | Crossref | Verified |
+| S151 Karlan et al. 2016 | Crossref authors: Karlan, McConnell, Mullainathan, Zinman | **Mismatch** in co-authors |
+| Added: Walasek et al. 2024 | Hosted verify tool (DOI) and SSRN abstract | Verified |
+| Added: Mertens reply; Jachimowicz 2019; Adolf & Fried 2019; Bakdash & Marusich | Crossref search | Verified (existence) |
+
+Non-academic URLs (WebFetch, 2026-11-04):
+
+| Source | Result |
+|---|---|
+| S103 Vanguard CPI article | Fetched. 14.63%, 20.98%, m/m 0.06%, food 19.59% confirmed. The article's core figure (13.29%) is internally inconsistent; Doc 04 gives 12.95% from NBS |
+| S104 WithinNigeria FX | Fetched. ₦1,346.91 for 29 Oct 2026 confirmed; parallel ₦1,385–1,390 |
+| S105 Legit.ng stamp duty | Fetched. ₦10,000 threshold, sender bears, 1 Jan 2026, salary and intra-bank self-transfer exemptions confirmed; no statute section given |
+| S106 TechCabal (both URLs) | HTTP 403. Still unverified |
+| S107 NAN / a2f.ng / EFInA | NAN fetched (64/10/26/74% confirmed); a2f.ng shows the 79% headline dated 21 Oct 2026 with no breakdown; EFInA HTTP 503 |
+| S119 CFPB technical report | PDF extracted. Reliability ≥0.89 / >0.80 and r = 0.94 confirmed; score SD = 15 by construction; no test–retest reported |
+| CFPB scale landing page | Fetched. No licensing terms stated; Spanish versions exist |
+| S163 PMC (Maier) and Bayesian Spectacles | Both fetched; see M6 |
+| S166 GFLEC | Fetched. 150,000+ adults, 140+ countries, four concepts; no country figures |
+
+## 5. Cross-document contradictions (Doc 04)
+
+1. **Automation.** Doc 04 R13 classes automated transfers as do-not-build; Doc 03 recommends auto-sweeps, auto-conversion and trade friction (B2).
+2. **Risk tolerance instrument.** Doc 04 makes Grable–Lytton annual the measure; Doc 03 adopts SOEP with Grable–Lytton optional. Doc 04 also asks Doc 03 to settle licensing, which Doc 03 does not do (M4).
+3. **Data-quality gates differ and do not combine.** Doc 03 uses ">95% of inter-account flows matched" and "≥90% agreement on 200 labels". Doc 04 uses precision ≥0.98 / recall ≥0.95 on 200 labelled transfers, and ≥90% of lines auto-classified at ≥0.90 confidence. "Share matched" cannot be computed without ground truth. Neither gate is value-weighted, yet a single misclassified ₦2.4m rent line moves the payday ratio more than 100 misclassified small purchases. Adopt Doc 04's precision/recall plus a **value-weighted** error bound.
+4. **Taxonomy.** Doc 03 needs discretionary, scheduled, obligation/social and hedge partitions. Doc 04 supplies `is_essential` and a "Family & giving" group that merges remittances, religious giving and school fees. Doc 04 also treats FX bought into one's own domiciliary account as a transfer, which is already excluded from spending. The two models must be mapped explicitly.
+5. **CBN 2026 charges.** Doc 04 F5 reports the revised Guide effective 1 May 2026 (E3); Doc 03 F21 calls the CBN change unverified and misreads ₦60 (m4).
+6. **Budget-view experiment.** Doc 04 §4.4.1 and §9 item 10 assign the budget-view experiment to this department; Doc 03 does not design it.
+7. Doc 04 states core CPI as 12.95% with no caveat; Doc 03 flags a discrepancy. Resolve against the NBS PDF.
+
+## 6. Questions for the Investment Committee
+
+- If automation is out of scope (Doc 04 R13), what intervention is the behavioural module meant to deliver, and is a module that only measures still worth building?
+- Is the founder willing to commit to 24 or more months of alternation? Who, other than the founder, reviews pre-registrations and results?
+- Is the founder paid on a single salary cycle at all? The core L2 construct assumes so ("confirm" in §8 rec 3).
+- Should sensitive inferences (religion from giving or Ramadan seasonality, health from pharmacy spend, betting) be ruled out by design or allowed only when the user declares them?
+- Which single decision framework (frequentist sequential or Bayesian) governs the rungs?
+
+**Gaps in the do-not-build list (§4.7, §8):** inference of sensitive attributes (religion, health, ethnicity from counterparties); gambling or betting labels and any "addiction" language; behavioural credit or "creditworthiness" scoring at commercialisation; sale or sharing of behavioural data; real-time "you are about to overspend" push alerts (just-in-time interventions without evidence); emotion or mood inference from chat text; questionnaire-derived "risk profiles" used as suitability for advice; and an engagement or ostrich metric while the only user is the developer.
+
+## 7. Required changes before Investment Committee (priority order)
+
+1. Make the randomisation scheme, the test and the power analysis agree. Re-state minimum durations and add carryover and calendar blocking (B1).
+2. Resolve automation with Doc 04 R13. Add the finance-domain null from [S143] and lower expected effects accordingly (B2).
+3. Restructure the ladder: split L0, recast L2 as analogy, add a within-person causal rung, add persistence rules (M1).
+4. Rename or limit constructs per the M2 table. Add posting-lag, cash, bulk-buying, multi-income and reference-currency checks. Make hedge and obligation tags user-confirmed (M3).
+5. Replace CFPB as the intervention outcome; report MDC for every instrument; add a licensing table; settle SOEP vs Grable–Lytton with Doc 04 (M4).
+6. Add Walasek et al. 2024, the Mertens correction and reply, Jachimowicz 2019, Kaiser's counter-position and Adolf & Fried. Regrade per §3 (M5, M6, M10).
+7. Choose one sequential decision framework and count looks (M7).
+8. Fix the worked example: cluster-respecting inference, a realistic-noise power grid, and the Step 9 half-width (M8).
+9. Add tamper-evident pre-registration, independent review and NDPA/PDPL analysis (M9). Extend the do-not-build list (§6 above).
+10. Minor corrections m1–m7.
+
+## 8. What this reviewer could not check
+
+- The bias-corrected λ in the *published* Walasek et al. (2024) version (403 at ScienceDirect; SSRN abstract used).
+- DellaVigna & Linos's published abstract numbers (the working-paper version differs).
+- The content of the Mertens correction beyond its first sentences (PNAS 403).
+- Gollwitzer & Sheeran's d and Save More Tomorrow magnitudes (still recalled, as the author notes).
+- Licensing terms for SOEP/Global Preference Survey, DOSPERT and Grable–Lytton.
+- Whether Nigeria and the UAE are in the Global Preference Survey sample (recollection only).
+- TechCabal and EFInA pages (403/503).
+- OpenAlex became unavailable (daily budget exhausted) partway through; later checks used Crossref and the hosted tool.
+- The SD and retest assumptions used in the SOEP MDC estimate (E4).
+- All simulations are on synthetic data and are not evidence about the founder.
