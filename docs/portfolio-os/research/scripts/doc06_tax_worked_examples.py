@@ -1,4 +1,6 @@
 """Document 6 (Accounting, Audit and Taxation Framework) v0.2 -- worked examples and rule registry.
+Conformed to CANONICAL_CONTRACTS v0.2 on 2026-11-04 (C7 monitors, NG-BASIS-INVESTMENT-2026, sandbox
+labels, together-or-not-at-all branches; C8 retention presence warning; C3.3a independence; C5.1 fields).
 
 All money figures are SYNTHETIC. Nothing here is tax advice; simulated specialists, not licensed.
 Standard library only (decimal, datetime, re, hashlib, argparse). Run with:
@@ -17,6 +19,8 @@ What it reproduces (Doc 6 section in brackets):
   rule registry, status derivation, refusal and watermark per CANONICAL_CONTRACTS C7      [4.2]
   Example 1 split by year of assessment (NTA s.26(1), s.26(3)); deposit-interest branches  [4.8]
   Example 1 FX-field branches, naira-appreciation and loss cases (R06 m1)                   [4.8]
+  US estate-tax and W-8BEN monitors (C7 v0.2 rule_class = monitor)                           [4.2, 4.8]
+  retention warning while NG-RECORDS-RETENTION-2026 is draft (C8)                            [4.1A]
   Example 2 resident branch with the WHT credit (R06 m4)                                    [4.8]
   Example 3 per-commodity ledger (C1), VAT recomputation (V-001), USD pool (C1.6)          [4.8]
 """
@@ -24,7 +28,7 @@ import argparse
 import hashlib
 import re
 import sys
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal as D, ROUND_HALF_EVEN
 
 KOBO = D("0.01")
@@ -83,8 +87,9 @@ def yoa(kind, event):
     s.22(1) trade = accounting period ending in the preceding year."""
     if kind == "employment":
         return event.year
-    if kind == "investment":              # interest, rent, foreign dividends: s.26 is silent.
-        return event.year                 # ASSUMPTION (E4): current year; recorded as a dispute
+    if kind == "investment":              # interest, rent, foreign dividends: s.22 and s.26 are silent.
+        return event.year                 # ASSUMPTION (E4) held in NG-BASIS-INVESTMENT-2026 (draft, C7 v0.2):
+                                          # any result that uses it refuses; sandbox only
     if kind in ("chargeable_gain", "trade"):
         return event.year + 1
     raise ValueError("no basis-period rule for " + kind)
@@ -114,9 +119,13 @@ WHTC_SHA = "ae51e354ded12679398fee8b80296b7b3c6f8fbdb7e4a3023cdd44e4b359142a"  #
 TEST_KINDS = ["threshold", "zero", "effective_date", "negative_scope", "alternatives", "rounding", "illustration"]
 
 
-def R(rid, juris, eff, pin, snap, second, r06, tests, na=(), disputes=(), forced_draft=None, note=""):
+def R(rid, juris, eff, pin, snap, second, r06, tests, na=(), disputes=(), forced_draft=None, note="",
+      rule_class="computation"):
+    # r06 = an internal re-read is recorded. It was made by R06, a simulated reviewer, so the review event
+    # records independence = simulated_agent (CANONICAL_CONTRACTS C3.3a, v0.2).
     return dict(id=rid, juris=juris, eff=eff, pin=pin, snap=snap, second=second, r06=r06,
-                tests=tests, na=dict(na), disputes=list(disputes), forced_draft=forced_draft, note=note)
+                tests=tests, na=dict(na), disputes=list(disputes), forced_draft=forced_draft, note=note,
+                rule_class=rule_class)
 
 
 def T(kind, fn, expected):
@@ -261,9 +270,10 @@ RULES = [
       na=[NA_RND, NA_ILL], note="alternatives = Small Business Relief available for a period ending 31 Dec 2026, lapses for 2027 unless extended (R06 m3)"),
     R("AE-VAT-RATE", "AE", "2018-01-01", [], None, None, False, [], forced_draft="no snapshot or second source recorded"),
     R("US-NRA-FDAP-30", "US", "2025-09-26", [], T3_SHA, None, True, [], forced_draft="IRC s.871(a)/s.1441 not read; IRS pages only; no second source"),
-    R("US-ESTATE-NRA-60K", "US", "2025-09-01", [], None, None, True, [], forced_draft="Form 706-NA instructions not snapshotted; no second source"),
+    R("US-ESTATE-NRA-60K", "US", "2025-09-01", [], None, None, True, [], forced_draft="Form 706-NA instructions not snapshotted; no second source",
+      rule_class="monitor"),
     R("US-W8BEN-VALIDITY", "US", "2021-10-01", [], None, None, True, [],
-      forced_draft="no snapshot; add change-of-circumstances trigger (R06 m6)"),
+      forced_draft="no snapshot; add change-of-circumstances trigger (R06 m6)", rule_class="monitor"),
     # ---------------- R06's nine additions ----------------
     R("NG-BASIS-PERIOD-2026", "NG", "2026-01-01", [("NTA", "26", "assets disposed during the year immediately preceding the year of assessment"),
                                                   ("NTA", "22", "profits of the accounting period immediately preceding the"),
@@ -278,9 +288,9 @@ RULES = [
          ["return filed by 31 Mar Y+1 reports YOA Y employment and YOA Y+1 gains",
           "YOA Y+1 gains reported with YOA Y+1 employment by 31 Mar Y+2"])], na=[NA_RND, NA_ILL],
       disputes=["s.26(1) current-year employment vs NTAA s.13(2)(b) preceding-year return", "which return carries YOA Y+1 gains",
-                "residency year for a gain assessed in YOA Y+1", "s.26(3) trade-asset exception repeats the general rule (drafting defect)",
-                "basis period for investment income (interest, rent, dividends) not stated in s.26; current year assumed (E4)"],
-      note="status capped at 'sourced' by CANONICAL_CONTRACTS C7; effective_date test: a 2025 disposal maps to YOA 2026 -> transition rule (draft)"),
+                "residency year for a gain assessed in YOA Y+1", "s.26(3) trade-asset exception repeats the general rule (drafting defect)"],
+      note="status capped at 'sourced' by CANONICAL_CONTRACTS C7; effective_date test: a 2025 disposal maps to YOA 2026 -> transition rule (draft); "
+           "investment-income limb split out as NG-BASIS-INVESTMENT-2026 (C7 v0.2)"),
     R("NG-PAYE-CREDIT-2026", "NG", "2026-01-01", [("NTAA", "51", "Income tax chargeable on an employee whether or not the assessment")],
       NTAA_SHA, None, False, [], forced_draft="no independent second source on PAYE as a credit (PwC pages silent, checked 2026-11-04)"),
     R("NG-WHT-RENT-NONRES-FINAL-2026", "NG", "2026-01-01", [("NTAA", "51", "final tax due from a non-resident recipient")],
@@ -296,7 +306,7 @@ RULES = [
     R("NG-CHATTELS-2026", "NG", "2026-01-01", [("NTA", "52", "This section shall not apply to a disposal of currency of any description.")],
       NTA_SHA, None, False, [], forced_draft="no second source; minimum-wage parameter must be a sourced figure"),
     R("NG-FX-OFFICIAL-RATE-2026", "NG", "2026-01-01", [("NTA", "201", "\"official market rate\" means currency exchange market rate approved")],
-      NTA_SHA, None, False, [], forced_draft="no source states which CBN field (central/buy/sell) or whether the definition governs gains (C1.6 (iii))"),
+      NTA_SHA, None, False, [], forced_draft="no source states which published CBN field (NFEM Rate, Closing, Simple Average; C5.1) or whether the definition governs gains (C1.6 (iii))"),
     R("NG-TREATY-DEEMING-S120-5", "NG", "2026-01-01", [("NTA", "120", "all extant double taxation agreements are deemed to have been made under")],
       NTA_SHA, None, False, [], forced_draft="interpretation unresolved; refuses every treaty-relief computation"),
     R("NG-WHT-NO-TAXID-2026", "NG", "2024-07-01", [], WHTC_SHA, None, False, [],
@@ -309,7 +319,12 @@ RULES = [
     R("NG-BASIS-TRANSITION-2025", "NG", "2026-01-01", [("NTA", "198", "shall not affect anything done under the enactments")],
       NTA_SHA, None, False, [], forced_draft="2025 disposals: CGT Act charge vs YOA 2026 under s.26(3) (CANONICAL_CONTRACTS C7: draft)"),
     R("NG-RECORDS-RETENTION-2026", "NG", "2026-01-01", [("NTAA", "31", "kept for a period not less than six years after the year of assessment")],
-      NTAA_SHA, None, False, [], forced_draft="no second source; retention schedule applies the design default regardless (Doc 6 4.1)"),
+      NTAA_SHA, None, False, [], forced_draft="no second source; gates nothing while draft (C8): no retention date computed, displayed or enforced"),
+    # ---------------- split from NG-BASIS-PERIOD-2026 under CANONICAL_CONTRACTS C7 v0.2 (CC-6) ----------------
+    R("NG-BASIS-INVESTMENT-2026", "NG", "2026-01-01", [], None, None, False, [],
+      forced_draft="unsourced assumption (C7 v0.2): s.22 and s.26 state no basis period for interest, rent or dividends; "
+                   "needs official guidance or a signed practitioner opinion",
+      disputes=["current year (Doc 6 v0.1 assumption, E4)", "preceding year by analogy with NTAA s.13(2)(b)"]),
 ]
 
 ORDER = ["draft", "sourced", "reviewed_internal", "practitioner_confirmed"]
@@ -341,7 +356,7 @@ def derive_status(rule):
     if rule["id"] == "NG-BASIS-PERIOD-2026":
         return "sourced", "capped by contract C7 pending practitioner"
     if rule["r06"]:
-        return "reviewed_internal", "R06 re-read the gazette text on 2026-11-04; all tests pass"
+        return "reviewed_internal", "R06 re-read the gazette text on 2026-11-04 (independence simulated_agent); all tests pass"
     return "sourced", "no independent internal re-read recorded"
 
 
@@ -367,9 +382,22 @@ def registry():
         nt = len(r["tests"])
         print(f"{r['id']:<42} {s:<18} tests={nt:<2} {why}")
     print("rules:", len(RULES), "| by status:", counts)
-    assert len(RULES) == 34
-    assert len({r["id"] for r in RULES}) == 34
+    print("monitor class:", [r["id"] for r in RULES if r["rule_class"] == "monitor"], "| all others: computation")
+    assert len(RULES) == 35
+    assert len({r["id"] for r in RULES}) == 35
     assert counts.get("practitioner_confirmed", 0) == 0
+
+
+def run(label, ids, value, statuses=None, siblings=()):
+    """C7 v0.2: watermark or refuse. Refused values carry only the sandbox label. A dispute's branches are
+    shown together or not at all: if a sibling branch refuses, this branch refuses too."""
+    st = statuses or STATUS
+    blocked = sorted({i for i in ids if st[i] in ("draft", "superseded", "retired")})
+    sib = sorted({i for chain_ in siblings for i in chain_ if st[i] in ("draft", "superseded", "retired")})
+    if blocked or sib:
+        why = ", ".join(blocked) if blocked else "sibling branch refused (" + ", ".join(sib) + ")"
+        return f"{label}: REFUSE ({why}); SANDBOX - not an output: {value:,}"
+    return f"{label}: {value:,} [{watermark([st[i] for i in ids])}]"
 
 
 def chain(ids):
@@ -442,42 +470,52 @@ def example1():
     paye = pit(salary - ded)
     print(f"deductions: pension {pension:,.0f} + rent relief {rr:,.0f} = {ded:,.0f}; PAYE on salary (chargeable {salary - ded:,.0f}) = {paye:,}")
     print("event mapping: salary 2026 -> YOA", yoa("employment", date(2026, 10, 26)),
-          "| deposit interest 2026 -> YOA", yoa("investment", date(2026, 12, 31)), "(assumed)",
+          "| deposit interest 2026 -> NG-BASIS-INVESTMENT-2026 (draft; YOA", yoa("investment", date(2026, 12, 31)), "in the sandbox only)",
           "| US share disposal 15 Jun 2026 -> YOA", yoa("chargeable_gain", date(2026, 6, 15)))
-    y26 = ["NG-BASIS-PERIOD-2026", "NG-PIT-BANDS-2026", "NG-PIT-DEDUCTIONS-2026", "NG-INT-DEPOSIT-2026", "NG-DIV-WHT-FINAL-2026"]
-    print("YOA 2026 PIT chain:", chain(y26))
+    base = ["NG-BASIS-PERIOD-2026", "NG-PIT-BANDS-2026", "NG-PIT-DEDUCTIONS-2026", "NG-INT-DEPOSIT-2026", "NG-DIV-WHT-FINAL-2026"]
+    chain_a = base + ["NG-BASIS-INVESTMENT-2026"]     # Treatment A aggregates the interest into a YOA
+    chain_b = base                                    # Treatment B: interest WHT final, no YOA allocation needed
+    print("Treatment B chain on its own, before the together-or-not-at-all rule:", chain(chain_b))
     res = {}
     for t, inc, credit in (("A", salary + interest, wht_i), ("B", salary, D(0))):
         ci = inc - ded
         tax = pit(ci)
         bal = tax - credit - paye
         res[t] = (ci, tax, bal)
-        print(f"  Treatment {t}: total income {inc:,.0f} chargeable {ci:,.0f} PIT {tax:,} WHT credit {credit:,.0f}")
-    print("YOA 2026 balance after PAYE chain:", chain(y26 + ["NG-PAYE-CREDIT-2026"]))
-    for t in "AB":
-        print(f"  [SANDBOX - not an output] Treatment {t}: balance on direct assessment {res[t][2]:,}")
+        print(f"  [SANDBOX - not an output] Treatment {t}: total income {inc:,.0f} chargeable {ci:,.0f} PIT {tax:,} WHT credit {credit:,.0f}")
+    print(run("YOA 2026 gross PIT, Treatment A", chain_a, res["A"][1]))
+    print(run("YOA 2026 gross PIT, Treatment B", chain_b, res["B"][1], siblings=[chain_a]))
+    print(run("YOA 2026 balance after PAYE, Treatment A", chain_a + ["NG-PAYE-CREDIT-2026"], res["A"][2]))
+    print(run("YOA 2026 balance after PAYE, Treatment B", chain_b + ["NG-PAYE-CREDIT-2026"], res["B"][2], siblings=[chain_a]))
+    what_if = dict(STATUS, **{"NG-BASIS-INVESTMENT-2026": "sourced"})
+    print("status what-if, NG-BASIS-INVESTMENT-2026 sourced:")
+    print("  ", run("gross PIT A", chain_a, res["A"][1], what_if), "|", run("gross PIT B", chain_b, res["B"][1], what_if, [chain_a]))
+    print("  ", run("balance A", chain_a + ["NG-PAYE-CREDIT-2026"], res["A"][2], what_if))
     paye_norent = pit(salary - pension)
-    print(f"  [SANDBOX] if the employer did not apply rent relief: PAYE {paye_norent:,}; Treatment A balance {res['A'][1] - wht_i - paye_norent:,} (negative = refund claim, NTAA s.55)")
+    print(f"  [SANDBOX - not an output] if the employer did not apply rent relief: PAYE {paye_norent:,}; Treatment A balance {res['A'][1] - wht_i - paye_norent:,} (negative = refund claim, NTAA s.55)")
     assert res["A"][2] == D(66_000) and res["B"][2] == D(0) and res["A"][1] == D("2928600.00")
 
-    print("\nYOA 2027 (the gain). Chain:", chain(["NG-BASIS-PERIOD-2026", "NG-PIT-BANDS-2026", "NG-CGT-FOREIGN-ASSETS-2026", "NG-FX-OFFICIAL-RATE-2026"]))
+    gain_a = ["NG-BASIS-PERIOD-2026", "NG-PIT-BANDS-2026", "NG-CGT-FOREIGN-ASSETS-2026", "NG-FX-OFFICIAL-RATE-2026"]
+    print("\nYOA 2027 (the gain). Chain A:", chain(gain_a + ["NG-BASIS-INVESTMENT-2026"]), "| chain B:", chain(gain_a))
     usd_cost, usd_proc = D(15_000), D(20_000)
-    fx = {"central": (D(1500), D(1550)), "buy": (D(1495), D(1545)), "sell": (D(1505), D(1555))}
+    # Synthetic values for the fields CBN actually publishes (C5.1 v0.2); no buy, central or sell column exists.
+    fx = {"NFEM Rate": (D(1500), D(1550)), "Closing": (D(1495), D(1545)), "Simple Average": (D(1505), D(1555))}
     base27 = {"A": salary + interest - ded, "B": salary - ded}
     for field, (r0, r1) in fx.items():
         gain = usd_proc * r1 - usd_cost * r0
         fxpart = usd_cost * (r1 - r0)
         marg = {t: pit(base27[t] + gain) - pit(base27[t]) for t in "AB"}
-        print(f"  [SANDBOX] field={field:<7} cost {usd_cost * r0:,.0f} proceeds {usd_proc * r1:,.0f} gain {gain:,.0f} "
+        print(f"  [SANDBOX - not an output] field={field:<14} cost {usd_cost * r0:,.0f} proceeds {usd_proc * r1:,.0f} gain {gain:,.0f} "
               f"(FX on cost {fxpart:,.0f}); marginal tax if 2027 income = 2026: A {marg['A']:,} B {marg['B']:,}")
-        if field == "central":
+        if field == "NFEM Rate":
             assert gain == D(8_500_000) and marg["A"] == D("1788200.00") and marg["B"] == D("1785000.00")
-    print("  naira-appreciation and loss cases (R06 m1; synthetic sale rate 1,346.91 = the level Doc 4 reports, not a validated figure):")
+            print("  " + run("YOA 2027 marginal tax of the gain, Treatment A", gain_a + ["NG-BASIS-INVESTMENT-2026"], marg["A"]))
+    print("  naira-appreciation and loss cases (R06 m1; synthetic sale rate 1,346.91, a synthetic input, not a CBN snapshot):")
     r1 = D("1346.91")
     for px in (D(200), D(160)):
         proc = 100 * px * r1
         gain = proc - usd_cost * D(1500)
-        print(f"  [SANDBOX] sold at USD {px}: proceeds {proc:,.2f} gain {gain:,.2f} (FX on cost {usd_cost * (r1 - 1500):,.2f}; price part at sale rate {(100 * px - usd_cost) * r1:,.2f})")
+        print(f"  [SANDBOX - not an output] sold at USD {px}: proceeds {proc:,.2f} gain {gain:,.2f} (FX on cost {usd_cost * (r1 - 1500):,.2f}; price part at sale rate {(100 * px - usd_cost) * r1:,.2f})")
     print("  loss chain:", chain(["NG-BASIS-PERIOD-2026", "NG-CGT-FOREIGN-ASSETS-2026", "NG-FX-OFFICIAL-RATE-2026", "NG-LOSS-RELIEF-2026"]),
           "-> loss relief (s.28(3)(b)) routed to practitioner")
 
@@ -488,18 +526,59 @@ def example1():
     total_income = salary + interest + div
     attrib = q2(tax * div / total_income)
     credit = min(attrib, ftax)
-    print(f"  chargeable {ci:,.0f} PIT {tax:,} attributable (s.119(3) proportional, on total income {total_income:,.0f}) {attrib:,}; "
+    print(f"  [SANDBOX - not an output] chargeable {ci:,.0f} PIT {tax:,} attributable (s.119(3) proportional, on total income {total_income:,.0f}) {attrib:,}; "
           f"US tax {ftax:,.0f}; credit {credit:,}; unrelieved {ftax - credit:,}")
-    print("  chain:", chain(y26 + ["NG-FOREIGN-PASSIVE-REMITTED-EXEMPT-2026", "NG-FTC-UNILATERAL-2026"]))
+    print("  " + run("foreign tax credit", chain_a + ["NG-FOREIGN-PASSIVE-REMITTED-EXEMPT-2026", "NG-FTC-UNILATERAL-2026"], credit))
+    monitors()
+
+
+def monitors(us_situs_usd=D("20000.00"), w8_signed=date(2024, 5, 10)):
+    """C7 v0.2 (CC-4): presence mode on data facts while the rule is draft; threshold or date mode only
+    once the rule is sourced. Never a tax amount, a liability, a filing field or 'no action needed'."""
+    print("\nMonitors (rule_class = monitor; Example 1 data: US-domiciled shares worth USD 20,000 before the sale; W-8BEN signed 2024-05-10, synthetic)")
+    for st in (STATUS, dict(STATUS, **{"US-ESTATE-NRA-60K": "sourced", "US-W8BEN-VALIDITY": "sourced"})):
+        se, sw = st["US-ESTATE-NRA-60K"], st["US-W8BEN-VALIDITY"]
+        if se == "draft":
+            e = ("presence mode: holdings of US-domiciled securities exist (data fact) -> reminder 'US estate tax may apply to "
+                 "US assets of non-US persons; the rule is not yet sourced here, so no threshold is applied'")
+        else:
+            thr = D(60_000)       # would be read from the sourced rule record's parameters, never typed here
+            e = (f"threshold mode [{watermark([se])}]: US-situs value {us_situs_usd:,} vs rule threshold {thr:,} -> "
+                 f"{'ALERT' if us_situs_usd > thr else 'watching (below threshold)'}")
+        if sw == "draft":
+            w = f"presence mode: W-8BEN recorded as signed {w8_signed} -> reminder 'validity rule not yet sourced here; confirm with the broker'"
+        else:
+            exp = date(w8_signed.year + 3, 12, 31)
+            w = f"date mode [{watermark([sw])}]: valid to {exp}; reminder from {exp - timedelta(days=90)}"
+        print(f"  rules {se}/{sw}: estate -> {e}")
+        print(f"  rules {se}/{sw}: W-8BEN -> {w}")
+
+
+def retention():
+    """C8: while NG-RECORDS-RETENTION-2026 is below sourced it gates nothing: no date is computed, shown or
+    enforced, nothing is deleted automatically and erasure is never blocked."""
+    print("\n=== Retention warning before erasure (C8; rule NG-RECORDS-RETENTION-2026) ===")
+    for st in (STATUS, dict(STATUS, **{"NG-RECORDS-RETENTION-2026": "sourced"})):
+        s = st["NG-RECORDS-RETENTION-2026"]
+        if s == "draft":
+            msg = ("presence warning, no date: 'Tax law may require you to keep these records for several years; "
+                   "the period is not yet sourced here. Export first?'")
+        else:
+            y = yoa("chargeable_gain", date(2026, 6, 15))        # open-lot evidence for the June 2026 disposal
+            msg = f"[{watermark([s])}] keep-until date for the lot evidence: {date(y + 6, 12, 31)} (YOA {y} + 6 years); reminder only"
+        print(f"  rule {s}: {msg}; erasure allowed: True (never blocked)")
 
 
 def example2():
     print("\n=== Example 2: UAE resident with Nigerian rent (N6,000,000) ===")
     rent, wht = D(6_000_000), D(600_000)
-    print("  non-resident branch: 10% WHT final (NTAA s.51(2)) =", f"{wht:,}", "| chain:", chain(["NG-RESIDENCY-2026", "NG-WHT-RENT-NONRES-FINAL-2026"]))
+    print("  non-resident branch: 10% WHT final (NTAA s.51(2)) =", f"{wht:,}", "| chain:", chain(["NG-RESIDENCY-2026", "NG-WHT-RENT-NONRES-FINAL-2026"]),
+          "(final WHT needs no YOA allocation)")
+    res_chain = ["NG-RESIDENCY-2026", "NG-WHT-RENT-NONRES-FINAL-2026", "NG-PIT-BANDS-2026", "NG-BASIS-INVESTMENT-2026"]
     for exp in (D(0), D(900_000)):
         gross = pit(rent - exp)
-        print(f"  resident branch, synthetic rental expenses {exp:,.0f}: PIT {gross:,} less WHT credit {wht:,} = extra {gross - wht:,}")
+        print("  " + run(f"resident branch, synthetic rental expenses {exp:,.0f}: extra PIT after WHT credit", res_chain, gross - wht)
+              + f" (PIT {gross:,} less WHT credit {wht:,})")
     print("  UAE side: 290 days >= 183 ->", 290 >= 183, "| chain:", chain(["AE-RESIDENCY-2023", "AE-CT-NATURAL-PERSON-2024"]))
     print("  treaty relief chain:", chain(["NG-TREATY-UAE"]), "(computes 'none');",
           "with s.120(5) deeming:", chain(["NG-TREATY-UAE", "NG-TREATY-DEEMING-S120-5"]))
@@ -537,7 +616,7 @@ def example3():
     print("  in-transit nets to", intr, "(C1-I6)")
     ref = D(1540)
     cost_ref = D(310_000) - D(200) * ref
-    print(f"  exchange: implied {D(310_000) / D(200)} NGN/USD; synthetic CBN central {ref}; cost vs reference {cost_ref:,} "
+    print(f"  exchange: implied {D(310_000) / D(200)} NGN/USD; synthetic CBN NFEM Rate {ref}; cost vs reference {cost_ref:,} "
           f"({q2(cost_ref / D(310_000) * 100)}%, band NGN->USD [-1.0%, +4.0%] -> within)")
     pq, pc = D(10_000), D(15_000_000)
     pq, pc = pq + 200, pc + D(310_000)
@@ -567,6 +646,7 @@ def main():
     example1()
     example2()
     example3()
+    retention()
     print("\nwatermark self-test:", watermark(["practitioner_confirmed", "reviewed_internal", "sourced"]), "|",
           watermark(["practitioner_confirmed", "draft"]))
 
