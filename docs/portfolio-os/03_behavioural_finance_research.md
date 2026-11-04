@@ -124,3 +124,118 @@ Conditions: at least 30–50 sale events for a meaningful PGR−PLR [S28 used th
 
 **F29. Boosting and ethics.** Hertwig & Grüne-Yanoff distinguish nudges (steering) from boosts (building competence, e.g., teaching a rule of thumb) [S155]; Sunstein catalogues why nudges fail (strong preferences, counter-nudges, reactance) [S156]; disclosing a default nudge did not eliminate its effect, which bears on transparency [S157]; Loewenstein & Chater and Bhargava & Loewenstein argue that nudges are a complement to, not a substitute for, structural remedies [S158, S159] (**E3**). *Design rule:* every behavioural feature must be transparent, reversible, opt-in, and offered with its evidence grade; the system informs and offers architecture, it does not persuade.
 
+## 4. Proposed framework / specification for Portfolio OS
+
+### 4.1 The behavioural claims ladder
+
+Every behavioural output is produced at a rung, and the rung fixes the vocabulary the AI layer (System H) is allowed to use. Rungs map onto the five-level distinction in the brief.
+
+| Rung | Definition | Evidence needed for this user | Permitted sentence forms | Forbidden |
+|---|---|---|---|---|
+| L0 Observed | A fact from reconciled ledger entries | Validated, matched, categorised transactions | "You spent ₦X on Y between dates A and B." | Any adjective about the person |
+| L1 Measured pattern | A statistic with uncertainty, after confounder removal | Minimum sample (§4.3) met; CI and false-alarm rate stated; passes pre-specified alternative-explanation checks | "Over N pay cycles, discretionary spending in the 7 days after salary averaged 1.5× the rest of the month (95% interval 1.4–1.8)." | Causal verbs ("because", "you tend to") |
+| L2 Evidence-supported explanation | A mechanism from E1 literature that is consistent with L1 *and* survived the context checks of F17–F21 | L1 + the alternative explanations in the catalogue tested and reported | "This pattern is similar to the 'payday effect' documented in bank-data studies; common contributors are timing of bills, attention and liquidity. Your bills explain about 40% of it." | Attributing a single cause; trait language |
+| L3 Hypothesis | A mechanism not yet testable for this user, or with conflicting literature | Named test and data that would resolve it | "One possibility is that purchase price acts as a reference point. This can be checked once 30+ sales are recorded." | Presenting as finding |
+| L4 Not establishable | Constructs no data in the system can identify | — | Silence, or an explicit statement that the system does not measure this | Scores, labels, coefficients |
+
+### 4.2 Behavioural construct catalogue
+
+| Construct | Observable metric(s) | Data required | Estimation method | Minimum sample / duration | Alternative explanations checked | Confidence reporting | Max rung at MVP | Candidate intervention | Evaluation design |
+|---|---|---|---|---|---|---|---|---|---|
+| Income-arrival spending response (F13) | Discretionary spend/day in days 0–6 after income vs days 7+; by category | Income-detection (System A); matched transfers; category labels; pay dates | Ratio with stratified bootstrap CI; circular-shift permutation test; OLS on log spend with weekday fixed effects and HAC standard errors | ≥6 cycles for a ≥1.3× ratio; ≥12 cycles for ≤1.2× (see §4.5 power) | Scheduled bills; rent/school fees; family transfers; FX purchases; ajo; weekend composition; salary date drift | Ratio, 95% interval, number of cycles in which the pattern held | L2 | "Payday plan" prompt (implementation intention) on pay-date eve; optional auto-sweep to goal account on pay date | Alternating-month ABAB, pre-registered, 12 months |
+| Liquidity buffer / consumption smoothing (F13, F21) | Liquid balance in months of essential spending; share of days balance < 1 week of spending | Balances across NGN/AED/USD accounts (FX converted with sourced rate) | Direct computation; trend via run chart | 3 months | FX valuation; funds in transit; esusu pay-out schedule | Months of cover with as-of date and FX rate source | L0–L1 | None by default; information only | — |
+| Payday cycle severity (F13) | Week-4 vs week-1 spend ratio; share of spend in last 7 days before pay | As above | Same as row 1, with end-of-month indicator | 6 cycles | Same as row 1 plus informal income | Ratio and interval | L2 | Mid-month check-in; envelope sub-account | ITS with segmented regression if deployed once; ABAB otherwise |
+| Recurring-charge inertia (F14) | List of recurring debits; months since last use proxy (if available); cost per year | Merchant normalisation; recurrence detection | Rule-based detection + user confirmation | 3 months of history (quarterly charges need 6) | Shared subscriptions; annual plans; business expenses | Count and annualised cost; flag "unconfirmed" | L0 | Quarterly "keep/cancel" review (active renewal friction) | Pre/post with cost outcome; no control needed for a reversible, consented action |
+| Fee and levy drag (F21) | Bank fees, stamp duty, FX spreads as % of flows | Fee-line classification; FX reference rates | Direct computation | 1 month | Mis-classified fees; merchant surcharges | Amount, % of flows, as-of | L0 | Batching advice; account choice | Pre/post |
+| Mental-budget categories (F3) | Category spend vs user-set envelope; late-month under-spend in typical items | Category labels; user budgets | Deviation from envelope; run chart per category | 3 months per category | Price inflation (NBS CPI adjustment); seasonal (Ramadan, December, school terms) | Deviation with inflation-adjusted baseline | L1 | Envelope sub-accounts; warning when borrowing while a goal buffer is protected (F3 side-effect) | ABAB on category spend |
+| Family/community obligations (F18, F19) | Transfers to named counterparties; esusu contributions; remittance share of income | Counterparty tagging by user; recurrence | Separate account with own baseline | 3 months | Business payments; loans repaid | Amount and share; never "leakage" | L0 | None (information only; user may set a planned share) | — |
+| FX hedging vs. spending (F17) | Share of income converted within 7 days of receipt; holdings by currency | FX transactions; rates with provenance | Direct computation; compare to user-stated target currency mix | 3 months | Travel; tuition abroad; business | Share and currency exposure (System D) | L0–L1 | Rule-based auto-conversion if the user chooses | Pre/post on tracking error vs target mix |
+| Under-diversification / concentration (F10) | HHI by issuer, sector, country, currency; number of positions; largest position share | Holdings with validated prices | Direct computation; comparison with user's stated benchmark | Snapshot | Deliberate concentration (employer stock, business); illiquid NGX names | Index with date | L1 | Show cost of concentration as a range (System D) | — |
+| Disposition asymmetry (F6) | PGR−PLR; V-shape by holding period; December effect | Trade-level brokerage records with cost basis | Odean method; bootstrap over sale days | ≥30 sale days *and* ≥20 paper gains and ≥20 paper losses on those days | Tax (Nigerian capital-gains rules — Tax dept), rebalancing, liquidity needs, information | Difference with interval; "insufficient sales" otherwise | L2 (L3 for mechanism) | De-emphasise purchase price in the portfolio view (F6, S32) — opt-in | Within-subject A/B of the view over 6 months of trading |
+| Turnover and trading cost (F5) | Annual turnover; costs; return of bought vs sold | Trades, costs, prices | Direct computation | 12 months | Rebalancing to target; tax-loss harvesting | Numbers with interval for return difference | L1 | Cooling-off friction (24-hour confirm) for trades above threshold — opt-in | ABAB by quarter |
+| Attention-driven buying (F7) | Share of buys on days the security was in top attention decile (volume/news) | Trades; market data (System C) | Direct computation vs base rate | 20 buys | News-based information | Share with base rate | L1 | "Why this, why now" note at order time | A/B of prompt |
+| Ostrich / engagement (F7) | App opens vs portfolio returns; opens after negative months | Consented app telemetry | Elasticity of opens to returns | 6 months | Travel, holidays | Elasticity with interval | L1 | Optional "summary only" mode after bad months | ABAB |
+| Risk willingness (F23) | SOEP 0–10 item; DOSPERT financial items | Questionnaire | Scored directly; annual retest | 1 response (retest annually) | Mood; recent market moves | Score and date; note single-item | L0 (stated) | Benchmark for portfolio structure, not advice | Test–retest |
+| Financial well-being (F23) | CFPB 10-item IRT score | Questionnaire quarterly | Published IRT scoring (US parameters, flagged) | 1 response | Mode; translation | Score, date, "US-normed" caveat | L0 (stated) | Outcome measure for all interventions | Quarterly series on a run chart |
+
+Cross-cutting rules: (1) every number is displayed with its as-of date, currency, FX source and validation status (brief §5.1); (2) a statistic is withheld — with the reason — when the minimum sample is not met; (3) the alternative-explanation checks listed are *mandatory* and their results are shown alongside the statistic; (4) the AI layer composes text only from templated L0–L3 sentences filled with computed values; it never restates numbers freely (lesson 4 in the brief).
+
+### 4.3 Minimum data and power rules (statistician's specification)
+
+- **Independence unit is the pay cycle, not the day.** Daily spending is autocorrelated and clustered around events; tests must resample or permute at cycle level or use circular shifts of the event indicator, and regression standard errors must be heteroskedasticity-and-autocorrelation consistent.
+- **Pre-specify the impact model** (level shift, slope change, both) before any intervention, as ITS practice requires [S132]; store it in the ledger as a "pre-registration record" with timestamp.
+- **Run-chart rules for monitoring**: with 10–12 weekly points, the shift rule (≥ 7–8 consecutive points on one side of the median, depending on n) and crossings rule hold a false-signal rate near 5%; the trend rule is "virtually useless" [S135]. Use individuals charts (mean ± 3σ from the moving range) for weekly totals [S134].
+- **False-discovery control across the catalogue**: with 15 constructs computed monthly, control the false discovery rate at 10% with Benjamini–Hochberg [S136] per reporting cycle, and report the number of tests run.
+- **Bayesian updating with honest priors**: start each construct at a weak prior centred on the *null* (no effect) with a region of practical equivalence (ROPE) defined in advance (e.g., ±10% for a payday ratio) [S139]; report posterior probability that the effect is outside the ROPE. Population effect sizes from F13–F28 may inform the prior *width*, never its centre (F22, F25).
+- **Seasonality**: 12 months of data before any annual-seasonal claim (Ramadan/Eid timing shifts ~11 days a year; December; school fees in January/May/September); inflation-adjust nominal series using the NBS CPI for NGN and the relevant UAE index for AED, with the index value and release date stored.
+
+### 4.4 Defensible confidence language for one person
+
+| Situation | Allowed wording | Not allowed |
+|---|---|---|
+| < minimum sample | "Not enough history yet: N of M pay cycles recorded." | Any estimate |
+| L1 pattern, interval excludes ROPE, held in ≥ 5 of 6 cycles | "A consistent pattern" + ratio + interval + cycles | "Always", "habit", "you tend to" |
+| L1 pattern, interval overlaps ROPE | "A possible pattern; too early to tell" | Any directional claim |
+| L2 explanation | "Similar to what studies of bank data show; common contributors are …; in your case the checks show …" | "Because you are …" |
+| L3 hypothesis | "One possibility …; this can be tested when …" | Presenting as insight |
+| Intervention result | "During the months with the prompt, X was lower by Y (interval), compared with months without; this is based on K alternations." | "The prompt worked" after one month |
+
+### 4.5 Worked example: six months, salary on the 25th, "spending spike" analysis (synthetic data)
+
+Set-up (all numbers synthetic; script `payday_sim.py`, seed 20261102): one NGN current account, 1 January–30 June 2026 (181 days). Net salary ₦1,500,000 credited on the 25th or the preceding business day (actual dates 23 Jan, 25 Feb, 25 Mar, 24 Apr, 25 May, 25 Jun). The generator includes: discretionary spending with a weekend uplift of 25%, a *true* payday-window uplift of 45% for days 0–6, an end-of-month squeeze of −15%; annual rent ₦2.4m on 26 January; school fees ₦450k on 28 January and 27 May; utilities on the 2nd; a family transfer of ₦150k within three days of each payday; a US-dollar purchase of ₦300k the day after five of six paydays; weekly ajo of ₦20k on Mondays; an investment contribution of ₦200k two days after payday.
+
+**Step 1 — the naïve statistic is wrong by a factor of five.** Using *all outflows*, mean daily outflow in the payday window is ₦205,417 against ₦25,567 on other days: ratio 8.03 (bootstrap 95% interval 4.3–13.8). This is what an unreconciled app would call a "post-payday splurge". It is almost entirely rent, school fees, the family transfer, the FX purchase and the investment contribution.
+
+**Step 2 — after classification, the discretionary ratio is 1.60 (95% interval 1.38–1.83).** Mean discretionary spend is ₦32,612/day in the window versus ₦20,389/day otherwise.
+
+**Step 3 — is it distinguishable from chance given autocorrelation?** A circular-shift permutation of the window indicator (180 shifts) gives a null 95th percentile of 1.44 and p = 0.006. A log-spend regression with weekday fixed effects and an end-of-month indicator gives a payday coefficient of 0.430 (×1.54), HAC(7) standard error 0.080, t = 5.4. The weekend share is 29.3% in the window and 28.6% outside, so weekday composition does not explain it.
+
+**Step 4 — does it hold cycle by cycle?** Window/rest ratios by cycle: 1.71, 1.86, 1.50, 1.73, 1.45 (sixth cycle incomplete). Five of five complete cycles exceed the ROPE upper bound of 1.10.
+
+**Step 5 — alternative explanations tested and reported.** (a) Scheduled obligations: removed in Step 2 and *explain 93% of the naïve spike*. (b) Family transfer and FX purchase: classified as obligation and hedging, excluded, shown separately (₦150k and ₦300k per cycle). (c) Inflation: at 14.6% annual CPI the within-cycle price drift is ~1.1% a month — immaterial to a 1.6× ratio. (d) Weekday composition: no. (e) Income timing drift: pay dates vary by two days; the window is anchored to the actual credit date. (f) Informal income: none in the synthetic data; in production, unexplained credits in the window would trigger a flag, not an adjustment.
+
+**Step 6 — control-chart view.** Weekly discretionary totals (27 weeks): mean ₦155,241, σ̂ from moving range ₦43,856, upper control limit ₦286,808. No week breaches the limit and the longest run on one side of the median is 3 — i.e., *no special-cause change* over the period; the payday pattern is a stable *within-cycle* rhythm, not a trend. This distinction is exactly what the user should be told.
+
+**Step 7 — what the product may say (L2 wording, generated from templates):**
+
+> "Over five complete pay cycles since January, your discretionary spending in the seven days after salary averaged 1.6 times the rest of the month (likely range 1.4–1.8). This held in every cycle. Bills, school fees, the transfer to [counterparty], your dollar purchase and your investment contribution were excluded — together they account for most of the money that leaves in that week. Bank-data studies find a similar after-income pattern in most people; common contributors are timing of plans, attention and available cash. The system does not know which applies to you. If you would like, it can show a short 'payday plan' prompt the evening before salary for alternating months, so that its effect on this number can be measured over the next year."
+
+**Step 8 — power, stated honestly.** Simulation with the same noise level: with a circular-shift test at α = 0.05, the probability of detecting a true 1.20× uplift is 0.35 with 3 cycles, 0.53 with 6, 0.77 with 12; a 1.30× uplift: 0.60/0.78/0.93; 1.45×: 0.80/0.89/0.97; a 1.10× uplift is essentially undetectable within a year (0.32). For the *intervention*, an alternating-month design detecting a 15% reduction in window spending has power ≈ 0.23 at 6 months and ≈ 0.41 at 12 months; a 30% reduction has 0.68 and 0.93. Product consequence: intervention effects of nudge-typical size (F27) will not be individually detectable in a year; the product must say "no measurable difference yet" rather than "it worked" or "it failed", and should favour interventions with large expected effects (defaults, auto-sweeps, friction) over informational prompts if measurable change is the goal.
+
+**Step 9 — disposition analogue.** For brokerage data the same logic applies: with 30 sale days, a PGR−PLR difference of 0.15 has a bootstrap interval roughly ±0.15 wide (E5 assumption; to be simulated with the Quant team once record formats are known), so the product will usually be at L1 ("more gains than losses realised so far, N sales") rather than L2 for at least a year of active trading.
+
+### 4.6 Intervention protocol (experimental-design specialist)
+
+1. **Eligibility:** only constructs at L2 with a pre-registered impact model; user opts in after seeing the evidence grade and expected effect range (from F26–F28, scaled down per F27).
+2. **Design:** alternating treatment by pay cycle (ABAB…), randomised order within pairs, minimum 12 cycles; or multiple-baseline across categories when the intervention cannot be withdrawn (e.g., an auto-sweep).
+3. **Outcome:** the catalogue metric plus the CFPB well-being score quarterly; harm metrics pre-specified (overdraft/fees — F26 side effects; protected-buffer borrowing — F3).
+4. **Analysis:** permutation test over cycle labels; Bayesian posterior vs ROPE; stopping rule: stop early only for harm.
+5. **Reporting to the user:** §4.4 wording; the user can withdraw at any time and the record is kept.
+6. **Ethics:** no social comparison (F26 backfire), no loss-framed or shame-framed copy, no streaks or dark patterns, no interventions on obligation/social transfers, full transparency of mechanism (F29).
+
+### 4.7 Outputs the system must NOT produce, and why
+
+| Prohibited output | Reason |
+|---|---|
+| "Loss-aversion coefficient", "discount factor", "risk tolerance score" from transactions | Not identified from spending/brokerage data (F1, F2, F4); contested constructs; E1 for existence only on average |
+| Personality or "money type" labels ("Spender", "Avoider", "Impulsive") | Trait inference from behaviour is non-ergodic (F25); BIS-type constructs pathologise (F23); no validated mapping from ledger data to traits |
+| Single-number "financial health score" | Composite of incommensurable components; hides uncertainty; CFPB scale is the validated well-being measure and is self-report |
+| "You are overconfident / present-biased / irrational" | Mechanism claims are L3 at best for an individual; rational alternatives (F17–F19) frequently explain the same data |
+| Peer comparisons ("you spend more than 80% of users like you") | Backfire evidence (F26); no valid reference population for the founder; privacy |
+| "This nudge worked" after < 12 alternations | Power (§4.5 Step 8) |
+| Statements about family or community transfers as waste | F18–F19; ethical and empirical grounds |
+| National or cultural priors ("Nigerians tend to…") | F22 |
+
+### 4.8 Eight-question test applied to the proposed features
+
+| Feature | 1 Theory | 2 Evidence | 3 Data | 4 Measurement | 5 Alternatives | 6 Avoiding unsupported conclusions | 7 Intervention | 8 Evaluation |
+|---|---|---|---|---|---|---|---|---|
+| Income-arrival response | Liquidity constraints; mental accounting; bounded attention | E1 (F13) | Matched, categorised ledger with pay dates | Ratio, CI, permutation, HAC regression | Bills, obligations, FX, weekday, informal income | Claims ladder; min 6 cycles; mandatory checks | Payday plan prompt; auto-sweep | ABAB, 12 cycles |
+| Recurring-charge audit | Inertia/inattention | E2 (F14) | Recurrence detection | Count, annual cost | Shared/business/annual plans | User confirms each | Active-renewal review | Pre/post cost |
+| Fee and levy drag | Salience of fees | E2–E3 (F14, F21) | Fee lines; levy rules (Tax dept) | % of flows | Surcharges | As-of and rule source | Batching | Pre/post |
+| Mental budgets / envelopes | Mental accounting | E1 (F3) | Categories; user budgets | Deviation; run chart | Inflation; seasonality | Inflation-adjusted; 3 months | Sub-accounts; over-protection warning | ABAB |
+| Concentration & currency exposure | Diversification theory; household finance | E1/E2 (F10) | Validated holdings and prices | HHI; shares | Deliberate concentration | Compare to stated benchmark only | Cost-of-concentration range | — |
+| Disposition asymmetry | Realisation preference; belief revision; salience | E1 pattern, E2 mechanisms (F6) | Trade-level records | PGR−PLR; V-shape | Tax; rebalancing; liquidity | ≥30 sale days; L1 default | Purchase-price de-emphasis view | Within-subject A/B |
+| Questionnaires (SOEP, CFPB, Big Three) | Psychometrics of stated preference | E1 (F23) | Responses | Published scoring | Mood; mode | No labels; dated; US-norm caveat | None | Test–retest; quarterly series |
+| Engagement/ostrich | Selective attention | E2 (F7) | Consented telemetry | Elasticity | Travel | 6 months | Summary-only mode | ABAB |
+
