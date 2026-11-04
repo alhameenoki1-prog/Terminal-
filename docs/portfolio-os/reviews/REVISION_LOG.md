@@ -9,7 +9,7 @@ Each row is resolved by the owning department in the revision pass and closed wi
 | V-002 | Doc 9 | Worked-example scripts lived only in the scratchpad | Raised by R09 reviewer | Scripts moved to `research/scripts/` (commit 593543c) | Closed |
 | V-003 | Docs 4, 6, 7 | Three different posting/ledger models. R04: base-currency balancing, categories as posting accounts, no FX cost basis, 4-dp rate truncation. R07: 3-char currency column cannot hold security units; one-entry transfers break cut-off; reproducibility and idempotent re-import claims fail. A single canonical ledger model must be specified once and referenced by all three | R04 and R07, raised independently | Both memos read; conflict confirmed at summary level | Open — resolve in consolidated architecture (Doc 10 / ADR) |
 | V-004 | Docs 5c, 7, 8 | Figure-integrity contract: Doc 7's post-generation numeric gate lets the model emit digits and accepts any trace value within 0.5%; Doc 5c specifies figure tokens rendered from the validated store. Adopt the token contract package-wide | R07 | Consistent with Doc 5c finding 7 and the charter's provenance principle | Open |
-| V-005 | Doc 7 | Raw statements routed through the Batch API (29-day retention, no ZDR) contradicts the privacy posture | R07 | Accepted | Open |
+| V-005 | Doc 7 | Raw statements routed through the Batch API (29-day retention, no ZDR) contradicts the privacy posture | R07 | Accepted | Closed — Doc 7 v0.2: statement text never via Batch/Files API; raw-text egress is a founder decision |
 | V-006 | Doc 8 | Journey simulations (Journey 2 surplus, Journey 6 "60 of 100") have no committed script; Journey 2 not reproducible from stated inputs. Scripts not found in the scratchpad either. Revision must add scripts under `research/scripts/` or remove the figures | R08 | Scratchpad searched; no Doc 8 script found | Open |
 | V-007 | Docs 3, 8 | Doc 8's insight card breaks Doc 3's claims ladder: no interval or cycle count, untested alternatives, "trait" wording, before/after self-experiment instead of alternating ≥12 cycles, LLM paraphrasing numbers. Doc 3's templates govern | R08 | Accepted | Open |
 | V-008 | Docs 4, 5c, 8 | Doc 8 uses closing-rate FX split (Doc 4/6 use transaction-date rates), shows FX effect with the wrong sign, 3 confidence bands vs Doc 4's 4, 5 validation states vs Doc 5c's 8 plus ageing; computes ranges from disputed figures | R08 | Accepted; adopt Doc 4 and Doc 5c definitions as canonical | Open |
@@ -35,3 +35,17 @@ Each row is resolved by the owning department in the revision pass and closed wi
 | V-028 | Docs 3, 6, 8 (blocking at first external user) | No privacy design for behavioural analysis: NDPA household exemption covers only the founder acting alone; constructs are profiling in substance; some inferences touch sensitive data (religion via Ramadan seasonality or tithes, health, family under UAE PDPL per secondary source); no separate consent; retention conflicts (Doc 6 keeps 6 years, Doc 8 offers delete-everything, Doc 3 keeps records after withdrawal). Needs a data-protection design and a DPIA before any second user | R03b | Accepted; NDPA sections read by reviewer, PDPL secondary only | Open |
 | V-029 | Doc 3 §4.2, §8 | Flagship payday measure and 12-month pilot improve no named financial decision; five-question answers describe outputs, not improvements; pilot power falls from 0.89 to 0.32 under lumpier spending; untreated threats (reactivity, carry-over, manual uploads, Ramadan and school terms); year-one burden ≈ 60 items + 200 labels, cut to 6–12 items | R03b | Accepted; corroborates V-024 and V-026 | Open |
 | V-030 | Doc 3 | Classifying payday FX purchases as "hedging" ignores the parallel-market spread and Doc 6's reading that foreign currency is a chargeable asset; treat as unexplained conversion with named candidates, not a rational label | R03b, R03 | Accepted | Open |
+
+## Contract errata raised during revision (owner: Canonical Contracts)
+
+| # | Contract | Issue | Raised by | Status |
+|---|----------|-------|-----------|--------|
+| CC-1 | C1 | Invariant C1-I4 (no updates to stored rows) conflicts with the `superseded_at` field in C1.7. Doc 7 v0.2 resolves by computing `superseded_at` in a view; contract to adopt that wording | Doc 7 revision | Open |
+| CC-2 | C2 | No slot for Doc 3's behavioural sentence templates; figure tokens inside templated behavioural claims need a defined form | Doc 7 revision | Open |
+| CC-3 | C3 | Confirm a pending corporate action is modelled as a corporate-action lifecycle plus "ageing" rather than its own status | Doc 5c revision | Open |
+
+## Programme-level issue raised during revision
+
+| # | Issue | Raised by | Status |
+|---|-------|-----------|--------|
+| P-1 | Effort: Doc 7 v0.2 estimates the full build at ≈ 37 person-weeks (≈ 25.5 on a Beancount + Fava path), i.e. ≈ 17 or ≈ 12 months at 20 h/week, against Doc 9's 0–6-month Stage 0; Doc 9's Stage 0 exit criterion also needs the tax module. Investment Committee and Doc 10 must reconcile scope, sequence and founder hours | Doc 7 revision | Open — for IC |
