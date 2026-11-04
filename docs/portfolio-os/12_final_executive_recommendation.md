@@ -32,7 +32,7 @@ Nothing is sold in the 2027 season unless a legal opinion on tax practice, a pro
 | Stage 1 | Nine specialist departments, each a separate agent, researched in parallel and wrote Documents 3, 4, 5a, 5b, 5c, 6, 7, 8 and 9 (about 128,000 words, with sources and reproducible scripts) |
 | Stage 1b | Ten independent reviews, one per document plus a second behavioural review. Seven called for major revision, three accepted with required changes. Reviewers re-checked well over 100 academic references and about 100 web sources; no fabricated citation was found |
 | Contracts | Reviews showed the documents defined the same core ideas differently. One canonical specification (C1–C8) now governs the ledger, figure integrity, data status, confidence, FX, goal outputs, tax-rule lifecycle and retention |
-| Revision | All nine documents revised to v0.2, each with a table answering every review finding. 47 confirmed issues were logged; all but 9 are closed or narrowed to a named owner, and those 9 are minor or wait on a founder or professional decision |
+| Revision | All nine documents revised to v0.2, each with a table answering every review finding. 47 confirmed issues were logged; all but 9 are closed or narrowed to a named owner, and the remaining 9 are either minor, scheduled into a roadmap milestone, or waiting on a founder or professional decision |
 | Stage 3 | Three whole-proposal red-team panels (science and models; security, privacy and regulation; product and complexity), consolidated in Document 11, then the Investment Committee (decision memo and decision records D-007 to D-018) and the roadmap (Document 10) |
 
 **Limits you should weigh.**
