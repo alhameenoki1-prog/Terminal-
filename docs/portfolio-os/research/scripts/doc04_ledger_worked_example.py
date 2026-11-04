@@ -5,7 +5,7 @@ All inputs are SYNTHETIC (October 2026). Standard library only; run with:
 Money and rates use decimal.Decimal and fractions.Fraction; no float touches money.
 
 What changed from v0.1 (review R04):
-  * rates are synthetic CBN *central* fixings on Nigerian business days only; a non-business day takes the latest
+  * rates are synthetic CBN "NFEM Rate (NGN/US$)" fixings (price_type nfem_vwap; C5.1 v0.2 withdrew "central") on Nigerian business days only; a non-business day takes the latest
     earlier fixing (C5.2): Sunday 18 Oct -> Friday 16 Oct; Saturday 31 Oct -> Friday 30 Oct (R04 W1, W2);
   * postings balance per commodity, exchanges pass through Equity:Conversion:<C>, transfers through
     Assets:InTransit:<id>, categories are classification rows, not posting accounts (C1 D1-D4, D8);
@@ -48,7 +48,7 @@ def d_(s):
 NG_HOLIDAYS = {d_("2026-10-01")}          # Independence Day; no other October 2026 holiday modelled
 PEG = D("3.6725")                          # CBUAE AED per USD, a registered reference fact (not a code constant in production)
 ANCHORS = [(d_("2026-09-30"), D("1329.00")), (d_("2026-10-16"), D("1350.00")),
-           (d_("2026-10-20"), D("1352.00")), (d_("2026-10-30"), D("1356.00"))]   # synthetic central NGN per USD
+           (d_("2026-10-20"), D("1352.00")), (d_("2026-10-30"), D("1356.00"))]   # synthetic NFEM Rate NGN per USD
 
 
 def ng_business_day(d):
@@ -92,7 +92,7 @@ def ngn_per(c, d):
     return F(r) if c == "USD" else F(r) / F(PEG)
 
 
-print("=== 1. Synthetic CBN central fixings (NGN per USD), Nigerian business days only ===")
+print("=== 1. Synthetic CBN NFEM Rate fixings (nfem_vwap, NGN per USD), Nigerian business days only ===")
 print("  " + "  ".join(f"{k.strftime('%d%b')} {v}" for k, v in FIX.items()))
 for s in ("2026-10-01", "2026-10-03", "2026-10-18", "2026-10-25", "2026-10-31"):
     fd, r, st = fixing(d_(s))
@@ -293,7 +293,8 @@ items = [("T1 AED->NGN (shared ref AE7781)", D("0.96"), "deterministic_rule", 0,
          ("Aani AED 250 to mobile proxy", D("0.75"), "model", 0, 0, False, None)]
 for name, p, prod, k, n, tax, shared in items:
     lb = wilson_lower(k, n)
-    auto = p >= D("0.90") and prod != "model" and n >= 30 and lb >= D("0.90") and not tax and shared is not False
+    # C4 v0.2 (CC-8): the stratum Wilson bound alone sets the minimum (35 error-free); no separate n >= 30 test
+    auto = p >= D("0.90") and prod != "model" and lb >= D("0.90") and not tax and shared is not False
     print(f"  {name}: p {p}, producer {prod}, rule history {k}/{n} (Wilson LB {q2(lb)}), tax-weighted {tax}, "
           f"shared ref {'n/a' if shared is None else shared} -> {'auto-apply' if auto else 'review queue'}")
 print("  Unexplained inflows before review: NGN 1,780,000.00 (T1 credit); after the user confirms T1: NGN 0.00")

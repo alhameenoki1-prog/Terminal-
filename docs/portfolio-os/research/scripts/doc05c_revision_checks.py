@@ -4,7 +4,7 @@ Reproduces, in order:
   A  entry-time primary-source check on the repository's policy-rate constants (R0, Example C)
   B  NGX personal-MVP cost: 2x2 (local/international x with/without non-display), VAT, sensitivities (Sec. 4.6)
   C  commercial-licence floor recomputed from the 2026 NGX schedule (Sec. 4.6)
-  D  founder validation workload under the single-source sampling protocol vs v0.1's "validate every figure"
+  D  founder validation workload under the single-source sampling protocol vs v0.1's "validate every figure"; with the C3.3 v0.2 per-series floor
   E  NGX corporate-action date sequencing (Example A) and the replaced rule 5
   F  stale-close check conditioned on NGX price-group volume thresholds (Sec. 4.3.5)
   G  freshness classification at read time (merged table, Sec. 4.3.2) incl. the "two business days = ageing" case
@@ -206,10 +206,32 @@ def part_d():
     total = sample + band_breaks + world + fx_sample
     print(f"NGX price figures/yr {price_figs}; 1-in-20 sample {sample}; band breaks (2%, E5) {band_breaks}; "
           f"world facts {world}; FX sample {fx_sample}")
-    print(f"single-source protocol: {q(total, '1')} checks/yr x {minutes} min = {fmt(total * minutes / 60, '0.1')} h/yr "
-          f"= {fmt(total * minutes / 60 / 52 * 60, '1')} min/week")
+    print(f"single-source protocol, pooled 1-in-20 (before the C3.3 v0.2 floor): {q(total, '1')} checks/yr x {minutes} min "
+          f"= {fmt(total * minutes / 60, '0.1')} h/yr = {fmt(total * minutes / 60 / 52 * 60, '1')} min/week")
     v01 = price_figs + fx_figs + world
     print(f"v0.1 rule (human-validate every conclusion-driving figure): {v01} checks/yr = {fmt(v01 * minutes / 60, '0.1')} h/yr")
+
+    # contracts v0.2 C3.3 (CC-10): per series per year, at least max(ceil(n/20), min(n, 4)) human checks, n = editions
+    def floor_checks(n):
+        return max(-(-n // 20), min(n, 4))
+    series = [  # (label, number of series, editions per series per year); counts are SYNTHETIC / E5
+        ("NGX daily close, per holding", holdings, sessions),
+        ("official USD/NGN fixing", 1, fx_figs),
+        ("shares outstanding from filings, per holding (quarterly)", holdings, 4),
+        ("dividend record, per holding (2 events a year, E5)", holdings, 2),
+        ("country-risk edition (semi-annual)", 1, 2),
+        ("index membership (semi-annual review, E4)", 1, 2),
+    ]
+    total2 = D(band_breaks) + world
+    print("C3.3 v0.2 sampling floor, per series per year (editions -> human checks):")
+    for label, k, n in series:
+        c = k * floor_checks(n)
+        total2 += c
+        print(f"   {label}: {k} x {n} editions -> {k} x {floor_checks(n)} = {c}")
+    print(f"   plus band breaks {band_breaks} and world facts {world} (unchanged)")
+    print(f"single-source protocol with the floor: {q(total2, '1')} checks/yr x {minutes} min = "
+          f"{fmt(total2 * minutes / 60, '0.1')} h/yr = {fmt(total2 * minutes / 60 / 52 * 60, '1')} min/week "
+          f"(all checks are the founder's: independence = self, shown 'self-checked')")
     print()
 
 

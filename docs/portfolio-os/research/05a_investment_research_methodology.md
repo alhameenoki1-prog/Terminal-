@@ -327,7 +327,7 @@ The analyst layer reads rules from the registry, never from code constants. Init
 | US | Filing data | EDGAR XBRL APIs, no key | — | S19 | E2 |
 | Nigeria | MPR / corridor / CRR | 23.0% / +50,−300 bp / 45% commercial, 16% merchant, 75% non-TSA public-sector deposits | 2026-09-22 | S10 (re-fetched 2026-11-04) | E2 |
 | Nigeria | Liquidity ratio | 30% | 303rd MPC (2025-11) | S10 | E2 |
-| Nigeria | Official FX | CBN NFEM rate; field `central` with `price_type` and `fixing_date` per C5.1 (CBN describes the official rate as the NFEM volume-weighted average) | — | S11; C5.1 | E2 |
+| Nigeria | Official FX | CBN "NFEM Rate (₦/US$)" field, `price_type = nfem_vwap`, with `fixing_date` and a CBN snapshot, per C5.1 v0.2 (CBN: "derived at Volume Weighted Average and stands as the official exchange rate for the day"; no central column exists) | — | S11; C5.1 | E2 |
 | Nigeria | Capital minimums (national / international / D-SIB) | CET1 7.0 / 10.5 / 10.5%; Tier 1 7.5 / 11.25 / 11.25%; CAR 10 / 15 / 15% | 2021-09 guidelines | S52 Tables 1–2 | E2 |
 | Nigeria | Capital buffers | CCB1 1.0% (CET1, all banks); CCB2 as set by CBN (currently none found); HLA 1.0% (D-SIBs, CET1) | 2021-09 | S52 ¶30, ¶82, ¶94 | E2 |
 | Nigeria | Leverage-ratio minimum | 4% (5% D-SIB) | 2021-09 | S52 ¶98, App. 2 | E2 |
@@ -440,7 +440,9 @@ The v0.1 V0–V3 scale is retired using the C3.7 mapping:
 | V2 two sources reconciled | `auto_validated` + `two_independent` |
 | V3 reconciled to filing page | `validated` with primary-document evidence |
 
-`two_independent` cannot be reached for NGX prices or NGX-relayed dividends. CSCS, Kobo and Mansa copy NGX, and the NGX dividends endpoint relays the issuer's notice (Doc 5c §4.3.3, F27). These fields are therefore `same_upstream` (or `single_source`). They reach the conclusion tier only through V = `validated` or the C3.3 single-source protocol: internal-consistency checks and plausibility bands pass, and a 1-in-20 human sample plus every band break finds no error (Doc 5c §4.3.3).
+**Who checked (C3.3a, contracts v0.2).** Every validation event records `independence` (`self`, `simulated_agent`, `second_person`, `licensed`). In the personal MVP every human check, including a V3 reconciliation to the filing page, is the founder's own, so it is `self` and displays "self-checked", never "validated"; a check by software alone displays "checked by software". Eligibility for the C3.4 tiers is unchanged. A derived figure or note carries the weakest independence among its inputs ("includes self-checked figures"). In this document the status value `validated` names the V axis only, not a display label.
+
+`two_independent` cannot be reached for NGX prices or NGX-relayed dividends. CSCS, Kobo and Mansa copy NGX, and the NGX dividends endpoint relays the issuer's notice (Doc 5c §4.3.3, F27). These fields are therefore `same_upstream` (or `single_source`). They reach the conclusion tier only through V = `validated` or the C3.3 single-source protocol: internal-consistency checks and plausibility bands pass, and a human sample of 1 in 20 figures, with a floor of max(⌈n/20⌉, min(n, 4)) checks per series per year for n editions, plus every band break, finds no error (C3.3 v0.2; Doc 5c §4.3.3). Every edition of a quarterly, semi-annual or annual series is therefore checked, and a monthly series at least quarterly.
 
 **Inputs that must be eligible for a conclusion-driving calculation (C3.4) before any conclusion:**
 - last price and its trade date;
@@ -454,14 +456,15 @@ The v0.1 V0–V3 scale is retired using the C3.7 mapping:
 - licence category, D-SIB status and every regulatory threshold for banks (registry rows at C3 eligibility);
 - index membership, if used.
 
-A single-source input, such as a country-risk edition, qualifies only through the C3.3 sampling rule; the internal-consistency checks are listed in Example 1.
+A single-source input, such as a country-risk edition, qualifies only through the C3.3 sampling rule. A semi-annual edition is human-checked at every edition under the v0.2 floor. The internal-consistency checks are listed in Example 1.
 
-**Freshness thresholds.** The canonical table is **Doc 5c §4.3.2** (C3). The v0.1 table in this document conflicted with it (R05c M8; R05a m1) and is **withdrawn**. This document's contribution to the merge, for Doc 5c to decide:
-- *Fundamentals* should be judged against the filing calendar, not fixed day counts: `ageing` once the next filing is due under the registry's filing-deadline rule, and `stale` once it is overdue or a newer period has been published.
-- A *country-risk edition* is `fresh` for up to 7 months.
-- *Market events* also downgrade freshness: a price unchanged while the index moved, a newer filing announced on the exchange, or an MPR unchanged across a scheduled MPC.
+**Freshness thresholds.** This document has **no freshness table of its own**: the v0.1 table and its merge proposal are withdrawn (R05c M8; R05a m1). The rules are **C3.2a** (contracts v0.2, CC-10), with thresholds in **Doc 5c §4.3.2**:
+- a sourced calendar or filing deadline governs, and day counts are fallbacks used only while no such record exists; the deadline is itself a C3.5 world fact, never typed by hand;
+- a periodic fundamental is `fresh` until the next filing that would update it is due, `ageing` from that due date until it is published, and `stale` once it is published but not ingested, or 30 days after the due date (E5); no fixed day count makes an annual statement fresh (the "300 days" rule is withdrawn);
+- a metric used as a current-period measure, such as TTM earnings, takes its freshness from the next filing of **any** period type that would update it, interims included;
+- FX follows C5.2, and a policy rate its meeting calendar.
 
-Doc 5c v0.2 adopted the filing-calendar rule, with fallback day counts while no deadline is registered, and the consistency pass added the country-risk row (Doc 5c §4.3.2). The script's `fresh_5c()` implements that table (V-031). Doc 5c governs data status; C3 governs the vocabulary.
+The script's `fresh_5c()` uses Doc 5c's fallback day counts, because no NGX filing deadline is registered yet (V-031). Doc 5c governs the thresholds; C3 governs the vocabulary and the rules.
 
 **Note status is computed, never typed.** It is `invalidated` if any trigger has fired. Otherwise it is the worst F among the note's conclusion-driving inputs (`current` when that worst F is `fresh`). Display follows C3.4: a stale figure is shown with its badge and is excluded from conclusion-driving calculations, and a derived figure inherits the worst F and the minimum V of its inputs.
 
@@ -472,7 +475,7 @@ The repository's hard-coded 27.50% MPR was **wrong when committed** on 2026-03-0
 | ID | Test | Action on failure |
 |---|---|---|
 | Q1 | **Period alignment.** Every flow ratio uses one period (e.g. TTM to the same date). Stocks are dated at that period end (or its opening date, for averages). Share counts are weighted over the flow period | Block publication |
-| Q2 | Share count used for per-share figures matches the period (weighted for EPS; period-end for BVPS) and reflects every corporate action | Block |
+| Q2 | Share count used for per-share figures matches the period (weighted for EPS; period-end for BVPS) and reflects every corporate action. Every input of a per-share metric carries the same `ca_set_version`; a price dated on or after an ex-date combined with a pre-action share count refuses (C3.3 "Pending corporate actions", v0.2) | Block |
 | Q3 | **Tax-effected normalisation.** Pre-tax items are never netted against post-tax profit. The tax attribution comes from the tax note; if the note is silent, both variants are shown | Block |
 | Q4 | **Sustainable growth and payout consistency.** (a) DDM cells: g ≤ ROE × (1 − declared payout). (b) Justified-P/B cells display their implied payout 1 − g/ROE; where it differs from the declared payout by more than 10 pp, the note states that the rows assume different distribution policies. (c) The implied payout lies in [0, regulatory distributable cap] | (a) cell marked "inconsistent" with the reason; (b) mandatory disclosure line; (c) cell flagged per risk-rating value |
 | Q5 | g < k and ROE > g in every cell | Cell shows "n/a (g ≥ ROE)" |
@@ -484,10 +487,10 @@ The repository's hard-coded 27.50% MPR was **wrong when committed** on 2026-03-0
 **Reviewer sign-off workflow.**
 1. The analyst prepares the note and writes the invalidation conditions.
 2. The quant check runs Q1–Q9 and recomputes every derived figure from stored inputs.
-3. The independent data-quality check confirms C3 eligibility, freshness, corporate actions applied and registry rows current.
+3. The data-quality check confirms C3 eligibility, freshness, corporate actions applied (matched `ca_set_version`) and registry rows current.
 4. The note is published.
 
-Each stage records who or what signed and when. A note cannot be published with an open check. For the Personal MVP, the quant and data-quality checks are automated tests plus a mandatory human confirmation screen.
+Each stage records who or what signed and when, with its `independence` (C3.3a). A note cannot be published with an open check. For the Personal MVP, the quant and data-quality checks are automated tests ("checked by software") plus a mandatory human confirmation screen. The founder's confirmation is `self`, so the note shows "self-checked", never "independently reviewed" or "validated".
 
 **Never automated into a recommendation:**
 - buy/sell/hold ratings;
@@ -533,7 +536,7 @@ Every figure below is printed by `research/scripts/doc05a_worked_examples.py` (`
 - Expiry: when the FY2026 audited statement becomes due, or on any trigger.
 - `advice_sensitive: true`.
 
-**Provenance table.**
+**Provenance table.** Every `validated` row is a check by the founder (`independence = self`) and displays "self-checked"; the note header carries "includes self-checked figures" (C3.3a).
 
 | Field | Value | Unit | Period / as-of | Source ref | Status (C3) |
 |---|---|---|---|---|---|
@@ -624,7 +627,7 @@ Every implied payout in the table is below Bank X's distributable cap in the Low
 - Company Y Inc. (synthetic) · note type: update · as-of 2026-11-04.
 - Basis: TTM to 2026-09-30, from the FY2025 10-K and the Q3-2026 10-Q (synthetic). In v0.1 the FY2025 10-K stood alone. At 308 days it is "stale" under Doc 5c v0.2's annual fallback (more than 270 days), and a newer period exists (R05a m4; corrected from "ageing", V-031).
 - Data: SEC EDGAR companyfacts JSON for the synthetic CIK, fields `us-gaap:NetCashProvidedByUsedInOperatingActivities`, `us-gaap:PaymentsToAcquirePropertyPlantAndEquipment` and `dei:EntityCommonStockSharesOutstanding`, each stored with `accn`, `fy`, `fp`, `form` and `filed` [S19].
-- Status (computed): current. API facts reconciled to the filing page, so `validated`. `advice_sensitive: true`.
+- Status (computed): current. API facts reconciled to the filing page by the founder, so `validated` with `independence = self`, shown as "self-checked" (C3.3a). `advice_sensitive: true`.
 
 **Inputs.** Free cash flow USD 1,200m (TTM); net cash USD 2,000m and shares 500m at 2026-09-30 (10-Q balance sheet and cover page); five-year FCF growth 6% (an analyst assumption, stated); terminal growth 2–3%. The WACC range is 8.5–10.0%, built up from the 4.20% adjusted USD risk-free rate (§4.4), the July 2026 mature-market ERP of 4.20%, and stored β and capital-structure assumptions.
 
@@ -975,6 +978,7 @@ v0.1 checked these against OpenAlex by DOI with the hosted reference-lookup tool
 | IC Q9 recapitalisation outcome; banks under forbearance | — | Deferred | §7 (13), §9 item 3 | Owner **Doc 5c** (data); not found in this pass |
 | IC Q10 ±10% band daily or pre-open | — | Deferred | F2, §9 item 1 | Owner **Doc 5c** |
 | Consistency pass, 2026-11-04 (Doc 5 §9.2 I1–I7) | V-031, V-032, V-033 | Fixed; version stays 0.2 | Script `fresh_5c()`; F2; §4.5; §4.9; §4.10; Ex. 1–3; this section | `fresh_5c()` now uses Doc 5c v0.2 thresholds. The v0.1 inputs (308 and 127 days old) are `stale`, and Example 1's computed status is unchanged (`fresh`). NGX price and dividend relabelled `same_upstream` and tied to the single-source protocol. MPR set to Doc 5c's `auto_validated`, `single_source` record. ±10% band `candidate` in step with 5b and 5c. Ternary admissibility stated. DFM/ADX equities are exposure-only in the MVP. B1-grading dissent and contract observation 1 withdrawn. Script re-run under `python3 -I` |
+| Contract conformance to contracts v0.2, 2026-11-04 | CC-3, CC-10, RT-A rate field, RT-A independence | Fixed; version stays 0.2 | §4.10 (independence labels, sampling floor, C3.2a freshness replacing this document's merge proposal, Q2 `ca_set_version` refusal, sign-off labels); §4.5 Official FX row; Ex. 1 provenance note; Ex. 2 status; this section (observations 2–3 closed) | Founder checks are `self` and display "self-checked"; status values unchanged, so the script and every quoted number are unchanged. Not done here (outside the listed sections): §4.7/Ex. 3 monitor threshold mode (CC-4) and Ex. 3 tax refusal (CC-6). Not a review row; outside the counts |
 
 **Counts.** 65 review rows, not counting the consistency-pass row: 50 Fixed (one with a method that differs from the reviewer's, one by withdrawing the claim); 7 Fixed with a residual item deferred to a named owner; 1 Fixed in part and Rejected in part (m2); 7 Deferred with an owner. No finding was dropped.
 
@@ -985,8 +989,8 @@ v0.1 checked these against OpenAlex by DOI with the hosted reference-lookup tool
 
 **Observations on the contracts (no departure; raised for the contract owners).**
 1. *C3, freshness thresholds (withdrawn in the 2026-11-04 consistency pass).* It cited 5c's v0.1 "fresh up to 300 days" rule, which Doc 5c v0.2 had already withdrawn in favour of the filing calendar (5c §4.3.2). Nothing remains to raise.
-2. *C3.3, sampling rule.* The single-source sampling rule ("1 in 20" human samples) barely samples a semi-annual series such as a country-risk edition. We suggest that every edition of a semi-annual single-source series be human-checked.
-3. *C5.1, rate field.* C5.1 names the CBN NFEM field `central`, while the CBN page describes the official rate as the volume-weighted average. The field mapping should be confirmed by Doc 5c.
+2. ~~*C3.3, sampling rule.*~~ **Closed** by contracts v0.2 (CC-10): the floor max(⌈n/20⌉, min(n, 4)) checks every edition of a semi-annual series (§4.10).
+3. ~~*C5.1, rate field.*~~ **Closed** by contracts v0.2 (RT-A rate field): the reference is the "NFEM Rate (₦/US$)" field, `nfem_vwap` (§4.5).
 
 **What remains open.**
 - Primary texts of the CBN FX-gains (September 2023, March 2024) and forbearance (June 2025) circulars, the list of banks under forbearance, and whether a countercyclical buffer is set.

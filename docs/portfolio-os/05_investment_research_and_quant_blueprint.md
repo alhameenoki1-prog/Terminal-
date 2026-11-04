@@ -9,7 +9,7 @@ Reviewers required: Investment Committee (the founder); Legal & Compliance; Tax 
 
 ## 1. Executive summary
 
-**Biggest uncertainty.** Can Portfolio OS license Nigerian Exchange (NGX) data for *processing*, at a known cost, as one natural person? NGX prices any use beyond display as "Non-Display Usage", and the founder's unconfirmed residency sets the fee basis. The NGX core feed therefore costs between USD 26 and about USD 1,417 a month (5c §4.6). Only NGX, in writing, can settle it. NGX-based conclusions also need about 23 minutes a week of the founder's review; without it they are refused (5c §4.3.10).
+**Biggest uncertainty.** Can Portfolio OS license Nigerian Exchange (NGX) data for *processing*, at a known cost, as one natural person? NGX prices any use beyond display as "Non-Display Usage", and the founder's unconfirmed residency sets the fee basis. The NGX core feed therefore costs between USD 26 and about USD 1,417 a month (5c §4.6). Only NGX, in writing, can settle it. NGX-based conclusions also need about 30 minutes a week of the founder's review (about 26 hours a year, after contracts v0.2); without it they are refused (5c §4.3.10).
 
 **Conclusions.**
 1. **One pipeline order.** A figure enters only after an entry-time primary-source check (C3.5), has its status computed when read (C3), and reaches prose only as a token (C2). This blocks errors like the repository's 27.50% policy rate, which was wrong when committed (5c §4.4).
@@ -248,7 +248,7 @@ The goal engine **displays** admissibility flags and never applies them silently
 
 | Role | Signs off | Personal MVP | Before commercial use |
 |---|---|---|---|
-| Data-quality validator (never the ingesting process) | `validated` transitions; single-source samples; overrides | The founder, about 23 minutes a week (to be confirmed) | Data-quality analyst with no product-delivery KPI |
+| Data-quality validator (never the ingesting process) | Founder checks are labelled `self-checked`, never `validated` (C3 v0.2); single-source samples; overrides | The founder, about 30 minutes a week (to be confirmed) | Data-quality analyst with no product-delivery KPI |
 | Quant check | Q1–Q9; recomputation of every derived figure | Automated plus a mandatory confirmation screen | Independent quant reviewer |
 | CIPM- or GIPS-literate reviewer | The 5b §4.5 performance contract; **no coding of the performance engine before this** | To be appointed by the founder | Same |
 | Statistician | The calibration protocol | Simulated role; external review recommended | Required |
@@ -279,7 +279,7 @@ All run with `python3 -I` from `research/scripts/`. We re-ran the five scripts c
 - A synthetic 1-for-4 bonus is marked down on 2026-10-30 under T+1. The factor of 0.8 turns an unadjusted "crash" of −19.5% into an adjusted ex-date return of +0.62%. The new shares are credited 25 business days later; until then the shares figure is `ageing`.
 - Recomputed EPS is 10.00 against a vendor's 12.50; the 25% variance makes the vendor value `disputed`.
 - At read time a close two trading days old is `ageing`, four `stale`, seven `expired`.
-- Validation labour: 392 checks a year, 19.6 hours, about 23 minutes a week.
+- Validation labour: 527 checks a year, about 26.4 hours, about 30 minutes a week (5c v0.2 after contract conformance; was 392 checks before the C3 v0.2 sampling floor).
 
 **Stage 3 — The circumstances filter (5a Example 3; `doc05a_worked_examples.py`).**
 - Net income is USD 45,112.78 after provisional Nigerian personal income tax; rent is USD 32,675.29, or 72.4% of income.

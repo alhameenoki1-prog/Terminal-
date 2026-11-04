@@ -64,7 +64,7 @@ def s1():
 # ---------------------------------------------------------------- 2 C5.3 decomposition
 RATES = {date(2026, 9, 30): D("1530.00"), date(2026, 10, 15): D("1505.00"), date(2026, 10, 16): D("1500.00"),
          date(2026, 10, 20): D("1495.00"), date(2026, 10, 26): D("1490.00"), date(2026, 10, 28): D("1485.00"),
-         date(2026, 10, 30): D("1480.00")}   # synthetic CBN central NGN per USD (identical to contracts_checks.py)
+         date(2026, 10, 30): D("1480.00")}   # synthetic CBN "NFEM Rate (₦/US$)" NGN per USD (C5.1 v0.2) (identical to contracts_checks.py)
 PEG = D("3.6725")
 
 
