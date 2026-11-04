@@ -349,3 +349,226 @@ Sample strings: error — "We could not read page 7 of NG-Bank-Oct-2026.pdf (it 
 
 **Limitations of this specification.** No behavioural claim in the cards is ours to make — Doc 3 owns the evidence levels and minimum windows; synthetic numbers in §4 are illustrations, not parameters; thresholds for confidence words and metric targets are E5 assumptions until calibrated; the device and connectivity context of the founder is unknown.
 
+## 5. Alternatives considered and rejected
+
+| Alternative | Why rejected (for now) |
+|---|---|
+| Questionnaire-first onboarding (profile, goals, risk quiz before data) | Contradicts the founder's brief; adds load before value (F1); answers are less reliable than records; replaced by inference with just-in-time questions (§4.3) |
+| Chat-only interface (the assistant as the whole product) | Numbers in prose cannot carry evidence strips consistently; recall-heavy; the repo's own history shows prose restating numbers is how errors leak (Brief §1). Kept as a drawer with fixed verbs |
+| A single "financial health score" | Composite scores hide assumptions, invite labelling (F9) and are unvalidated for this population; replaced by five to seven stated figures with provenance |
+| Gamification (streaks, badges, confetti, leaderboards) | Increases trading and risk taking in regulator experiments (F8); conflicts with P7 |
+| "Probability of success" gauge as the goal headline | Misread and frightening (F4); replaced by the §4.6 standard |
+| Native iOS/Android apps first | Founder's devices unknown; a responsive, offline-tolerant web layer covers desktop and Android now; native wrappers can follow once value is shown |
+| Red/green P&L colouring | Fails for roughly 8 percent of men (F14); replaced by blue/vermilion plus sign and glyph |
+| Silent auto-categorisation and auto-matching | Removes the correction signal and hides errors; replaced by proposals with confidence and a review queue |
+| Peer or social comparison of spending | Backfires for some users (F7); excluded from the MVP; revisit only with Doc 3's evaluation design |
+| Daily spending notifications | Myopic feedback evidence (F6) and mixed feedback evidence (F7); weekly/monthly default, user-set |
+| Bank API connections as the primary ingestion path | Nigerian open banking not live at last report (F10); uploads first, connections when verified available and licensed |
+
+## 6. Cross-department dependencies
+
+| From | What we need | By when |
+|---|---|---|
+| Doc 3 Behavioural | Evidence-level scale and mapping to the card indicator; minimum data windows per pattern; catalogue of alternative explanations per pattern; approved intervention list with measurement plans; banned-vocabulary additions | Before insight cards are built |
+| Doc 4 Ledger | Field contract for the evidence strip (source, as_of, unit, validation, confidence, method id); transfer/duplicate match outputs with confidence and rationale; category taxonomy; correction event schema; FX rate source and decomposition method; what "validated" means per field | Before ledger UI |
+| Doc 5 Investment/Quant | Simulation outputs as full quantile sets and sample paths (not a single probability); parameter registry with source and as-of; base rates for named return targets; freshness thresholds per data type (price, FX, fundamentals, macro); conflict-resolution rules between sources | Before goal and research views |
+| Doc 6 Tax | The "cannot know from statements" checklist; the exact trigger facts (residency, employment) and the order to ask them; rule effective dates; what may be computed versus what needs a practitioner; export pack contents | Before Taxes area |
+| Doc 7 Architecture | Local-first storage and sync model; on-device versus cloud parsing options and their latency; tool-only arithmetic enforcement for the assistant; provenance schema shared with Doc 4; privacy-preserving analytics pipeline; offline behaviour; font and glyph coverage in the shipped bundle | Before any build |
+| Coordinator/founder | Devices and connectivity actually used; preferred base currency; language needs; consent to analytics in the MVP | Now |
+
+**What they need from us:** component contracts (evidence strip, Working panel, confidence chip), the uncertainty standard (§4.6), copy rules and banned vocabulary (§4.7), screen-level data requirements (which fields each view needs and at what freshness), correction-event semantics, accessibility constraints for charts and tables, and the validation protocols (§4.9) that their features must pass.
+
+## 7. Risks, open uncertainties and disagreements
+
+**Risks.** R1 Inference precision on local statement formats is unmeasured; below ~90 percent the review queue becomes a chore (mitigation: measure on the founder's first batch; ship manual column mapping). R2 The assistant may be trusted more than its evidence warrants despite strips (mitigation: seeded-error tests; decision-first variant). R3 Stale or conflicting market data undermines research credibility (mitigation: conflict and stale states are first-class, never hidden). R4 Over-length or over-dense screens creep back as features land (mitigation: the seven-figure summary rule and heuristic review each release). R5 Privacy-law obligations differ by jurisdiction and the UAE banking-data regime is separate (mitigation: local-first; licensed review before any multi-user release).
+
+**Open uncertainties.** Founder's devices and connectivity; open-banking status in Nigeria on 2026-11-04; whether frequency framing works as well for low-numeracy Nigerian users as in the cited (largely Western) samples; whether HOPs animation helps or merely entertains at this task; the correct confidence thresholds; language needs for a future product.
+
+**Disagreements preserved.**
+
+| Topic | Position A | Position B | Proposed resolution |
+|---|---|---|---|
+| Default density | UI designer: calm summary, five figures, details on demand | Product analytics: richer default reduces clicks and yields more behavioural signal | Two-level rule stands; a persistent density setting; decide on comprehension and task time in Phase 1 |
+| When to ask tax residency | CPO: defer until it changes a number | Tax (anticipated): capture at onboarding because it governs everything downstream | Ask at the first tax-relevant figure or when Taxes is opened, whichever is first; show "not determined" prominently until then |
+| HOPs animation | HCI researcher: strongest evidence for trend/ordering judgements | Accessibility and designer: motion, cognitive cost, mobile data | Static dotplot default; HOPs on demand with controls; n-of-1 comparison decides |
+| Single headline probability | Product: users want one number | HCI: single numbers are misread and feared | Headline is the frequency sentence plus range and adjustment size; the percent is secondary text |
+| Telemetry depth | Product analytics: screen-level funnels and timing | Privacy/founder trust: minimal, local | Opt-in aggregate events only (§4.9); richer data only in consented test sessions |
+| Feedback cadence | Behavioural (anticipated): more frequent nudges | UX: myopic-loss and mixed-feedback evidence | Monthly default, weekly optional, daily not offered in MVP; Doc 3 to propose an evaluation if it wants more |
+
+## 8. Recommendations, ranked
+
+| Rank | Recommendation | Class |
+|---|---|---|
+| 1 | Evidence strip and Working panel as mandatory components across all nine systems | Personal-MVP must-have |
+| 2 | Inference-first onboarding with a review queue and typed corrections | Personal-MVP must-have |
+| 3 | Uncertainty display standard (§4.6) for goals, simulations and forecasts | Personal-MVP must-have |
+| 4 | Two-level IA with cross-linking and the four assistant verbs | Personal-MVP must-have |
+| 5 | Multi-currency decomposition (what you did / what FX did) in every change figure | Personal-MVP must-have |
+| 6 | Behavioural insight card with evidence indicator and alternative explanations; interventions opt-in | Personal-MVP must-have (cards only after Doc 3 sign-off) |
+| 7 | Privacy controls as rights surfaces; local-first analytics opt-in | Personal-MVP must-have |
+| 8 | WCAG 2.2 AA, tabular numerals, colour-safe tokens | Personal-MVP must-have |
+| 9 | Tax workspace with "cannot know" checklist and practitioner banner | Personal-MVP must-have (compute only what Doc 6 clears) |
+| 10 | Android-first, offline, data-light build with performance budgets | Later (design for it now; build when a second user exists) |
+| 11 | Bank API ingestion | Later (when open banking is verifiably live and licensed) |
+| 12 | Localisation beyond English and Arabic readiness | Later |
+| 13 | Peer comparison, gamified engagement, composite scores, daily alerts | Do-not-build (yet); each needs a Doc 3 evaluation design first |
+
+**Five-question test on the top three.**
+*Evidence strip/Working panel:* (1) Problem: unsourced, stale and model-restated numbers (Brief §1). (2) Who: the founder first; later every user, because trust in figures is the product. (3) Evidence: trust-calibration literature (F3) and regulator expectations of accuracy. (4) Build/validate: a shared data contract (Doc 4/7) and a render-time assertion that no numeral lacks the fields; seeded-error tests. (5) Improvement: ≥ 80 percent detection of seeded stale/unvalidated figures; zero unsourced figures in audits.
+*Inference-first onboarding:* (1) Problem: questionnaires overload and produce unreliable answers. (2) Who: anyone with statements; especially multi-account, multi-currency users. (3) Evidence: cognitive-load and progressive-disclosure findings (F1); correction-as-signal practice. (4) Build/validate: Doc 4 algorithms; proposal/accept/correct instrumentation. (5) Improvement: time to first Overview ≤ 30 min; ≥ 90 percent proposals accepted; corrections falling batch over batch.
+*Uncertainty standard:* (1) Problem: single probabilities and fan charts are misread and either frighten or falsely reassure. (2) Who: the founder's goal decisions; later all planning users. (3) Evidence: F4, F5 (E1–E2). (4) Build/validate: dotplot component fed by Doc 5 quantiles; comprehension rubric; n-of-1 comparisons. (5) Improvement: ≥ 80 percent correct restatement of frequency, range and lever in tests.
+
+## 9. Required validation before implementation
+
+1. Measure inference precision and recall on the founder's first statement batch (per fact type) before committing to the no-questionnaire promise; define fallbacks if below 90 percent.
+2. Agree the evidence-strip and correction-event contracts with Docs 4 and 7; verify render-time enforcement is feasible.
+3. Doc 5 to confirm simulation outputs include quantiles and paths, and to supply base rates for return targets; Doc 3 to sign off the insight-card taxonomy and minimum windows.
+4. Doc 6 and a licensed tax practitioner to review the Taxes workspace scope and checklist; legal review of consent and data-rights flows under NDPA and UAE PDPL/CBUAE rules.
+5. Run Phase 0 heuristic and accessibility review on wireframes; run the first n = 1 sessions on Journeys 1, 2 and 6 before building the remaining journeys.
+6. Font and glyph coverage test for naira and dirham symbols on target devices; CLDR formatting tests for `en-NG`, `en-AE`, `ar-AE`.
+7. Confirm the founder's devices, connectivity and base-currency preference; confirm open-banking status with the CBN before any connection work.
+8. Pilot the comprehension rubric and seeded-error protocol on two colleagues with synthetic data to check that the tests themselves are understandable.
+
+## 10. Sources
+
+All web sources accessed 2026-11-02 unless stated; verification re-attempted with the hosted reference-lookup tool on 2026-11-04 (tool timed out; statuses below rest on the 2026-11-02 Crossref/OpenAlex checks). **[verified]** = DOI resolved in Crossref (or OpenAlex via the hosted tool) with matching title, first author and year; **[verified — page fetched]** = primary page read; **[secondary]** = reported via search snippet only; **[unverified]** = could not be confirmed.
+
+1. Sweller, J. (1988). Cognitive load during problem solving. *Cognitive Science* 12(2). https://doi.org/10.1207/s15516709cog1202_4 [verified]
+2. Cowan, N. (2001). The magical number 4 in short-term memory. *Behavioral and Brain Sciences* 24(1). https://doi.org/10.1017/S0140525X01003922 [verified]
+3. Nielsen, J. (2006). Progressive Disclosure. Nielsen Norman Group. https://www.nngroup.com/articles/progressive-disclosure/ [verified — page fetched]
+4. Shneiderman, B. (1996). The eyes have it: a task by data type taxonomy. *IEEE Symposium on Visual Languages*. https://doi.org/10.1109/VL.1996.545307 [verified; Crossref records digitised year 2002]
+5. Nielsen, J., Molich, R. (1990). Heuristic evaluation of user interfaces. *CHI '90*. https://doi.org/10.1145/97243.97281 [verified]
+6. Nielsen, J. (1994). Enhancing the explanatory power of usability heuristics. *CHI '94*. https://doi.org/10.1145/191666.191729 [verified]
+7. Nielsen, J. (1994, reviewed 2024). 10 Usability Heuristics for User Interface Design. NN/g. https://www.nngroup.com/articles/ten-usability-heuristics/ [verified — page fetched]
+8. Lee, J. D., See, K. A. (2004). Trust in automation: designing for appropriate reliance. *Human Factors* 46(1). https://doi.org/10.1518/hfes.46.1.50_30392 [verified]
+9. Hoff, K. A., Bashir, M. (2015). Trust in automation: integrating empirical evidence. *Human Factors* 57(3). https://doi.org/10.1177/0018720814547570 [verified]
+10. Zhang, Y., Liao, Q. V., Bellamy, R. K. E. (2020). Effect of confidence and explanation on accuracy and trust calibration. *FAT\* '20*. https://doi.org/10.1145/3351095.3372852 [verified]
+11. Bansal, G. et al. (2021). Does the whole exceed its parts? *CHI '21*. https://doi.org/10.1145/3411764.3445717 [verified]
+12. Buçinca, Z., Malaya, M. B., Gajos, K. Z. (2021). To trust or to think. *PACM HCI* 5(CSCW1). https://doi.org/10.1145/3449287 [verified]
+13. Vasconcelos, H. et al. (2023). Explanations can reduce overreliance on AI systems. *PACM HCI* 7(CSCW1). https://doi.org/10.1145/3579605 [verified]
+14. Kizilcec, R. F. (2016). How much information? Effects of transparency on trust in an algorithmic interface. *CHI '16*. https://doi.org/10.1145/2858036.2858402 [verified]
+15. Dietvorst, B. J., Simmons, J. P., Massey, C. (2015). Algorithm aversion. *JEP: General* 144(1). https://doi.org/10.1037/xge0000033 [verified]
+16. Dietvorst, B. J., Simmons, J. P., Massey, C. (2018). Overcoming algorithm aversion. *Management Science* 64(3). https://doi.org/10.1287/mnsc.2016.2643 [verified]
+17. Kulesza, T. et al. (2013). Too much, too little, or just right? *IEEE VL/HCC*. https://doi.org/10.1109/VLHCC.2013.6645235 [verified]
+18. Liao, Q. V., Gruen, D., Miller, S. (2020). Questioning the AI. *CHI '20*. https://doi.org/10.1145/3313831.3376590 [verified]
+19. Amershi, S. et al. (2019). Guidelines for human-AI interaction. *CHI '19*. https://doi.org/10.1145/3290605.3300233 [verified]
+20. Miller, T. (2019). Explanation in artificial intelligence: insights from the social sciences. *Artificial Intelligence* 267. https://doi.org/10.1016/j.artint.2018.07.007 [verified]
+21. Lim, B. Y., Dey, A. K., Avrahami, D. (2009). Why and why not explanations improve intelligibility. *CHI '09*. https://doi.org/10.1145/1518701.1519023 [verified]
+22. van der Bles, A. M., van der Linden, S., Freeman, A. L. J., Spiegelhalter, D. J. (2020). The effects of communicating uncertainty on public trust. *PNAS* 117(14). https://doi.org/10.1073/pnas.1913678117 [verified]
+23. Spiegelhalter, D., Pearson, M., Short, I. (2011). Visualizing uncertainty about the future. *Science* 333. https://doi.org/10.1126/science.1191181 [verified]
+24. Spiegelhalter, D. (2017). Risk and uncertainty communication. *Annual Review of Statistics and Its Application* 4. https://doi.org/10.1146/annurev-statistics-010814-020148 [verified]
+25. Kay, M., Kola, T., Hullman, J. R., Munson, S. A. (2016). When (ish) is my bus? *CHI '16*. https://doi.org/10.1145/2858036.2858558 [verified]
+26. Fernandes, M., Walls, L., Munson, S., Hullman, J., Kay, M. (2018). Uncertainty displays using quantile dotplots or CDFs improve transit decision-making. *CHI '18*. https://doi.org/10.1145/3173574.3173718 [verified — OpenAlex and Crossref]
+27. Hullman, J., Resnick, P., Adar, E. (2015). Hypothetical outcome plots outperform error bars and violin plots. *PLOS ONE* 10(11). https://doi.org/10.1371/journal.pone.0142444 [verified — OpenAlex and Crossref]
+28. Kale, A., Nguyen, F., Kay, M., Hullman, J. (2019). Hypothetical outcome plots help untrained observers judge trends. *IEEE TVCG* 25(1). https://doi.org/10.1109/TVCG.2018.2864909 [verified]
+29. Hullman, J., Qiao, X., Correll, M., Kale, A., Kay, M. (2019). In pursuit of error: a survey of uncertainty visualization evaluation. *IEEE TVCG* 25(1). https://doi.org/10.1109/TVCG.2018.2864889 [verified]
+30. Hullman, J. (2020). Why authors don't visualize uncertainty. *IEEE TVCG* 26(1). https://doi.org/10.1109/TVCG.2019.2934287 [verified]
+31. Correll, M., Gleicher, M. (2014). Error bars considered harmful. *IEEE TVCG* 20(12). https://doi.org/10.1109/TVCG.2014.2346298 [verified]
+32. Belia, S. et al. (2005). Researchers misunderstand confidence intervals and standard error bars. *Psychological Methods* 10(4). https://doi.org/10.1037/1082-989X.10.4.389 [verified]
+33. Ruginski, I. T. et al. (2016). Non-expert interpretations of hurricane forecast uncertainty visualizations. *Spatial Cognition & Computation* 16(2). https://doi.org/10.1080/13875868.2015.1137577 [verified]
+34. Padilla, L. M. et al. (2017). Effects of ensemble and summary displays on interpretations of geospatial uncertainty data. *Cognitive Research: Principles and Implications* 2. https://doi.org/10.1186/s41235-017-0076-1 [verified]
+35. Padilla, L. M., Creem-Regehr, S. H., Hegarty, M., Stefanucci, J. K. (2018). Decision making with visualizations: a cognitive framework across disciplines. *Cognitive Research* 3. https://doi.org/10.1186/s41235-018-0120-9 [verified — OpenAlex]
+36. Padilla, L., Kay, M., Hullman, J. (2021). Uncertainty visualization. *Wiley StatsRef*. https://doi.org/10.1002/9781118445112.stat08296 [verified]
+37. Goldstein, D. G., Johnson, E. J., Sharpe, W. F. (2008). Choosing outcomes versus choosing products. *Journal of Consumer Research* 35(3). https://doi.org/10.1086/589562 [verified]
+38. Hullman, J., Kay, M., Kim, Y.-S., Shrestha, S. (2018). Imagining replications: graphical prediction and discrete visualizations improve recall and estimation of effect uncertainty. *IEEE TVCG* 24(1). https://doi.org/10.1109/TVCG.2017.2743898 [verified]
+39. Britton, E., Fisher, P., Whitley, J. (1998). The Inflation Report projections: understanding the fan chart. *Bank of England Quarterly Bulletin* 1998 Q1. https://www.bankofengland.co.uk/quarterly-bulletin/1998/q1/the-inflation-report-projections-understanding-the-fan-chart [verified — page fetched]
+40. Tharp, D. (2021). Why 50% probability of success is actually a viable Monte Carlo retirement projection. Kitces.com, 6 Jan 2021. https://www.kitces.com/blog/monte-carlo-retirement-projection-probability-success-adjustment-minimum-odds/ [verified — page fetched; practitioner source, E3]
+41. Peters, E. et al. (2006). Numeracy and decision making. *Psychological Science* 17(5). https://doi.org/10.1111/j.1467-9280.2006.01720.x [verified]
+42. Reyna, V. F., Nelson, W. L., Han, P. K., Dieckmann, N. F. (2009). How numeracy influences risk comprehension and medical decision making. *Psychological Bulletin* 135(6). https://doi.org/10.1037/a0017327 [verified]
+43. Lusardi, A. (2012). Numeracy, financial literacy, and financial decision-making. NBER WP 17821. https://doi.org/10.3386/w17821 [verified]
+44. Gigerenzer, G., Hoffrage, U. (1995). How to improve Bayesian reasoning without instruction: frequency formats. *Psychological Review* 102(4). https://doi.org/10.1037/0033-295X.102.4.684 [verified]
+45. Hoffrage, U., Lindsey, S., Hertwig, R., Gigerenzer, G. (2000). Communicating statistical information. *Science* 290. https://doi.org/10.1126/science.290.5500.2261 [verified]
+46. Cuite, C. L. et al. (2008). A test of numeric formats for communicating risk probabilities. *Medical Decision Making* 28(3). https://doi.org/10.1177/0272989X08315246 [verified]
+47. Denes-Raj, V., Epstein, S. (1994). Conflict between intuitive and rational processing. *JPSP* 66(5). https://doi.org/10.1037/0022-3514.66.5.819 [verified]
+48. Garcia-Retamero, R., Cokely, E. T. (2013). Communicating health risks with visual aids. *Current Directions in Psychological Science* 22(5). https://doi.org/10.1177/0963721413491570 [verified]
+49. Fagerlin, A., Zikmund-Fisher, B. J., Ubel, P. A. (2011). Helping patients decide: ten steps to better risk communication. *JNCI* 103(19). https://doi.org/10.1093/jnci/djr318 [verified]
+50. Ancker, J. S. et al. (2006). Design features of graphs in health risk communication: a systematic review. *JAMIA* 13(6). https://doi.org/10.1197/jamia.M2115 [verified]
+51. Hastings, J. S., Tejeda-Ashton, L. (2008). Financial literacy, information, and demand elasticity: evidence from Mexico. NBER WP 14538. https://doi.org/10.3386/w14538 [verified]
+52. Choi, J. J., Laibson, D., Madrian, B. C. (2010). Why does the law of one price fail? An experiment on index mutual funds. *RFS* 23(4). https://doi.org/10.1093/rfs/hhp097 [verified]
+53. Beshears, J., Choi, J. J., Laibson, D., Madrian, B. C. (2009). How does simplified disclosure affect individuals' mutual fund choices? NBER WP 14859. https://doi.org/10.3386/w14859 [verified]
+54. Soll, J. B., Keeney, R. L., Larrick, R. P. (2013). Consumer misunderstanding of credit card use, payments, and debt. *Journal of Public Policy & Marketing* 32(1). https://doi.org/10.1509/jppm.11.061 [verified]
+55. Tversky, A., Kahneman, D. (1981). The framing of decisions and the psychology of choice. *Science* 211. https://doi.org/10.1126/science.7455683 [verified]
+56. Kahneman, D., Tversky, A. (1984). Choices, values, and frames. *American Psychologist* 39(4). https://doi.org/10.1037/0003-066X.39.4.341 [verified]
+57. Kahneman, D., Tversky, A. (1979). Prospect theory. *Econometrica* 47(2). https://doi.org/10.2307/1914185 [verified]
+58. Benartzi, S., Thaler, R. H. (1995). Myopic loss aversion and the equity premium puzzle. *QJE* 110(1). https://doi.org/10.2307/2118511 [verified]
+59. Thaler, R. H., Tversky, A., Kahneman, D., Schwartz, A. (1997). The effect of myopia and loss aversion on risk taking. *QJE* 112(2). https://doi.org/10.1162/003355397555226 [verified]
+60. Gneezy, U., Potters, J. (1997). An experiment on risk taking and evaluation periods. *QJE* 112(2). https://doi.org/10.1162/003355397555217 [verified]
+61. Larson, F., List, J. A., Metcalfe, R. D. (2016). Can myopic loss aversion explain the equity premium puzzle? NBER WP 22605. https://doi.org/10.3386/w22605 [verified]
+62. Sicherman, N., Loewenstein, G., Seppi, D. J., Utkus, S. P. (2016). Financial attention. *RFS* 29(4). https://doi.org/10.1093/rfs/hhv073 [verified]
+63. Shafir, E., Diamond, P., Tversky, A. (1997). Money illusion. *QJE* 112(2). https://doi.org/10.1162/003355397555208 [verified]
+64. Raghubir, P., Srivastava, J. (2002). Effect of face value on product valuation in foreign currencies. *JCR* 29(3). https://doi.org/10.1086/344430 [verified]
+65. Wertenbroch, K., Soman, D., Chattopadhyay, A. (2007). On the perceived value of money: the reference dependence of currency numerosity effects. *JCR* 34(1). https://doi.org/10.1086/513041 [verified]
+66. Carlin, B., Olafsson, A., Pagel, M. (2023). Mobile apps and financial decision making. *Review of Finance* 27(3). https://doi.org/10.1093/rof/rfac040 [verified; effect sizes not re-read — abstract-level use only]
+67. Levi, Y., Benartzi, S. (2020). Mind the app: mobile access to financial information and consumer behavior. SSRN WP. https://doi.org/10.2139/ssrn.3557689 [verified as a working paper; magnitude of spending effect unverified]
+68. Olafsson, A., Pagel, M. (2018). The liquid hand-to-mouth. *RFS* 31(11). https://doi.org/10.1093/rfs/hhy055 [verified]
+69. Gargano, A., Rossi, A. G. (2024). Goal setting and saving in the FinTech era. *Journal of Finance* 79(3). https://doi.org/10.1111/jofi.13339 [verified]
+70. Karlan, D., McConnell, M., Mullainathan, S., Zinman, J. (2016). Getting to the top of mind: how reminders increase saving. *Management Science* 62(12). https://doi.org/10.1287/mnsc.2015.2296 [verified]
+71. Medina, P. C. (2021). Side effects of nudging. *RFS* 34(5). https://doi.org/10.1093/rfs/hhaa108 [verified]
+72. D'Acunto, F., Rossi, A. G., Weber, M. (2024). Crowdsourcing peer information to change spending behavior. *Journal of Financial Economics* 157. https://doi.org/10.1016/j.jfineco.2024.103858 [verified]
+73. Beshears, J., Choi, J. J., Laibson, D., Madrian, B. C., Milkman, K. L. (2015). The effect of providing peer information on retirement savings decisions. *Journal of Finance* 70(3). https://doi.org/10.1111/jofi.12258 [verified]
+74. Allcott, H. (2011). Social norms and energy conservation. *Journal of Public Economics* 95(9–10). https://doi.org/10.1016/j.jpubeco.2011.03.003 [verified]
+75. Kaiser, T., Menkhoff, L. (2017). Does financial education impact financial literacy and financial behavior, and if so, when? *World Bank Economic Review* 31(3). https://doi.org/10.1093/wber/lhx018 [verified]
+76. Kaiser, T., Lusardi, A., Menkhoff, L., Urban, C. (2022). Financial education affects financial knowledge and downstream behaviors. *JFE* 145(2). https://doi.org/10.1016/j.jfineco.2021.09.022 [verified]
+77. Fernandes, D., Lynch, J. G., Netemeyer, R. G. (2014). Financial literacy, financial education, and downstream financial behaviors. *Management Science* 60(8). https://doi.org/10.1287/mnsc.2013.1849 [verified]
+78. Hershfield, H. E. et al. (2011). Increasing saving behavior through age-progressed renderings of the future self. *JMR* 48(SPL). https://doi.org/10.1509/jmkr.48.SPL.S23 [verified]
+79. Soman, D., Cheema, A. (2011). Earmarking and partitioning. *JMR* 48(SPL). https://doi.org/10.1509/jmkr.48.SPL.S14 [verified]
+80. Thaler, R. H., Benartzi, S. (2004). Save More Tomorrow. *JPE* 112(S1). https://doi.org/10.1086/380085 [verified]
+81. Madrian, B. C., Shea, D. F. (2001). The power of suggestion. *QJE* 116(4). https://doi.org/10.1162/003355301753265543 [verified]
+82. Johnson, E. J., Goldstein, D. (2003). Do defaults save lives? *Science* 302. https://doi.org/10.1126/science.1091721 [verified]
+83. Pocheptsova Ghosh, A., Huang, L. The budgeting app trap: when spending information backfires. BehavioralEconomics.com summary. https://behavioraleconomics.com/the-budgeting-app-trap-when-spending-information-backfires [unverified — page content not retrievable; no registry match found]
+84. Mathur, A. et al. (2019). Dark patterns at scale. *PACM HCI* 3(CSCW). https://doi.org/10.1145/3359183 [verified]
+85. Gray, C. M. et al. (2018). The dark (patterns) side of UX design. *CHI '18*. https://doi.org/10.1145/3173574.3174108 [verified]
+86. Luguri, J., Strahilevitz, L. J. (2021). Shining a light on dark patterns. *Journal of Legal Analysis* 13(1). https://doi.org/10.1093/jla/laaa006 [verified]
+87. Federal Trade Commission (2022). Bringing Dark Patterns to Light (staff report, 14 Sept 2022). https://www.ftc.gov/reports/bringing-dark-patterns-light [verified — PDF fetched and text extracted]
+88. Gathergood, J., Gilchrist, C., Hayes, L., Karapetyan, D., O'Neill, S., Stewart, N. (2024). Research Note: Digital engagement practices: a trading apps experiment. FCA, 20 June 2024. https://www.fca.org.uk/publications/research-notes/research-note-digital-engagement-practices-trading-apps-experiment [verified — page fetched; effect sizes from FCA press summary]
+89. Hertwig, R., Grüne-Yanoff, T. (2017). Nudging and boosting. *Perspectives on Psychological Science* 12(6). https://doi.org/10.1177/1745691617702496 [verified]
+90. Ryan, R. M., Deci, E. L. (2000). Self-determination theory. *American Psychologist* 55(1). https://doi.org/10.1037/0003-066X.55.1.68 [verified]
+91. Gladstone, J. J., Jachimowicz, J. M., Greenberg, A. E., Galinsky, A. D. (2021). Financial shame spirals. *OBHDP* 167. https://doi.org/10.1016/j.obhdp.2021.06.002 [verified]
+92. Loewenstein, G., Bryce, C., Hagmann, D., Rajpal, S. (2015). Warning: you are about to be nudged. *Behavioral Science & Policy* 1(1). https://doi.org/10.1353/bsp.2015.0000 [verified]
+93. Bruns, H. et al. (2018). Can nudges be transparent and yet effective? *Journal of Economic Psychology* 65. https://doi.org/10.1016/j.joep.2018.02.002 [verified]
+94. Sunstein, C. R. (2014). The ethics of nudging. SSRN. https://doi.org/10.2139/ssrn.2526341 [verified as SSRN record]
+95. Mani, A., Mullainathan, S., Shafir, E., Zhao, J. (2013). Poverty impedes cognitive function. *Science* 341. https://doi.org/10.1126/science.1238041 [verified]
+96. Prelec, D., Loewenstein, G. (1998). The red and the black: mental accounting of savings and debt. *Marketing Science* 17(1). https://doi.org/10.1287/mksc.17.1.4 [verified]
+97. Thaler, R. H. (1999). Mental accounting matters. *JBDM* 12(3). https://doi.org/10.1002/(SICI)1099-0771(199909)12:3<183::AID-BDM318>3.0.CO;2-F [verified]
+98. Statcounter GlobalStats. Mobile operating system market share Nigeria, October 2026. https://gs.statcounter.com/os-market-share/mobile/nigeria [verified — page fetched]
+99. Statcounter GlobalStats. Mobile operating system market share United Arab Emirates, October 2026. https://gs.statcounter.com/os-market-share/mobile/united-arab-emirates [verified — page fetched]
+100. Jaiyeola, T. (2025). Internet use per Nigerian up 30% despite tariff hike. Businessday, 9 July 2025. https://businessday.ng/technology/article/internet-use-per-nigerian-up-30-despite-tariff-hike/ [verified — page fetched; NCC-derived figures]
+101. TechCabal (2026). How Nigerians spent ₦20.87 billion daily on data in 2025. 9 Feb 2026. https://techcabal.com/2026/02/09/how-nigerians-spent-%E2%82%A620-87billion-daily-on-data-in-2025/ [secondary — page returned 403]
+102. Nwokoma, C. (2025). Delayed open banking launch. Techpoint Africa, 27 Aug 2025. https://techpoint.africa/insight/delayed-open-banking-launch/ [verified — page fetched]
+103. TechCabal (2025). Nigeria's open banking still in the works. 16 Oct 2025. https://techcabal.com/2025/10/16/nigerias-open-banking-still-in-the-works/ [secondary — page returned 403]
+104. EFInA (2024). Access to Financial Services in Nigeria 2023 survey. https://efina.org.ng/publication/access-to-financial-services-in-nigeria-survey-2023 [secondary — headline 64 percent via press coverage]
+105. KPMG/Orange smartphone penetration study (2025), as reported by Arise News. https://www.arise.tv/kpmg-nigerias-smartphone-penetration-climbs-to-75-as-economy-becomes-mobile-first/ [unverified — page 404]
+106. Wikipedia. Emirati dirham sign (CBUAE unveiling 27 March 2025; U+20C3 in Unicode 18.0, September 2026). https://en.wikipedia.org/wiki/Emirati_dirham_sign [verified — page fetched; tertiary source, confirm against unicode.org]
+107. Local check: Node.js v22.23.4, ICU 78.3, Unicode 17.0 `Intl.NumberFormat` output for en-NG, en-AE, ar-AE, en-US (run 2026-11-02; script retained in session scratchpad) [verified — reproduced locally]
+108. IFRS Foundation. IAS 21 The Effects of Changes in Foreign Exchange Rates. https://www.ifrs.org/issued-standards/list-of-standards/ias-21-the-effects-of-changes-in-foreign-exchange-rates/ [verified — page fetched]
+109. GOV.UK. A to Z style guide (numbers, money, dates, plain English). https://guidance.publishing.service.gov.uk/writing-to-gov-uk-standards/style-guides/a-to-z-style-guide/ [verified — page fetched]
+110. Monzo. Tone of voice. https://monzo.com/tone-of-voice/ [verified — page fetched]
+111. W3C WAI. What's New in WCAG 2.2 (Recommendation 5 October 2023). https://www.w3.org/WAI/standards-guidelines/wcag/new-in-22/ [verified — page fetched]
+112. Wong, B. (2011). Points of view: color blindness. *Nature Methods* 8. https://doi.org/10.1038/nmeth.1618 [verified]
+113. Okabe, M., Ito, K. (2002/2008). Color Universal Design. https://jfly.uni-koeln.de/color/ ; hex values from Wilke, C. O., *Fundamentals of Data Visualization*, ch. 19. https://clauswilke.com/dataviz/color-pitfalls.html [verified — pages fetched]
+114. Cleveland, W. S., McGill, R. (1984). Graphical perception. *JASA* 79(387). https://doi.org/10.1080/01621459.1984.10478080 [verified]
+115. Heer, J., Bostock, M. (2010). Crowdsourcing graphical perception. *CHI '10*. https://doi.org/10.1145/1753326.1753357 [verified]
+116. Saket, B., Endert, A., Demiralp, Ç. (2019). Task-based effectiveness of basic visualizations. *IEEE TVCG* 25(7). https://doi.org/10.1109/TVCG.2018.2829750 [verified]
+117. Financial Times Visual Journalism. Visual Vocabulary. https://github.com/Financial-Times/chart-doctor/tree/main/visual-vocabulary [verified — page fetched]
+118. Google web.dev. Web Vitals (updated 31 Oct 2024). https://web.dev/articles/vitals [verified — page fetched]
+119. Russell, A. (2025). The Performance Inequality Gap, 2026. Infrequently Noted, 24 Nov 2025. https://infrequently.org/2025/11/performance-inequality-gap-2026/ [verified — page fetched]
+120. Brooke, J. (1996). SUS: a 'quick and dirty' usability scale. In *Usability Evaluation in Industry*. https://doi.org/10.1201/9781498710411-35 [verified]
+121. Bangor, A., Kortum, P. T., Miller, J. T. (2008). An empirical evaluation of the System Usability Scale. *IJHCI* 24(6). https://doi.org/10.1080/10447310802205776 [verified]
+122. Lewis, J. R., Utesch, B. S., Maher, D. E. (2013). UMUX-LITE. *CHI '13*. https://doi.org/10.1145/2470654.2481287 [verified]
+123. Sauro, J., Dumas, J. S. (2009). Comparison of three one-question, post-task usability questionnaires. *CHI '09*. https://doi.org/10.1145/1518701.1518946 [verified]
+124. Hart, S. G., Staveland, L. E. (1988). Development of NASA-TLX. *Advances in Psychology* 52. https://doi.org/10.1016/S0166-4115(08)62386-9 [verified by title; author field absent in registry]
+125. Paas, F. (1992). Training strategies for attaining transfer of problem-solving skill in statistics: a cognitive-load approach. *J. Educational Psychology* 84(4). https://doi.org/10.1037/0022-0663.84.4.429 [verified]
+126. Rodden, K., Hutchinson, H., Fu, X. (2010). Measuring the user experience on a large scale (HEART). *CHI '10*. https://doi.org/10.1145/1753326.1753687 [verified]
+127. Hornbæk, K. (2006). Current practice in measuring usability. *IJHCS* 64(2). https://doi.org/10.1016/j.ijhcs.2005.06.002 [verified]
+128. Nielsen, J., Landauer, T. K. (1993). A mathematical model of the finding of usability problems. *INTERCHI '93*. https://doi.org/10.1145/169059.169166 [verified]
+129. Nielsen, J. (2000). Why you only need to test with 5 users. NN/g. https://www.nngroup.com/articles/why-you-only-need-to-test-with-5-users/ [verified — page fetched]
+130. Faulkner, L. (2003). Beyond the five-user assumption. *Behavior Research Methods, Instruments, & Computers* 35(3). https://doi.org/10.3758/BF03195514 [verified]
+131. Bolger, N., Davis, A., Rafaeli, E. (2003). Diary methods: capturing life as it is lived. *Annual Review of Psychology* 54. https://doi.org/10.1146/annurev.psych.54.101601.145030 [verified]
+132. Lillie, E. O. et al. (2011). The n-of-1 clinical trial. *Personalized Medicine* 8(2). https://doi.org/10.2217/pme.11.7 [verified]
+133. Dwork, C. (2006). Differential privacy. *ICALP 2006, LNCS 4052*. https://doi.org/10.1007/11787006_1 [verified]
+134. Securiti. Overview of the Nigeria Data Protection Act 2023. https://securiti.ai/overview-of-nigeria-data-protection-act/ [verified — page fetched; practitioner summary; confirm against the Act]
+135. Chambers and Partners (2026). Data Protection & Privacy 2026: UAE trends and developments. https://practiceguides.chambers.com/practice-guides/data-protection-privacy-2026/uae/trends-and-developments [verified — page fetched; practitioner summary]
+136. Bhargava, S., Manoli, D. (2015). Psychological frictions and the incomplete take-up of social benefits. *AER* 105(11). https://doi.org/10.1257/aer.20121493 [verified]
+137. Doshi-Velez, F., Kim, B. (2017). Towards a rigorous science of interpretable machine learning. arXiv:1702.08608. [verified — arXiv API]
+138. Portfolio OS Context Brief v0.1 (2026-11-02), `docs/portfolio-os/00_CONTEXT_BRIEF.md` [internal]
+139. Lusardi, A., Mitchell, O. S. (2014). The economic importance of financial literacy. *JEL* 52(1). https://doi.org/10.1257/jel.52.1.5 [verified]

@@ -347,3 +347,188 @@ Note how the two "costs of moving money" (₦91,305 implicit, ₦1,055 + AED 42 
 | Change | | | | | +4,521.35 | +6,288,671.78 | |
 
 Decomposition (USD view): net saving +4,422.44, market gain +111.00, FX translation on the opening NGN balance −12.51 (naira weakened from 1,329.00 to 1,346.91), residual +0.42 from converting all October flows at the month-end rate rather than transaction-date rates (the production system uses transaction-date rates, so the residual is zero). In the NGN view the same month shows an FX translation *gain* of ₦181,969.38 on the opening AED and USD holdings — the display rule in §4.5(4) requires both to be shown with labels, because the user's "wealth grew" is true in one numeraire and partly an FX artefact in the other.
+
+## 5. Alternatives considered and rejected
+
+| Alternative | Why rejected (for now) |
+|---|---|
+| **API-first ingestion via Mono (Nigeria) and a licensed UAE TPP** | Coverage per bank unverified, pricing quote-based, consent model proprietary, a single-user project cannot hold a CBUAE licence, and CBN open banking is not live (F1, F2, F8). Kept as a second adapter behind the same `source_line` contract. |
+| **Single-entry transaction list with "transfer" and "exclude" flags** (Actual-Budget-style) | Cannot represent cross-currency spread, reversals or security purchases without plugs; de-duplication and transfer pairing become import-order dependent (F11). |
+| **Adopting Beancount/hledger text files as the system of record** | Excellent semantics, but plain text has no row-level provenance, confidence, review states or evidence links, and is hostile to a non-technical interface. We adopt their *semantics* (postings, balance assertions, pad, prices) in a database schema. |
+| **A single blended NGN/USD rate (e.g., average of official and parallel)** | Fabricates a number nobody can transact at; violates the provenance rule. Two named series shown side by side instead (§4.5). |
+| **LLM-first categorisation and transfer detection** | Deterministic rules and record-linkage scoring are auditable and measurable; models are allowed only as ranked suggestions with confidence and evidence, and never touch amounts (§4.3.6; brief §1.4). |
+| **OCR of scanned statements in the MVP** | Error rates undermine the reconciliation guarantee; deferred behind a human-review queue. |
+| **Pulling credit-bureau data programmatically** | No consumer API with a lawful purpose for a self-use app; reports are user-uploaded documents (F18). |
+| **Fixed "6 months of expenses" emergency-fund target** | Convention, not evidence; the metric is shown and the target is the user's (F15). |
+
+## 6. Cross-department dependencies
+
+**We need from others:** Data Architecture & Engineering — storage schema review, integer minor-unit amounts, encryption-at-rest for statements, parser test harness; Tax Intelligence — the authoritative rule set for stamp duty, VAT on fees, withholding on foreign dividends, residency tests under the Nigeria Tax Act 2025 and UAE rules (F5, F21), and the list of income tags they need; Investment Research — validated price and FX series with provenance (NFEM/CBN, FMDQ, CBUAE, parallel-market survey methodology), corporate-action feeds for position reconciliation (F22); Behavioural Finance — the experiment design for budget views and the risk-tolerance instrument licensing (F13, F16); Forecasting & Wealth Planning — consumption of income streams and recurring-outflow objects; Goal Reality Engine — definition of "risk need" per goal; AI Research & Explanation — the contract that any narrative cites ledger IDs and never restates numbers it did not compute; Legal/Compliance & Privacy — data-retention, NDPA/PDPL obligations for storing statements, and the consent text for any aggregator link; Commercialisation — whether multi-user tenancy changes the ledger (it should not change the schema).
+
+**Others need from us:** the ledger schema and category taxonomy (this document, §4.2–4.3); the reconciliation status per period (every downstream figure must inherit the "incomplete" badge); income-stream and recurring-outflow objects; the FX-cost and fee-leakage series (behavioural and planning use); the net-worth decomposition (forecasting baseline); the fact-find record with confirmation stamps (tax and planning).
+
+## 7. Risks, open uncertainties and disagreements
+
+**Uncertainties (ranked):**
+1. CBN open-banking go-live date and whether individuals or small developers will be able to register as API consumers — unknown; no CBN primary notice found [checked 2026-11-04].
+2. Exact text and section of the Nigeria Tax Act 2025 stamp-duty provision, and whether the ₦10,000 threshold applies per transfer in foreign currency equivalents on domiciliary accounts — press-level only.
+3. The revised CBN Guide to Charges (effective 1 May 2026): figures come from two press reports; the CBN PDF was not retrieved.
+4. Statement export formats for GTBank, Zenith, Access, UBA, First Bank, Stanbic IBTC (official), OPay and PalmPay (official), Mashreq, Wio, Liv, RAKBANK, Emirates NBD personal, PiggyVest, Cowrywise, Trove, Chaka — unverified; the parser plan depends on real samples.
+5. Aani transaction limit (AED 50,000 on AEP's site vs AED 5,000 per proxy transaction in 2025 press) and Etihad Credit Bureau report price (AED 157.50 vs AED 84) — conflicting sources.
+6. Whether Mono's coverage of the founder's specific banks is reliable enough to justify its cost — untested.
+7. Parallel-market rate sourcing: there is no official series; any secondary series must document its survey method or be labelled indicative.
+
+**Disagreements preserved:**
+- *Commercial/retail banker vs financial planner — what comes first.* The banker position: nothing is trustworthy until statements reconcile and charges are audited, so the first three months should build only ingestion, reconciliation and the charge audit. The planner position: the founder's decisions depend on goals, savings rate and liquidity, which can be estimated from imperfect data, and a system that shows nothing for three months loses the user. Proposed resolution: ship reconciliation-gated aggregates — every KPI is visible from week one but carries the reconciliation badge and confidence band; no forecast or recommendation consumes an "incomplete" period.
+- *Infrastructure specialist vs product ambition — APIs.* The specialist regards aggregator integration as premature and a privacy liability; the product view regards manual upload as friction that limits adoption later. Resolution: build the adapter boundary now, integrate Mono only after a 60-day shadow test on the founder's own accounts measuring completeness against statements.
+- *Private banker vs behavioural researcher — risk tolerance.* The private banker is content with a suitability questionnaire; the behavioural researcher regards single questionnaires as noisy and wants repeated measurement and observed behaviour. Resolution: measure with the Grable–Lytton scale annually *and* record observed behaviour (sales after drawdowns) as a separate, labelled signal; never merge the two into one score.
+- *Credit specialist vs planner — credit reports.* The credit specialist wants bureau reports in the MVP; the planner notes the founder's decisions rarely hinge on a bureau score. Resolution: document upload only; no automation.
+- *Base currency.* Wealth-management view: USD numeraire; retail view: NGN because spending is in naira. Resolution: dual view by default, user chooses the headline (§4.4.7).
+
+**Risks:** silent parser errors (mitigated by mandatory reconciliation); stale fee and rate constants (mitigated by sourced, dated constants and a review calendar — the repository's hard-coded policy-rate anti-pattern must not recur); privacy exposure from storing statements (encryption, retention policy, no third-party model calls with raw statements); over-interpretation of behaviour from one person's data (Behavioural department's eight-question test applies); regulatory change in both jurisdictions (every rule carries an effective date and a "checked on" date).
+
+## 8. Recommendations, ranked
+
+| # | Recommendation | Class |
+|---|---|---|
+| R1 | Statement-import pipeline for Tier 1–2 sources with mandatory reconciliation and provenance | Personal-MVP must-have |
+| R2 | Double-entry ledger with postings, reference FX rates at transaction date, explicit FX-cost and charge accounts, confidence and review states | Personal-MVP must-have |
+| R3 | Transfer matching (same- and cross-currency) and investment-contribution exclusion | Personal-MVP must-have |
+| R4 | Deterministic de-duplication plus fuzzy flagging; reversal pairing | Personal-MVP must-have |
+| R5 | Rules engine with review queue; taxonomy mapped to Plaid PFC v2; charge audit against the Guide to Charges and stamp-duty rules | Personal-MVP must-have |
+| R6 | Cash-flow, savings-rate, liquidity and dual-currency net-worth views with decomposition and reconciliation badges | Personal-MVP must-have |
+| R7 | Income-stream detection and paycheque-anchored recurring forecast with scenario overlays | Personal-MVP must-have (forecast banded, not point) |
+| R8 | Fact-find record (residency, employment type, goals) with confirmation stamps; risk capacity/tolerance/need shown separately | Personal-MVP must-have (questionnaire licensing: Later) |
+| R9 | Budget views with measured adherence, framed as an experiment | Later |
+| R10 | Aggregator adapter (Mono; UAE licensed TPP) after shadow test | Later |
+| R11 | OCR for scanned statements; credit-report parsing | Later |
+| R12 | CBN open-banking / CBUAE AlTareq direct participation | Do-not-build (yet) |
+| R13 | Real-time balance sync, automated payments or transfers from Portfolio OS | Do-not-build (yet) — moves the product into regulated payment activity |
+
+**Five-question test on the top items.**
+
+*R1–R2 (import + ledger).* (1) Problem: the founder cannot see one truthful picture across NGN/AED/USD accounts, and prior tools produced inaccurate figures. (2) Who: the founder now; any multi-banked Nigerian/UAE user later. (3) Evidence: open-source ledgers converge on these primitives (F11); reconciliation failures in PDF parsing are documented (F4); IAS 21 provides the multi-currency logic (F20). (4) Build/validate: per-institution parsers with redacted fixtures; every statement must pass four reconciliation checks; property tests that Σ base amounts = 0. (5) Measurable improvement: share of statements auto-reconciled (target ≥95%), zero unexplained balance differences, time from upload to confirmed ledger (< 10 minutes per statement).
+
+*R3–R4 (transfers, duplicates).* (1) Problem: own transfers and reversals inflate income and spending and hide FX spread. (2) Who: anyone moving money across accounts or currencies — the founder does so monthly. (3) Evidence: Fellegi–Sunter record linkage (F12); Actual Budget's documented duplicate-transfer problem (F11); observed 2–3% spreads (F7). (4) Build/validate: labelled set of the founder's confirmed transfers; precision ≥0.98, recall ≥0.95 before auto-linking; replay tests with overlapping statements. (5) Improvement: spending and income error versus manual ground truth < 1%; FX cost series produced monthly.
+
+*R5 (rules + charge audit).* (1) Problem: unexplained bank charges and miscategorised spending. (2) Who: the founder; later retail users who routinely question charges. (3) Evidence: published charge schedules (F5) make an audit deterministic; Plaid's confidence enumeration is an accepted interface (F10). (4) Build/validate: rule precision tracked per rule; charge audit tested on synthetic statements with every charge type. (5) Improvement: ≥90% of lines auto-classified at ≥0.90 confidence after three months; every charge line either matched to a tariff rule or flagged.
+
+*R6–R7 (views + forecast).* (1) Problem: decisions need savings rate, liquidity and a credible near-term cash position in the right currency. (2) Who: the founder; the Planning and Goal engines downstream. (3) Evidence: income-timing sensitivity (F14), emergency-fund evidence (F15), national-accounts definitions (F19). (4) Build/validate: back-test the recurring forecast on the founder's own history (mean absolute percentage error by horizon); all metrics print their definitions. (5) Improvement: 30-day cash forecast error < 10% of monthly spend after six months of data; months-covered metric stable within ±0.2 between consecutive reconciled months.
+
+*R8 (fact-find and risk).* (1) Problem: tax and suitability outcomes depend on facts no statement contains. (2) Who: the founder, Tax and Planning departments. (3) Evidence: CFP Board/FPSB practice standards (F17); three-dimensional risk framework (F16); Tax Act residency rule (F21). (4) Build/validate: structured form with confirmation stamps; questionnaire psychometrics from the literature. (5) Improvement: zero downstream computations running on unconfirmed residency or employment status.
+
+## 9. Required validation before implementation
+
+1. Obtain redacted real statements (founder's own, after privacy controls are approved) for each institution in Tier 1–2 and record: file type, columns, narration patterns, running-balance presence, printed totals, password behaviour. Build fixtures only from redacted copies.
+2. Retrieve and file the primary texts with dates: CBN Guide to Charges 2026 (PDF), Nigeria Tax Act 2025 stamp-duty provisions (section numbers), CBUAE Open Finance Regulation (Circular 3/2025) from the rulebook, CBN circular of 18 June 2023 on domiciliary accounts, MOHRE Resolution 340/2026.
+3. Confirm with each institution (support ticket or in-app test) the export formats not verified here (§7 item 4) and whether GTBank's Excel export exists.
+4. Run a 60-day shadow comparison of Mono Connect against statements for the founder's Nigerian accounts before any API dependency; record completeness, latency, re-authentication frequency and cost per account.
+5. Establish the FX reference feed (CBN/NFEM daily) and a documented parallel-market series; test the §4.5 display rules with users for misreading risk.
+6. Validate transfer matching and duplicate detection on a labelled set of at least 200 own transfers and 50 reversals; tune Fellegi–Sunter thresholds; measure precision/recall.
+7. Back-test the recurring-pattern forecast on 12 months of reconciled history.
+8. Have a licensed Nigerian tax practitioner and a UAE adviser review the charge, levy, VAT and residency assumptions (F5, F9, F21) before any figure reaches a user.
+9. Privacy and security review of statement storage, encryption and retention (Legal/Compliance) before real data is loaded.
+10. Behavioural department to specify the budget-view experiment and risk-tolerance instrument licensing before R8/R9 proceed.
+
+## 10. Sources
+
+Access dates are 2026-11-02 unless stated; "fetched" means the page or PDF was read directly; "search extract" means the official text was obtained through a search-engine extract because the page blocked automated fetching. Academic references were checked against OpenAlex by DOI on 2026-11-02 ([verified] = title, first author and year agree).
+
+**Regulators, standards bodies and primary documents**
+- S1. Udo Udoma & Belo-Osagie, *Open Banking in Nigeria: An Overview of the CBN Operational Guidelines for Open Banking in Nigeria 2023* (2023). https://uubo.org/wp-content/uploads/2023/10/OPEN-BANKING-IN-NIGERIA-AN-OVERVIEW-OF-THE-CBN-OPERATIONAL-GUIDELINES-FOR-OPEN-BANKING-IN-NIGERIA-2023.pdf — search extract.
+- S2. Open Banking Nigeria, *Open banking in Nigeria* (page updated July 2026). https://openbanking.ng/open-banking-in-nigeria/ — fetched.
+- S3. Goldsmiths LLP, *Nigerian Open Banking: The Legal Framework All Banks and FinTechs Need to Know* (2026). https://www.goldsmithsllp.com/nigerian-open-banking-the-legal-framework-all-banks-and-fintechs-need-to-know/ — fetched.
+- S4. Y.-F. Elaigwu, "As Nigeria prepares for the open banking rollout", *BusinessDay*, 8 June 2026. https://businessday.ng/opinion/article/as-nigeria-prepares-for-the-open-banking-rollout/ — fetched.
+- S5. *Vanguard*, "Nigeria's open banking will happen soon — CBN", October 2025. https://www.vanguardngr.com/2025/10/nigerias-open-banking-will-happen-soon-cbn/ — search extract.
+- S6. TechCrier, "What is open banking, and is Nigeria ready for it?", October 2026. https://www.techcrier.com/2026/10/what-is-open-banking-and-is-nigeria.html — fetched.
+- S7. *Nairametrics*, "Nigerian fintech Okra shuts down as co-founder Fara Ashiru moves to UK's Kernel", 3 July 2025. https://nairametrics.com/2025/07/03/nigerian-fintech-okra-shuts-down-as-co-founder-fara-ashiru-moves-to-uks-kernel/ — search extract.
+- S8. Mono, *Pricing* (undated). https://mono.co/pricing — fetched.
+- S9. Mono, *Coverage*. https://mono.co/coverage — fetched.
+- S10. Mono, *Documentation overview*. https://docs.mono.co/docs — fetched.
+- S11. Open Banking Tracker, *Mono (acquired by Flutterwave)* profile (2026). https://www.openbankingtracker.com/mono-co — search extract (fetch returned HTTP 429).
+- S12. Open Banking Nigeria, *Are Mono and Stitch truly open banking?* https://openbanking.ng/are-mono-and-stitch-truly-open-banking/ — search extract.
+- S13. Kuda Help Centre, *Get your account statement*. https://help.kuda.com/en/articles/8947801-get-your-account-statement — fetched.
+- S14. Moniepoint Support, *How to generate account statement*. https://support.moniepoint.com/topics/how-to-generate-account-statement-202/how-to-generate-account-statement-206 — search extract (fetch 403).
+- S15. J. Orazulike, *bankstract* v0.18.3 (MIT), PyPI, released 2 November 2026. https://pypi.org/project/bankstract/ — fetched.
+- S16. GTBank, *Help Centre*. https://gtbank.com/help-centre — fetched (statement path only); TaxFetch, *GTBank Nigeria bank statement analyzer* (third-party). https://taxfetchindia.com/tools/bank-statement/gtbank-nigeria-bank-statement-analyzer — search extract.
+- S17. Central Bank of Nigeria, *Guide to Charges by Banks, Other Financial and Non-Bank Financial Institutions*, effective 1 January 2020 (PDF). https://www.cbn.gov.ng/Out/2022/CCD/Guide%20to%20Charges%20by%20Banks%20Other%20Financial%20and%20Non-Financial%20Institutions%20eff%20Jan%201%202020.pdf — fetched; text extracted.
+- S18. Legit.ng, "CBN scraps card maintenance fees, makes email alerts free as 4 new banking charges take effect" (May 2026). https://www.legit.ng/business-economy/economy/1708374-cbn-scraps-card-maintenance-fees-email-alerts-free-4-banking-charges-effect/ — fetched; *Leadership*, "CBN raises debit, credit card issuance fee to N1,500" (2026). https://leadership.ng/cbn-raises-debit-credit-card-issuance-fee-to-n1500/ — search extract; WithinNigeria, "CBN ATM card fee increase…", 25 April 2026. https://www.withinnigeria.com/2026/04/25/cbn-atm-card-fee-increase-new-charges-effective-date-and-what-every-nigerian-bank-customer-must-know/ — search extract.
+- S19. TechCabal, "Here is why bank transfers in Nigeria will cost more from 2026", 22 December 2025. https://techcabal.com/2025/12/22/why-your-50000-transfer-will-cost-100-from-2026/ — search extract (fetch 403).
+- S20. Kuda Help Centre, *An important update about stamp duty* (2025/26). https://help.kuda.com/en/articles/13285316-an-important-update-about-stamp-duty — fetched.
+- S21. Paystack Support, *Stamp duty charge on NGN transfers* (2026). https://support.paystack.com/en/articles/7573314 — fetched.
+- S22. TechEconomy, "Stamp duty replaces EMTL: sender to bear ₦50 charge on bank transfers", 1 January 2026. https://www.techeconomy.ng/stamp-duty-replaces-emtl-sender-to-bear-50-charge-on-bank-transfers — fetched.
+- S23. Tope Adebayo LP, *Nigeria Tax Act, 2025: An Outlook of Income and Profit Taxation under the Present Regime* (2025, PDF). www.topeadebayolp.com — PDF read; exact URL not recorded.
+- S24. *BusinessDay*, "5 other levies Nigerians pay for electronic transactions" (2024). https://businessday.ng/analysis/article/5-other-levies-nigerians-pay-for-electronic-transactions/ — search extract.
+- S25. National Bureau of Statistics, *Highlights of Consumer Price Index (CPI) Rebasing*, February 2025 (PDF). https://microdata.nigerianstat.gov.ng/index.php/catalog/154/download/1156/Highlights%20of%20CPI%20Rebasing%20Result.pdf — fetched; text extracted.
+- S26. *Nairametrics*, "Nigeria's inflation slows to 14.63% in September, fourth straight monthly decline in 2026", 15 October 2026. https://nairametrics.com/2026/10/15/nigerias-inflation-slows-to-14-63-in-september-fourth-straight-monthly-decline-in-2026/ — fetched; National Bureau of Statistics homepage CPI panel (2024 = 100). https://nigerianstat.gov.ng/ — fetched.
+- S27. *A Review of Key CBN Foreign Exchange Policies in 2024* (Legal500/Mondaq, 2025). https://www.legal500.com/intelligence/nigeria/finance-and-banking/a-review-of-key-cbn-foreign-exchange-policies-in-2024 — fetched.
+- S28. Mondaq, *Recent Reforms in the Nigeria Foreign Exchange Market and the Introduction of the Electronic Foreign Exchange Matching System* (2025). https://www.mondaq.com/nigeria/financial-services/1568396/ — search extract.
+- S29. WithinNigeria, "Dollar to Naira today, October 31, 2026: NFEM rate ₦1,346.91, black market ₦1,385". https://www.withinnigeria.com/2026/10/31/dollar-to-naira-today-october-31-2026-nfem-rate-%E2%82%A61346-91-black-market-%E2%82%A61385/ — fetched; *Vanguard*, "Naira appreciates to N1,373/$ in parallel market", October 2026. https://www.vanguardngr.com/2026/10/naira-appreciates-to-n1373-in-parallel-market/ — search extract.
+- S30. *Nairametrics*, "CBN lifts cash deposit restriction on domiciliary accounts, allows $10k withdrawals daily", 18 June 2023. https://nairametrics.com/2023/06/18/breaking-cbn-lifts-cash-deposit-restriction-on-domiciliary-accounts-allows-10k-withdrawals-daily/ — fetched.
+- S31. Central Bank of the UAE, *Open Finance Regulation* (Circular 7/2023 of 31 December 2023, replaced by Circular 3/2025 of 10 July 2025). https://rulebook.centralbank.ae/node/5686 — fetch 403; summarised via Pinsent Masons, *UAE open finance* (https://www.pinsentmasons.com/out-law/guides/uae-open-finance) and Mondaq, *Open Finance Regulation* (https://www.mondaq.com/financial-services/1555738/open-finance-regulation) — search extracts.
+- S32. Himma.ai, *UAE Open Finance Tracker 2026: Which banks are live on CBUAE AlTareq?* (reviewed 2 July 2026). https://himma.ai/tools/open-finance-tracker/ — fetched.
+- S33. PaymentExpert, "UAE fintech hub: open finance, Aani and what's next in 2026", 21 October 2026. https://paymentexpert.com/2026/10/21/uae-fintech-hub-open-finance-2026/ — search extract (fetch 403).
+- S34. The Paypers, "Fintech Galaxy secures CBUAE approval for Open Finance". https://thepaypers.com/fintech/news/fintech-galaxy-secures-cbuae-approval-for-open-finance ; Spare, "Spare receives in-principle approval from the Central Bank of the UAE for Open Finance license" (August 2025). https://tryspare.com/blog/spare-receives-in-principle-approval-from-the-central-bank-of-the-uae-for-open-finance-license/ — search extracts.
+- S35. Central Bank of the UAE, *UAE Fund Transfer System (UAEFTS)*. https://centralbank.ae/en/our-operations/payments-and-settlements/uae-fund-transfer-system-uaefts/ ; *IBAN* FAQ. https://www.centralbank.ae/en/services/iban — search extracts (fetch 403).
+- S36. Al Etihad Payments, *Aani*. https://aep.ae/ — fetched; *Al Etihad*, "Aani…" (September 2025). https://en.aletihad.ae/news/business/4609296/ ; *Gulf News*, "UAE instant payments platform Aani crosses 12.5 million users". https://gulfnews.com/business/banking/uae-instant-payments-platform-aani-crosses-125-million-users-1.500502686 — search extracts.
+- S37. *Gulf News*, "Creation, history and evolution of the UAE dirham" (2021). https://gulfnews.com/amp/story/uae%2Fyear-of-the-50th%2Fcreation-history-and-evolution-of-the-uae-dirham-1.1621767243152 — search extract.
+- S38. EY, *UAE introduces enhanced Wage Protection System, effective 1 June 2026* (Tax Alert, 2026). https://www.ey.com/en_gl/technical/tax-alerts/uae-introduces-enhanced-wage-protection-system-effective-1-june-2026 — fetched.
+- S39. Standard Chartered Bank UAE, *Value Added Tax ('VAT') and frequently asked questions* (January 2018, PDF). https://www.sc.com/global/av/ae-vat-frequently-asked-questions.pdf — fetched; text extracted.
+- S40. ADCB, *e-Statements: How to view & download online*. https://www.adcb.com/en/tools-resources/e-statement/ — search extract (fetch 403).
+- S41. Emirates NBD, *businessONLINE: How to access your statements* (February 2022, PDF). https://www.emiratesnbd.com.sa/-/media/enbd/ksa/pdf/businessonline/ksa_how_to_access_your_statements.pdf — search extract; Emirates NBD, *E-Statements*. https://www.emiratesnbd.com/en/ways-of-banking/e-statements — fetched (navigation only).
+- S42. Wise Help Centre, *How do I download a statement?* https://wise.com/help/articles/2736049/how-do-i-download-a-statement — fetched.
+- S43. M. Laitinen, *ofxstatement-revolut* parser source (GitHub). https://raw.githubusercontent.com/mlaitinen/ofxstatement-revolut/master/src/ofxstatement/plugins/revolut.py — fetched; Revolut Help, *Account statement per chosen currency*. https://help.revolut.com/en-JP/help/profile-and-plan/managing-my-account/account-statement-per-chosen-currency/ — fetch 403.
+- S44. Interactive Brokers, *Flex Web Service — SendRequest* and *GetStatement* API reference. https://www.interactivebrokers.com/docs/web-api/api-reference/send-request.md ; https://www.interactivebrokers.com/docs/web-api/api-reference/get-statement.md ; IBKR Campus, *Flex Web Service*. https://www.interactivebrokers.com/campus/ibkr-api-page/flex-web-service/ — search extracts (fetch 403).
+- S45. Bamboo FAQ, *Account statements and trade confirmations*. https://faq.investbamboo.com/en/articles/6889357-account-statements-and-trade-confirmations — fetched.
+- S46. Sarwa Help Centre, *How do I download my Sarwa Invest statement?* https://help.sarwa.co/hc/en-us/articles/4410507600657-How-do-I-download-my-Sarwa-Invest-statement ; *How do I view my monthly Sarwa Trade statement?* https://help.sarwa.co/hc/en-us/articles/5885578724509-How-do-I-view-my-monthly-Sarwa-Trade-statement — search extracts (fetch 403).
+- S47. Dignited, *Risevest account statement* (13 June 2022, third-party). https://www.dignited.com/96294/risevest-account-statement/ — fetched.
+- S48. Techpoint Africa, "Risevest acquires Chaka", 26 September 2023. https://techpoint.africa/2023/09/26/risevest-acquires-chaka — search extract.
+- S49. ShareSaver, *CSCS account number in Nigeria: meaning and how to find it* (third-party). https://sharessaver.com/blog/cscs-account-number-nigeria — search extract.
+- S50. National Pension Commission (PenCom), *Frequently Asked Questions 2023* (PDF), Part on RSA statements ("at least once every three months"). https://www.pencom.gov.ng/wp-content/uploads/2023/09/FREQUENTLY-ASKED-QUESTIONS-2023.pdf — fetched; text extracted.
+- S51. Plaid, *Personal Finance Category taxonomy* (v1 CSV). https://plaid.com/documents/transactions-personal-finance-category-taxonomy.csv ; *PFC taxonomy v1/v2 comparison* (CSV). https://plaid.com/documents/pfc-taxonomy-all.csv ; *Personal Finance Category migration guide* (PFCv2, December 2025). https://plaid.com/docs/transactions/pfc-migration/ ; *Transactions API reference* (confidence_level, counterparties). https://plaid.com/docs/api/products/transactions/ — all fetched.
+- S52. Plaid, *Recurring transactions* (blog). https://plaid.com/blog/recurring-transactions/ — search extract; Plaid, *Bank Income* documentation. https://plaid.com/docs/income/bank-income/ — fetched.
+- S53. Firefly III documentation, *Architecture* and *Transactions*. https://docs.firefly-iii.org/explanation/more-information/architecture/ ; https://docs.firefly-iii.org/explanation/financial-concepts/transactions/ — search extracts quoting the docs (fetch 403).
+- S54. Actual Budget documentation, *Transfers* and *Importing transactions*. https://actualbudget.org/docs/transactions/transfers/ ; https://actualbudget.org/docs/transactions/importing/ — fetched.
+- S55. Beancount syntax reference (beancount.io mirror of the official syntax). https://beancount.io/docs/Basics/syntax — fetched; official documentation https://beancount.github.io/docs/ — not fetched.
+- S56. hledger manual. https://hledger.org/hledger.html — fetched (first 100,000 characters).
+- S57. CFP Board, *Code of Ethics and Standards of Conduct* — Practice Standards for the Financial Planning Process (effective 1 October 2019). https://www.cfp.net/ethics/code-of-ethics-and-standards-of-conduct — fetched.
+- S58. Financial Planning Standards Board, *Financial Planning Practice Standards* (2021). https://fpsb.org/standards-for-the-profession/framework/practice/ — fetched; Financial Planning Association of Malaysia, *Practice Standards v2021* (revision 17 May 2021, PDF). https://fpam.org.my/wp-content/uploads/2026/06/FPAM-Practice-Standards-v2021.pdf — fetched; text extracted.
+- S59. K. N. Ryack, M. Kraten, A. Sheikh, "Incorporating Financial Risk Tolerance Research into the Financial Planning Process", *Journal of Financial Planning* 29(10), October 2016, 54–61. https://www.financialplanningassociation.org/article/journal/OCT16-incorporating-financial-risk-tolerance-research-financial-planning-process — fetched [unverified in OpenAlex].
+
+**Academic references (checked against OpenAlex by DOI, 2026-11-02)**
+- S60. J. E. Grable, R. H. Lytton, "Financial risk tolerance revisited: the development of a risk assessment instrument", *Financial Services Review* 8(3), 1999. https://doi.org/10.1016/S1057-0810(99)00041-4 [verified]
+- S61. P. Kuzniak, A. Rabbani, W. Heo, J. Ruiz-Menjivar, J. E. Grable, "The Grable and Lytton risk-tolerance scale: a 15-year retrospective", *Financial Services Review* 24, 2015. [unverified — not found in OpenAlex title search]
+- S62. C. Heath, J. B. Soll, "Mental Budgeting and Consumer Decisions", *Journal of Consumer Research* 23(1), 1996. https://doi.org/10.1086/209465 [verified]
+- S63. R. H. Thaler, "Mental accounting matters", *Journal of Behavioral Decision Making* 12(3), 1999. https://doi.org/10.1002/(SICI)1099-0771(199909)12:3<183::AID-BDM318>3.0.CO;2-F [verified]
+- S64. C. Y. Zhang, A. B. Sussman, "Perspectives on mental accounting: An exploration of budgeting and investing", *Financial Planning Review* 1(1–2), 2018. https://doi.org/10.1002/cfp2.1011 [verified]
+- S65. D. Soman, A. Cheema, "Earmarking and Partitioning: Increasing Saving by Low-Income Households", *Journal of Marketing Research* 48(SPL), 2011. https://doi.org/10.1509/jmkr.48.SPL.S14 [verified]
+- S66. D. Prelec, G. Loewenstein, "The Red and the Black: Mental Accounting of Savings and Debt", *Marketing Science* 17(1), 1998. https://doi.org/10.1287/mksc.17.1.4 [verified]
+- S67. D. Soman, "Effects of Payment Mechanism on Spending Behavior: The Role of Rehearsal and Immediacy of Payments", *Journal of Consumer Research* 27(4), 2001. https://doi.org/10.1086/319621 [verified]
+- S68. D. Fernandes, J. G. Lynch Jr., R. G. Netemeyer, "Financial Literacy, Financial Education, and Downstream Financial Behaviors", *Management Science* 60(8), 2014. https://doi.org/10.1287/mnsc.2013.1849 [verified]
+- S69. T. Kaiser, A. Lusardi, L. Menkhoff, C. Urban, "Financial education affects financial knowledge and downstream behaviors", *Journal of Financial Economics* 145(2), 2022 (online 2021). https://doi.org/10.1016/j.jfineco.2021.09.022 [verified]
+- S70. A. Olafsson, M. Pagel, "The Liquid Hand-to-Mouth: Evidence from Personal Finance Management Software", *Review of Financial Studies* 31(11), 2018. https://doi.org/10.1093/rfs/hhy055 [verified]
+- S71. B. I. Carlin, A. Olafsson, M. Pagel, "Mobile Apps and Financial Decision Making", *Review of Finance* 27(3), 2023 (online 2022). https://doi.org/10.1093/rof/rfac040 [verified]
+- S72. A. Lusardi, D. Schneider, P. Tufano, "Financially Fragile Households: Evidence and Implications", *Brookings Papers on Economic Activity*, Spring 2011. https://doi.org/10.1353/eca.2011.0002 [verified]
+- S73. M. Despard, T. Friedline, S. West, "Why Do Households Lack Emergency Savings? The Role of Financial Capability", *Journal of Family and Economic Issues* 41, 2020. https://doi.org/10.1007/s10834-020-09679-8 [verified]
+- S74. Board of Governors of the Federal Reserve System, *Economic Well-Being of U.S. Households in 2025* — Executive Summary (survey fielded 17–28 October 2025; published May 2026). https://www.federalreserve.gov/publications/2026-economic-well-being-of-us-households-in-2025-executive-summary.htm — fetched 2026-11-02.
+- S75. M. Gelman, S. Kariv, M. D. Shapiro, D. Silverman, S. Tadelis, "Harnessing naturally occurring data to measure the response of spending to income", *Science* 345(6193), 2014. https://doi.org/10.1126/science.1247727 [verified]
+- S76. P. Ganong, P. Noel, "Consumer Spending during Unemployment: Positive and Normative Implications", *American Economic Review* 109(7), 2019. https://doi.org/10.1257/aer.20170537 [verified]
+- S77. B. Baugh, I. Ben-David, H. Park, J. A. Parker, "Asymmetric Consumption Smoothing", *American Economic Review* 111(1), 2021 (OpenAlex year 2020). https://doi.org/10.1257/aer.20181735 [verified]
+- S78. J. Gathergood, N. Mahoney, N. Stewart, J. Weber, "How Do Individuals Repay Their Debt? The Balance-Matching Heuristic", *American Economic Review* 109(3), 2019. https://doi.org/10.1257/aer.20180288 [verified]
+- S79. I. P. Fellegi, A. B. Sunter, "A Theory for Record Linkage", *Journal of the American Statistical Association* 64(328), 1969. https://doi.org/10.1080/01621459.1969.10501049 [verified]
+- S80. IFRS Foundation, *IAS 21 The Effects of Changes in Foreign Exchange Rates* (overview page). https://www.ifrs.org/issued-standards/list-of-standards/ias-21-the-effects-of-changes-in-foreign-exchange-rates/ — fetched (overview only; paragraph-level rules cited from the standard, not re-read here).
+- S81. CRC Credit Bureau, *FAQ*. https://crccreditbureau.com/faq/ — fetched; WithinNigeria, "How to check your credit score in Nigeria using credit bureau", 10 June 2026. https://www.withinnigeria.com/2026/06/10/how-to-check-your-credit-score-in-nigeria-using-credit-bureau/ — search extract; "An Appraisal of the Nigerian Credit Reporting Act 2017", *Journal of African Law* (Cambridge). https://www.cambridge.org/core/journals/journal-of-african-law/article/appraisal-of-the-nigerian-credit-reporting-act-2017/BA239BBC8810186E0FA9A86BA8DB7F13 — search extract [unverified].
+- S82. Etihad Credit Bureau, *FAQs — Credit Report & Score* (AED 157.50 report; AED 10.50 score, incl. VAT). https://etihadbureau.ae/faqs/19 — search extract (fetched page rendered empty); Bayut, *A quick guide to Etihad Credit Bureau* (AED 84 individual report). https://bayut.com/mybayut/etihad-credit-bureau — search extract (page later returned HTTP 410).
+- S83. (merged into S51.)
+- S84. J. Sabat, E. Gallagher, "Rules of Thumb in Household Savings Decisions: Estimation Using Threshold Regression" (working paper, SSRN, 2019). [unverified — not found in OpenAlex]
+- S85. J. M. Collins, L. Gjertson, "Emergency savings for low-income consumers", *Focus* 30(1), 2013. [unverified — not found in OpenAlex]
+- S86. J. Klement, *Investor Risk Profiling: An Overview*, CFA Institute Research Foundation, 2015. [unverified — not found in OpenAlex]
+- S87. World Bank, *Nigeria Development Update*, October 2026 (as reported by Nairametrics, S26). — not fetched.
+- S88. OECD, *Household savings* indicator (definition of household saving rate). https://www.oecd.org/en/data/indicators/household-savings.html — fetch 403; definition cited from standard national-accounts practice [unverified].
+- S89. Intuit Inc., US Patent 8,380,590, "Method and system for detecting recurring income from financial transaction data". https://patents.google.com/patent/US8380590 — search extract (industry-approach reference only).
+- S90. Udo Udoma & Belo-Osagie, *Nigeria's FinTech Regulatory Framework: Key 2025 Review and Outlook for 2026* (February 2026, PDF). https://uubo.org/wp-content/uploads/2026/02/FINTECH-2025-REVIEW-AND-OUTLOOK-FOR-2026-.pdf — search extract.
+- S91. Launchpad.ng, *Open banking in Nigeria in 2026: who's actually compliant* (undated; claims rules "now live"; contradicted by S2–S6). https://launchpad.ng/resources/open-banking-nigeria-2026 — search extract; low confidence.
+- S92. Afriex, *Nigeria bank transfer fees 2026*. https://afriex.com/post/nigeria-bank-transfer-fees-2026 — search extract; secondary.
+- S93. E. Warren, A. W. Tyagi, *All Your Worth: The Ultimate Lifetime Money Plan* (Free Press, 2005) — origin of the 50/30/20 rule; book, not verified.
+
+*Research artefacts (not sources):* worked-example script and OpenAlex verification log kept in the session scratchpad (`worked_example.py`, `openalex_results.txt`); CBN 2020 Guide, NBS rebasing, PenCom FAQ, SC VAT FAQ and FPAM standards PDF text extracts retained for reviewer inspection.

@@ -279,3 +279,93 @@ flowchart LR
   M -- pass --> N[Answer with citations to provenance]
   M -- fail --> O[Redact figure or regenerate; log for review]
 ```
+
+### 4.6 AI research-and-explanation layer (System H)
+
+**Architecture (deterministic controller + tool-using model).** A Python controller owns the loop (manual loop or the SDK tool runner [S56]). The model receives a frozen system prompt (cacheable prefix), a tool registry, and the user's question. Tools are **read-only, typed, strict** (`strict: true`, `additionalProperties: false`) and return `Figure` objects (§4.2 P1) with `provenance_id`. Categories of tools: `ledger.query` (balances, positions, cash flows by period/currency/as-of), `analytics.metric`, `risk.metric`, `risk.scenario_run` (seeded), `optimise.run`, `plan.scenario`, `tax.compute`, `research.fact`, `documents.search` (retrieval over the founder's own statements and notes, returning chunks with `document_id/page/bbox`), and `calc.derive` (an arithmetic tool: the only way to produce a number not already in a tool result — e.g. a ratio of two figures — which records its operands' provenance). Write actions (e.g. "categorise these 40 rows") are proposals queued for human confirmation in the UI (OWASP LLM06 Excessive Agency [S64]).
+
+**Structured final answer.** `output_config.format` with schema `{answer_markdown, figures:[{ref, value, unit, currency, as_of, provenance_id, tool_call_id}], assumptions:[{text, source}], limitations:[string], confidence: enum, refused: bool, refusal_reason}`. Because Anthropic Citations cannot be combined with structured outputs [S54], provenance is cited through `figures[].ref` tokens embedded in the prose (e.g. `[f1]`), rendered by the UI as a provenance drawer. Where document-grounded prose matters more than structure (long research explanations), a second, text-only pass with Citations enabled on the retrieved documents is permitted, followed by the same numeric gate.
+
+**"No number without a tool result" enforcement (defence in depth).** (1) Prompt: the system prompt forbids arithmetic in prose and instructs the model to call `calc.derive`. (2) Schema: every figure must reference a `tool_call_id`. (3) **Gate**: after generation, a validator masks dates, identifiers, years and reference tokens, extracts every remaining numeral (with %, thousands separators, units and currency normalised), and checks each against the set of values returned by tool calls in the trace (tolerance 0.5% relative or the display rounding, whichever is larger). Any unmatched number causes either a regeneration with the violations listed, or redaction as "[figure withheld — not computable from stored data]" and a review-queue entry. The smoke test in §4.12 shows why date masking is mandatory (F19). (4) Forward-looking numbers are allowed only when produced by `plan.scenario`/`risk.scenario_run`, which return ranges with assumption sets — operationalising "never promise returns".
+
+**Retrieval over the user's own documents.** Chunks come from the validated extraction store (not raw OCR), are embedded locally (sentence-transformers, Apache-2.0) into pgvector, and are presented to the model wrapped as data with explicit boundaries. Retrieval is for *explanation* ("which statement line is this fee from?"), never for *computation*. This is standard RAG [S67] with the crucial difference that numbers are recomputed by tools, not copied from chunks.
+
+**Prompt-injection defences for uploaded documents.** Statements may contain adversarial text (merchant names, memo fields, PDFs crafted by a third party). Controls, following Greshake et al., the Dual-LLM pattern and CaMeL [S63, S65, S66]: deterministic parsers first; any LLM-assisted extraction runs in a **quarantined call** with no tools, a strict schema, and outputs that must reconcile arithmetically before promotion (§4.5); retrieved chunks never carry executable instructions (content wrapped, tool allow-list fixed per conversation, no tool can change permissions or settings); the privileged answering model never sees raw document text, only validated rows and bounded chunks; outputs are rendered as sanitised Markdown (LLM05); an injection test suite (instructions hidden in memo fields, in PDF metadata, in white text) runs in CI.
+
+**Evaluation harness (promptfoo or Inspect AI, MIT [S34, S35]).** (a) *Golden Q&A*: ≥200 questions over a synthetic multi-currency ledger with known answers (balances, TWRR, drawdown, FX-converted spending, tax estimates). (b) *Numeric fidelity*: fabricated-number rate (must be 0), exact-match rate on golden numerics (target ≥ 95%), unit/currency correctness. (c) *Refusal tests*: forecasting requests ("what will USD/NGN be in June?"), advice framing ("should I buy X?"), questions outside stored data — expected: refusal or ranges with assumptions. (d) *Injection suite* as above. (e) *Regression*: run on every prompt, tool-schema or model change; prompt and model IDs are versioned and logged with every answer. FinanceBench-style external benchmarks [S68] are used to compare models, not to certify the product.
+
+**Model choice and cost (list prices F15, verified).** Default interactive model `claude-sonnet-5-5`; escalate to `claude-opus-5-5` for multi-step research synthesis (adaptive thinking always on; set `effort` explicitly); `claude-haiku-5-5` via the Batch API for bulk extraction/classification proposals. `claude-fable-5-1` is **not** recommended: 5× the price of Opus 5.5 and it requires 30-day data retention with no ZDR [S55, S51]. Illustrative monthly cost for 300 questions × ~20k input / 2k output tokens: Sonnet 5.5 ≈ $18 (≈ $10 with 70% cache hits); Opus 5.5 ≈ $36 (≈ $20 cached); Haiku 5.5 ≈ $0.90; Fable 5.1 ≈ $90. Statement extraction with Haiku 5.5 in batch ≈ $0.003 per 20-page statement (computed in §4.12). Use `inference_geo`/data-residency options and a ZDR-eligible organisation when the privacy team requires it; keep personal data out of JSON schemas [S55].
+
+**Local-model option (privacy).** Ollama or llama.cpp (both MIT) serving Qwen3 (Apache-2.0) or gpt-oss (Apache-2.0) with grammar-constrained JSON for the *quarantined extraction* role, where data never leaves the machine [S57–S62]. Trade-offs: unmeasured accuracy on bank statements (must be evaluated with the same harness), hardware cost, weaker tool-use reliability, and no vendor constrained-decoding guarantee beyond GBNF grammars. Llama 4 and Gemma are usable but under non-OSI terms (attribution, MAU thresholds, prohibited-use policies) — record the terms in the licence register if adopted.
+
+**Logging and human review.** Every conversation stores the full trace (prompts, tool calls and results, model/prompt versions, token usage, gate verdicts) in `ai.trace`, encrypted at rest; a review queue surfaces gate failures, refusals and low-confidence answers; reviewer labels feed the eval set. Traces are retained per the retention schedule (§4.7) and are excluded from any vendor training by default [S55].
+
+```mermaid
+sequenceDiagram
+  participant U as User (UI)
+  participant C as Controller (Python)
+  participant M as Claude (tool-use, strict schemas)
+  participant T as Deterministic tools (modules 1–10)
+  participant G as Numeric-fidelity gate
+  U->>C: "How much did I spend in AED last quarter, in NGN terms?"
+  C->>M: system prompt + tools + question
+  M-->>C: tool_use ledger.query(period, currency=AED)
+  C->>T: execute (read-only)
+  T-->>C: Figure{value, as_of, provenance_id}
+  C->>M: tool_result
+  M-->>C: tool_use calc.derive(convert AED→NGN using fx.rate(as_of))
+  C->>T: execute
+  T-->>C: Figure + conversion path
+  C->>M: tool_result
+  M-->>C: structured answer {answer_markdown, figures[], assumptions[]}
+  C->>G: validate numbers against trace
+  G-->>C: pass | violations
+  C-->>U: answer with provenance drawer (or redaction + review ticket)
+```
+
+### 4.7 Security and privacy architecture
+
+**Threat model (STRIDE [S86]).** Assets: statements and extracted rows (highly sensitive personal financial data, account identifiers), ledger, AI traces, credentials, API keys, backups.
+
+| STRIDE category | Single-user self-hosted (now) | Future multi-tenant SaaS | Primary controls |
+|---|---|---|---|
+| Spoofing | Stolen session on a shared device; phishing of a password | Credential stuffing; token theft; OIDC misconfiguration | Passkeys (WebAuthn) as primary factor; AAL2 phishing-resistant option per NIST 800-63B-4 [S89]; short-lived sessions; no SMS OTP |
+| Tampering | Edited ledger rows; altered statement before upload; malicious PDF | Cross-tenant writes; supply-chain compromise | Append-only postings with reversal lineage; document hash at upload; hash-chained audit log; row-level security by tenant; signed images, SBOM |
+| Repudiation | "I never approved that categorisation" | Disputes over advice shown | Audit events for every write and every AI answer with trace id |
+| Information disclosure | Laptop theft; backup leak; LLM vendor exposure; logs with PII | Tenant isolation failure; insider access; vector-store leakage (LLM08) | Volume encryption + field-level envelope encryption for documents/PII; age-encrypted backups; data minimisation to the model; PII-scrubbed logs; per-tenant keys |
+| Denial of service | Runaway parsing job; lost keys | Abuse of AI endpoints (LLM10) | Job quotas/timeouts; key escrow procedure; rate limits and per-tenant budgets |
+| Elevation of privilege | Container escape; AI tool misuse to write data | Admin takeover; prompt injection reaching write tools | Non-root containers, read-only FS; AI tools read-only with human-confirmed writes; least-privilege DB roles; separate admin plane |
+
+**Authentication.** Single user: passkeys via `py_webauthn` (BSD-3) with printed recovery codes; optionally Authelia (Apache-2.0) in front of the app for a second gate. Multi-tenant: an OIDC provider (Keycloak, Apache-2.0) with passkeys, MFA policy and session management; never roll our own password store. Passwords, if ever used, follow 800-63B-4 (≥15 characters, blocklist, no composition rules, no periodic rotation) [S89].
+
+**Encryption and key management.** In transit: TLS 1.3 via a reverse proxy with automatic certificates; internal Compose network isolated. At rest: encrypted volumes for PostgreSQL; **envelope encryption** for statements, raw payloads and sensitive fields: per-document data keys (AES-256-GCM via `cryptography`), wrapped by a key-encryption key held outside the database — an age identity (BSD-3) on the founder's machine today, a KMS/OpenBao (MPL-2.0) later [S91, S93]. Key ids live in `security.key_metadata`; rotation re-wraps data keys without re-encrypting documents. Account numbers are stored masked (last four) plus an HMAC for matching. Crypto-shredding (deleting a data key) implements erasure.
+
+**Secrets handling (contrast with the repository).** No secret ever reaches the browser or localStorage (F25). Provider API keys live in the server's environment, supplied from SOPS+age-encrypted files (MPL-2.0/BSD-3) or Docker secrets; the UI stores only a session. Keys are scoped (read-only data keys), rotated on a schedule, and never logged.
+
+**Least privilege.** One PostgreSQL role per module with grants only on its schema; a separate read-only `analytics` role; the AI tool executor uses the read-only role; migrations run under a dedicated role; containers run as non-root with read-only root filesystems and dropped capabilities.
+
+**Audit logging.** `security.audit_event{ts, principal, action, object, before_hash, after_hash, prev_event_hash}` — append-only, hash-chained, verified nightly; AI traces reference audit ids. Logs are structured (structlog) and PII-scrubbed; exported to OpenTelemetry only in the hosted tier.
+
+**Backup and recovery.** Nightly `pg_dump` plus continuous WAL archiving; backups encrypted with age to an off-device location (second disk and a cloud bucket in a jurisdiction approved by Doc 6); object store synced the same way; quarterly restore drills with a documented recovery time objective (target < 4 hours) and recovery point objective (< 24 hours); key-escrow procedure for the age identity (sealed paper copy).
+
+**Data minimisation and retention.** Store only fields needed for the ledger and validation; discard raw OCR text after validation unless flagged; retention schedule: documents 7 years (typical tax-record horizon — Doc 6 to set per jurisdiction), AI traces 12 months, logs 90 days; export in open formats (CSV, Beancount text) to avoid lock-in.
+
+**Privacy by design mapping (coordinate with Doc 6).** Lawful basis and roles: for personal use the founder is both controller and data subject; third-party data in statements (counterparties) must still be minimised. For the SaaS stage: NDPA — registration tiers by data-subject counts, DPO, 72-hour breach notification, transfer safeguards for US-hosted model inference (F22); UAE PDPL — DPO where profiling of sensitive data at scale, "immediate" breach reporting to the Data Office, awaited Executive Regulations (F23); banking-data rules of CBN/CBUAE may apply independently of the privacy statutes. Engineering commitments: data inventory per module, DPIA template for the AI module, consent and purpose records, subject-access export endpoint, erasure via crypto-shredding, and a vendor register (Anthropic data-processing terms, ZDR status).
+
+**Dependency and supply-chain hygiene.** Lockfiles (`uv.lock`/`poetry.lock`, `package-lock.json`) committed; Dependabot/Renovate; `pip-audit`/`npm audit` and Trivy image scans in CI; SBOM (CycloneDX) per release; pinned base images by digest; no install scripts fetched over the network at build time; licence scanning (e.g. `pip-licenses`) against an allow-list (MIT, BSD, Apache-2.0, MPL-2.0 for tooling, PostgreSQL) with AGPL/GPL/BUSL/TSL flagged for review.
+
+**Security review before personal deployment must cover:** threat model sign-off; authentication flow test (passkey registration, loss and recovery); encryption verification (keys not in DB, backups unreadable without identity); secrets scan of the repository history; dependency and image scan clean; AI tool allow-list and gate tests passing; injection suite passing; audit-chain verification; restore drill completed; network exposure review (no public ports except the proxy; firewall; no dev proxies like the repository's Vite config in production); logging contains no PII; documented incident runbook.
+
+### 4.8 Stack decisions as ADRs
+
+| ADR | Decision | Alternatives considered | Consequences |
+|---|---|---|---|
+| **ADR-1** Modular monolith | One Python service + worker + Postgres; module boundaries enforced by import rules and schemas | Microservices (rejected: operational premium, unstable boundaries [S87]); serverless (cold starts, state); plugin desktop app (kept as a local-first variant, see §7) | Simple ops for one user; later extraction of modules (AI, ingestion) possible along schema lines |
+| **ADR-2** Python 3.12+ backend (FastAPI 0.16x, SQLAlchemy 2.1, Alembic 1.20, Pydantic 2.14) | Methodology libraries are Python (F9); numpy/scipy now require ≥3.12 [S34] | TypeScript-only (NestJS, as Ghostfolio): one language, but re-implementing skfolio/arch/Docling-class functionality; Rust/Tauri (Wealthfolio): strong local-first, small hiring pool | Two languages; mitigated by an OpenAPI-generated client and contract tests |
+| **ADR-3** PostgreSQL 16+ as system of record, NUMERIC money, append-only postings, bitemporal columns, provenance FK on every figure | SQLite+SQLCipher (good for pure desktop; weaker concurrency, no RLS for SaaS); TimescaleDB (unnecessary at personal scale; TSL blocks "as a service" use [S40]); MongoDB (no) | Portable to managed Postgres later; analytical scans offloaded to Parquet/DuckDB (MIT) snapshots when needed |
+| **ADR-4** Background jobs with Procrastinate (Postgres-backed, MIT) + APScheduler for cron | Celery/Redis (extra service); Temporal (powerful, heavy); Prefect (orchestration-grade, heavy) | No Redis in the personal deployment; migrate to Celery/Temporal if multi-tenant throughput demands |
+| **ADR-5** React 19 + TypeScript + Vite frontend; lightweight-charts for price series (attribution notice required [S39]); ECharts or Recharts for analytics; TanStack Table; decimal strings rendered with `Intl.NumberFormat`/dinero.js | Angular (Ghostfolio); Svelte (Fava, Paisa) | Reuse of the repository's Tailwind theme and layout; **no financial arithmetic in the browser** |
+| **ADR-6** Docker Compose for personal deployment: `api`, `worker`, `postgres`, `proxy` (TLS), optional `ollama`; backups via sidecar | Bare-metal install; Kubernetes (premature) | One-command deployment on the founder's machine or a VPS he controls; same images reused for a hosted tier |
+| **ADR-7** Claude API via tool use + strict schemas + structured outputs; Sonnet 5.5 default, Opus 5.5 escalation, Haiku 5.5 batch; local Apache-2.0 models for quarantined extraction | Groq-hosted Llama (repository): prompt stuffing, no tool discipline; OpenAI/Gemini (not evaluated here); local-only (quality unmeasured) | Vendor dependency bounded by a provider adapter and the eval harness; privacy posture documented (F16) |
+| **ADR-8** Document ingestion: deterministic parsers first (pdfplumber, Camelot), Docling for layout/OCR, LLM extraction only as a quarantined proposer validated by reconciliation; PyMuPDF excluded unless commercially licensed | Commercial parsing APIs (data leaves device; cost); OCR-only pipelines | Permissive licences throughout; every extracted row traceable to page/bbox |
+| **ADR-9** Validation-first promotion of data (Pydantic schemas, pandera dataframe checks; Great Expectations later if needed) | Trust-then-correct | Exceptions queue is a first-class UI surface, not an afterthought |

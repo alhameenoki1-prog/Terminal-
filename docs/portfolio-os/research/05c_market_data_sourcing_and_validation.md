@@ -313,3 +313,227 @@ Show the gap. A missing price is rendered as "no data (source X unavailable sinc
 5. Temperature 0 for figure-bearing answers; the answer stores the set of figure IDs it used (audit log).
 6. Regression suite of adversarial prompts ("what is the CBN rate", "estimate the price") must produce zero unreferenced numbers.
 This design responds directly to the prototype's `ChatPanel.buildContext()` pattern and to F24.
+
+### 4.4 Worked examples (synthetic numbers)
+
+**Example A — bonus issue on a synthetic NGX stock "SYNTH PLC".** Raw closes: 29 Oct NGN 100.00; 30 Oct NGN 100.00 (ex-date of a 1-for-4 bonus); shares 1,000 m → 1,250 m per issuer notice (N5, PDF ref `doclib/synth-bonus-2026.pdf`). Expected ex-date price 100 × 4/5 = NGN 80.00; observed raw close NGN 80.50. Adjustment factor 0.8 applied to all pre-ex closes (adjusted 29 Oct = 80.00); adjusted ex-date return = 80.50/80.00 − 1 = +0.6% (passes the 99th-percentile test). Unadjusted series would show −19.5% — the "false crash" the prior tracker would have displayed. Trailing EPS: net income NGN 12,500 m (NGN'000 statement, `scale = 3`, converted at ingest) ÷ weighted shares; vendor EPS of NGN 12.50 (pre-bonus) vs recomputed NGN 10.00 → 25% variance → `disputed`, filing-derived value shown with note "vendor EPS not bonus-adjusted".
+
+**Example B — FX provenance and reconciliation, real observations of 2026-11-02.** CBN NFEM (as relayed by an aggregator) 1,346.26; Frankfurter v2 1,345.01; difference 0.09% < 0.5% → USD/NGN `official_nfem` figure `auto_validated`, confidence B (primary page values did not render; upgrade to A once the CBN Excel export is attached). Parallel 1,382/1,388 stored as `parallel_indicative`, confidence D, never used for valuation or tax; the UI shows "Official (CBN NFEM) 1,346.26 · parallel indicative mid 1,385 (+2.9%)". USD/AED 3.6725 = peg → fresh.
+
+**Example C — the policy-rate record.** `CBN:MPR = 23.00%`, `as_of 2026-09-22`, source press pending communiqué, `expiry_at` provisional (next MPC date unknown — open item), refresh job weekly. Had this rule existed, the prototype's 27.50% would have shown "expired since 2026-04-01" rather than a confident number.
+
+### 4.5 Failure analysis of the prior "stale figures" problem
+
+Reconstructed from repository patterns (prior tracker code is unavailable; the NEXUS repo shares the author and era, so these are plausible causes, E5 unless noted).
+
+| # | Root cause | Evidence in repo [S93] | Effect on users | Control |
+|---|---|---|---|---|
+| R1 | Hardcoded world-facts | `cbRate: 27.50`, `nextMeeting: '2026-03-25'`, static central-bank table "accurate as of March 2026" | Rates 450 bp wrong eight months later (E2, F11) | §4.3.6 no silent constants; expiry; refresh jobs |
+| R2 | Unofficial/undocumented endpoints | Yahoo v7/v8, Stooq CSV, CBOE CDN, rss2json, Binance via Vite proxy | Silent breakage, ToS exposure (F19) | Source registry with licence records; only licensed/official sources feed the store |
+| R3 | Failure swallowed as empty or cached | `catch { return [] }`; cached closes returned on error without age | Last good value looks current | `fetch_failed` state; retrieval timestamps; age badges; cache never "truth" |
+| R4 | No as-of or source on values | `Ticker` type has price, change, volume only | User cannot tell 2 minutes from 2 months | Provenance schema mandatory (§4.3.1) |
+| R5 | Unit/semantic mislabel | `CPIAUCSL` "US CPI YoY %", `GDP` "growth %" | Index level 3xx displayed as 3xx% | Unit/scale fields; series metadata registry; golden tests |
+| R6 | Placeholder substitution across markets | Nigeria `yahooBond: '^TNX'` (US 10-year) | Wrong country's yield shown as Nigeria's | Entity master by MIC/ISIN; no cross-market placeholders |
+| R7 | Unsourced composite scores | `instabilityScore: 72` and breakdown | Pseudo-precision | Derived figures require method and inputs |
+| R8 | LLM restating injected numbers | `buildContext()` + "Cite specific levels and spreads" | Fabricated or stale figures in prose (F24) | §4.3.12 |
+| R9 | Secrets in browser storage | Zustand `persist` of API keys | Key leakage; vendor account suspension | Server-side secrets (Security team) |
+| R10 | No tests, no CI, client-only | Repo has no tests | Regressions undetected | Golden dataset CI; DQ dashboard; server-side store with audit log |
+| R11 | Vendor symbol drift | `.LG`, `^NGSEINDX`, `NGN=X` with no alias map | Quietly missing instruments | Versioned symbol maps; schema-drift alarms |
+
+### 4.6 Recommended data stack and estimated costs
+
+Costs use only prices seen (§4.1) and the 2026-11-02 illustrative FX; VAT and withholding excluded; annual fees divided by 12.
+
+**Personal MVP (founder only, personal/internal use).**
+
+| Layer | Choice | Monthly cost (as seen) | Legal caveat |
+|---|---|---|---|
+| NGX prices & history (system of record) | NGX API: EOD prices + Interday (10-yr OHLCV) | NGN 425,000 p.a. ≈ USD 316 p.a. ≈ **USD 26/mo** (local pricing); international pricing USD 2,000 p.a. ≈ USD 167/mo | Natural-person eligibility and local/international status to be confirmed with NGX; non-display processing may attract the ND fee — ask in writing |
+| NGX dividends & CA (optional in month 1) | NGX dividends (specific securities) NGN 250,000 p.a.; News & CA NGN 650,000 p.a. | ≈ USD 15 + 40/mo | Same |
+| NGX secondary (cross-check only) | CSCS daily list (free) + Mansa Free (100 req/day) or Kobo Personal (NGN 0) | USD 0 | Unlicensed provenance; display nothing sourced solely from them |
+| Filings | NGX doclib PDFs; SEC EDGAR | USD 0 | SEC: ≤10 req/s, declared User-Agent |
+| UAE | ADX MCP Starter (free) or AED 9.99–49.99/mo (≈ USD 2.7–13.6); DFM: 15-min delayed display only until a licensed route is found | USD 0–14 | ADX licence text unread; DFM API unresolved |
+| US prices | Tiingo Starter (free) or Power USD 30; EODHD Historian USD 19.99 as global secondary | USD 0–50 | "personal use only" clauses |
+| FX | CBN NFEM Excel export (free), Frankfurter v2 (free), parallel aggregator (informational) | USD 0 | Provider-endpoint terms |
+| Macro & rates | FRED (key, attribution), NBS, CBN, Treasury, World Bank, IMF | USD 0 | FRED notice; World Bank non-commercial general terms |
+| **Total** | | **≈ USD 26–150 per month** depending on NGX pricing basis and optional feeds | |
+
+**Commercial product (Nigerian retail/diaspora, display of NGX data to users).** Minimum NGX licences from the 2026 schedule: Website/Mobile Delayed Display NGN 250,000 p.a. (USD 2,500) or End-of-Day Display NGN 120,000 p.a. (USD 1,000), plus a distribution licence for the feed actually received (Delayed Data License NGN 2,000,000 p.a.; EOD NGN 1,500,000 p.a.), plus end-user fees where real-time is shown (Level 1 USD 10/user/month local), plus API bandwidth bands NGN 200,000–800,000 p.a.; non-display modelling licence NGN 1,250,000 p.a. if analytics are computed on delayed data [S3]. FMDQ: NAFEM EOD distribution NGN 3,359,375 p.a.; Daily Quotations List redistribution per framework [S21]. UAE and US: vendor commercial plans (prices not public for EODHD B2B; Twelve Data Pro USD 229/mo personal-equivalent; Massive business pricing n.p.). Indicative floor **≈ NGN 5–8 million p.a. (USD 3,700–6,000) before UAE/US commercial data and before legal review**; the real number depends on which NGX products are displayed versus processed. (E5 — assembled from published schedules; NGX quotes are bespoke.)
+
+## 5. Alternatives considered and rejected
+
+| Alternative | Why rejected |
+|---|---|
+| Scrape NGX, DFM or Investing.com pages | Explicitly prohibited by NGX Policy §8.2.7 and Investing.com terms; fragile; no provenance [S5, S50] |
+| Rely solely on free third-party NGX APIs (EODHD, Mansa, Kobo) | Not on NGX's authorised vendor list; EODHD discloses non-exchange sourcing; redistribution rights unclear; acceptable only as secondary [S12, S40, S46] |
+| Keep Yahoo Finance unofficial endpoints | ToS forbids automated collection and commercial reuse; endpoints change without notice [S80, S81] |
+| Bloomberg/LSEG terminal | Cost ceiling (aggregator estimates USD 22k–32k/user/yr, unverified); terminal licences do not permit feeding a product [S52] |
+| LLM with web search to "look up" figures | No provenance, no licence, demonstrated error rates [S101] |
+| Build a full corporate-actions database from vendor feeds without issuer documents | Cannot be validated; kept as candidate layer only |
+| Interpolate or carry forward silently to keep charts continuous | Reproduces the original failure; permitted only as labelled derived figures |
+| Single-source ingestion for critical fields | Cannot detect vendor error; two-source rule retained for the §4.3.3 fields |
+
+## 6. Cross-department dependencies
+
+**We need:** Legal & Compliance — review NGX EUA, Policy and API order form for a natural person; confirm local vs international fee status; review ADX MCP and vendor terms; advise on redistribution before any commercial display. Platform & Security — server-side store, secrets management, CI for golden tests, audit log retention. Investment Research — the authoritative field list, fiscal-year handling, which fundamentals are conclusion-driving. Portfolio & Quant — adjusted-series contract, FX conversion policy (official NFEM for valuation), benchmark constituents. Tax — the legally required FX rate and CPI vintage for Nigerian and UAE computations (unknown — founder and tax team to confirm). AI — adoption of the figure-token contract (§4.3.12). Product/UX — stale, disputed and gap states as first-class components.
+
+**Others need from us:** the provenance schema and status vocabulary (all teams); the source registry with licence scopes (Legal, AI); freshness SLOs (Product); the golden dataset (Engineering); the DQ dashboard (audit/founder).
+
+## 7. Risks, open uncertainties and disagreements
+
+1. **Engineer vs audit function (preserved).** Engineering position: start with free sources (CSCS, Mansa, Kobo, Tiingo, Frankfurter) and ship; licence later. Audit position: nothing enters the system of record without a licence record and two-source validation; free sources are cross-checks only. Proposed resolution: the MVP ingests free sources from day one *as secondaries* while the NGX API contract is pursued; no NGX figure is shown without a badge stating its source and licence status; the first validated conclusion waits for the NGX feed.
+2. **NGX eligibility and price basis** (F1, F3): unconfirmed whether NGX contracts with individuals and whether the founder is a "local" end user. Range of outcomes: NGN 425,000 to USD 5,500 per year.
+3. **UAE access**: adx.ae, CBUAE and FCSC were unreachable (403); ADX MCP terms unread; DFM developer portal missing. A UAE-resident purchase may be needed.
+4. **NBS methodology**: a reported January 2026 reference-period change is unverified; back-series revision confirmed only indirectly (F12).
+5. **NGX session hours disagree between sources** (P12); tick-size table, daily price limits and filing deadlines were not fetched — all must be sourced from NGX rules before coding.
+6. **Next CBN MPC date unknown**; expiry for the MPR record is provisional.
+7. **Academic references unverified** (OpenAlex quota exhausted); their role is supportive only.
+8. **Cost ceiling figures (Bloomberg/LSEG) are aggregator estimates**, not quotes.
+9. **Vendor renames and 301 redirects are frequent** (F25); every integration needs a drift alarm.
+10. **Search budget exhausted mid-task**; items marked "not reached" are gaps, not negatives.
+
+## 8. Recommendations, ranked
+
+| Rank | Recommendation | Class |
+|---|---|---|
+| 1 | Adopt the provenance schema, status machine and "no silent constants" rule before any ingestion code (§4.3.1, §4.3.6) | Personal-MVP must-have |
+| 2 | Request an NGX Market Data API quote (EOD + Interday; later dividends/CA) as a Non-Professional End User; Legal to review EUA/Policy; record outcome as a dated decision | Personal-MVP must-have |
+| 3 | Implement freshness SLOs with mandatory badges and the gap-not-interpolation rule in the UI (§4.3.2, §4.3.11) | Personal-MVP must-have |
+| 4 | Enforce figure-token AI output (§4.3.12); retire the prompt-injection pattern | Personal-MVP must-have |
+| 5 | Build the corporate-action engine with issuer-document gating and the golden dataset CI (§4.3.4, §4.3.7) | Personal-MVP must-have (NGX subset first) |
+| 6 | Two-source reconciliation for close, shares, EPS, dividends, official FX (§4.3.3) using CSCS/Mansa/Kobo as secondaries | Personal-MVP must-have |
+| 7 | Official FX policy: CBN NFEM for valuation, labelled; parallel indicative only; AED peg check | Personal-MVP must-have |
+| 8 | Evaluate ADX MCP Starter under its actual terms; defer DFM until a licensed machine-readable route exists | Later |
+| 9 | FMDQ end-user data subscription (bond/T-bill quotations) once fixed-income analytics are in scope | Later |
+| 10 | Commercial redistribution licences (NGX website/mobile display, distribution licence, FMDQ) | Later (gate on commercialisation decision) |
+| 11 | Bloomberg/LSEG terminal | Do-not-build (yet) |
+| 12 | Any scraping of exchange or publisher sites | Do-not-build |
+
+**Five-question test, top items.**
+*Rec 1–3 (provenance, licensed NGX feed, freshness badges).* Problem: the prior tracker displayed outdated figures without the user knowing (founder report; repo evidence F23). Who: the founder first; any Nigerian retail user later, because NGX data is thin and vendors are unlicensed. Evidence: exchange documents establish that licensed EOD data exists at modest cost (F1, E2); data-quality literature on vendor errors supports provenance and two-source controls (E3, unverified citations) and FinanceBench supports constraining model numbers (E2). Build/validate: schema plus golden-dataset CI plus measured freshness; validation is the dashboard's stale/disputed counts going to zero on the holdings set. Improvement metric: share of displayed figures with age ≤ SLO and validated status (target 100% of conclusion-driving figures); zero unreferenced numbers in AI output; zero undisclosed gaps.
+*Rec 4 (AI figure tokens).* Problem: fabricated/stale numbers in prose. Who: anyone reading AI explanations. Evidence: F24. Build/validate: output validator with adversarial prompt suite. Metric: blocked-answer rate falling over time while unreferenced-number rate stays at zero.
+*Rec 5 (corporate-action engine).* Problem: bonus issues create false crashes and wrong per-share metrics (P2–P3). Who: NGX investors. Evidence: no vendor documents NGX adjustment (F1–F7). Build/validate: factor tests against issuer notices. Metric: adjusted-return outliers on ex-dates explained 100%.
+
+## 9. Required validation before implementation
+
+1. Written confirmation from NGX on individual eligibility, fee basis (NGN vs USD), non-display treatment, rate limits and schema; a two-week technical trial measuring actual delay and completeness against CSCS.
+2. Legal sign-off on NGX EUA/Policy, ADX MCP terms, Tiingo/EODHD/Mansa/Kobo terms for personal use; a written decision on Yahoo (recommended: remove).
+3. Fetch and record NGX trading hours, tick sizes, daily limits and filing deadlines from NGX rulebooks; resolve P12.
+4. Obtain the CBN MPC calendar and the NBS CPI release calendar; confirm the NBS methodology question with the NBS release note.
+5. Reach CBUAE and FCSC (possibly from a UAE network) for the peg statement, EIBOR and CPI access terms.
+6. Build the golden dataset (≥ 20 securities) with the audit function; agree tolerances with Portfolio & Quant.
+7. Prototype the figure-token AI contract on synthetic data and run the adversarial suite.
+8. Verify the five academic references once the OpenAlex quota resets; downgrade or remove any that fail.
+
+## 10. Sources
+
+Access date 2026-11-02 unless stated; "reached" = page/file opened and read; "extracted" = PDF text extracted locally; "snippet" = search excerpt only; "not reached" = fetch failed.
+
+- [S1] NGX, "Market Data" — https://ngxgroup.com/exchange/data/ — reached.
+- [S2] NGX, "Data Pricing, Policies & Contracts" — https://ngxgroup.com/exchange/data/data-pricing-policies-contracts/ — reached.
+- [S3] NGX, Market Data Pricelist, Schedule 3 (PDF metadata: created 12 Aug 2026) — https://ngxgroup.com/ngx-download/market-data-pricelist-2/?wpdmdl=41216 — extracted.
+- [S4] The Nigerian Stock Exchange, Market Data Pricelist 2018, Schedule 4 — https://doclib.ngxgroup.com/market_data-site/market-data-services-site/Data%20Policies/NSE%20Market%20Data%20Pricelist%202018.pdf — extracted.
+- [S5] NGX, Market Data Policy Document v2.0, effective 22/07/2020 (© 2022) — https://ngxgroup.com/ngx-download/market-data-policy/?wpdmdl=27017 — extracted.
+- [S6] Nigerian Exchange Limited, Global Data Licence Agreement for End Users (© 2021) — https://ngxgroup.com/ngx-download/end-user-agreement/?wpdmdl=27014 — downloaded and extracted.
+- [S7] NGX, Historical Data Policy and Request Form — https://ngxgroup.com/ngx-download/historical-data-policy-and-request-form/?wpdmdl=27000 — not reached (redirect/HTML).
+- [S8] NGX, "Historical Data" — https://ngxgroup.com/exchange/data/historical-data/ — reached.
+- [S9] NGX, Market Data API portal, "Get started" (annual pricing) — https://marketdataapiv3.ngxgroup.com/portal/getstarted/index — reached.
+- [S10] NGX, Market Data API Documentation — https://marketdataapiv3.ngxgroup.com/portal/Home/Documentation — reached.
+- [S11] NGX, Equities Price List — https://ngxgroup.com/exchange/data/equities-price-list/ — reached.
+- [S12] NGX, Vendors List — https://ngxgroup.com/exchange/data/vendors-list/ — reached.
+- [S13] NGX, X-DataPortal — https://ngxgroup.com/exchange/data/x-dataportal/ — reached.
+- [S14] NGX, Delisted Companies — https://ngxgroup.com/exchange/data/delisted-companies/ — reached.
+- [S15] NGX, "FAQs on X-Issuer" (PDF) — https://doclib.ngxgroup.com/investors-site/becoming-an-investor/FAQs/FAQs%20ON%20X-ISSUER.pdf — snippet.
+- [S16] Nairametrics, "Nigerian Exchange says use of Issuers' Portal for all issuers now mandatory", 30 Jun 2022 — https://nairametrics.com/2022/06/30/nigerian-exchange-says-use-of-issuers-portal-for-all-issuers-now-mandatory/ — snippet.
+- [S17] CSCS Plc homepage — https://www.cscs.ng/ — reached.
+- [S18] CSCS, Daily Price — https://www.cscs.ng/market-information/daily-price/ — reached.
+- [S19] CSCS, API Services — https://www.cscs.ng/api-services/ — reached.
+- [S20] CSCS, Charges and Fees (effective 1 Jan 2026 and 1 Feb 2025) — https://www.cscs.ng/charges/ — reached.
+- [S21] FMDQ Exchange, Fees and Dues Framework 2023 (PDF created 25 Oct 2023) — https://fmdqgroup.com/exchange/wp-content/uploads/2023/10/FMDQ-Exchange-2023-Fees-and-Dues-Framework-.pdf — extracted.
+- [S22] FMDQ Exchange, NAFEM Spot Rates Methodology, Oct 2023 — https://fmdqgroup.com/exchange/wp-content/uploads/2023/10/FMDQ-Exchange-NAFEM-Spot-Rates-Methodology-October-2023.pdf — snippet.
+- [S23] FMDQ Exchange homepage (quotes dated 29–30 Oct 2026) — https://fmdqgroup.com/exchange/ — reached.
+- [S24] FMDQ, Benchmark Administration — https://fmdqgroup.com/exchange/market-data/benchmarks/ — reached.
+- [S25] FMDQ e-Markets portal — https://emarkets.fmdqgroup.com/market/ — reached.
+- [S26] FMDQ, Market Data — https://fmdqgroup.com/exchange/market-data/ — not reached (503).
+- [S27] CBN, Data & Statistics index — https://www.cbn.gov.ng/rates/ — reached.
+- [S28] CBN, Exchange Rates (NFEM) — https://www.cbn.gov.ng/rates/ExchRateByCurrency.html — reached (structure).
+- [S29] CBN, Money Market Indicators — https://www.cbn.gov.ng/rates/mnymktind.html — reached (structure).
+- [S30] CBN, Inflation — https://www.cbn.gov.ng/rates/inflrates.html — reached (structure).
+- [S31] CBN Statistics Database — https://statistics.cbn.gov.ng/shop — reached (homepage).
+- [S32] Nairametrics, "CBN resets MPR to 23%", 22 Sep 2026 — https://nairametrics.com/2026/09/22/cbn-resets-mpr-to-23/ — reached.
+- [S33] National Bureau of Statistics homepage — https://nigerianstat.gov.ng/ — reached.
+- [S34] Voice of Nigeria, "Nigeria's headline inflation drops to 14.63 per cent", 16 Oct 2026 — https://von.gov.ng/nigerias-headline-inflation-drops-to-14-63-per-cent/ — reached.
+- [S35] NBS Nigeria (X post), rebased CPI, base 2024, Jan 2025 = 24.48%, Feb 2025 — https://x.com/NBS_Nigeria/status/1891805402762752452 — snippet.
+- [S36] Tribune Online, analysis of CPI methodology (2026) — https://tribuneonlineng.com/?p=1294329 — not reached (403).
+- [S37] Debt Management Office, FGN Bonds — https://www.dmo.gov.ng/fgn-bonds — reached.
+- [S38] DMO, Bond Auction Results — https://www.dmo.gov.ng/fgn-bonds/auction — reached.
+- [S39] abokiforex.app, rates page, 2 Nov 2026 10:09 WAT — https://abokiforex.app/ — reached (unofficial).
+- [S40] EODHD, "XNSA Stock Market Exchange" — https://eodhd.com/exchange/XNSA — reached.
+- [S41] EODHD, Pricing — https://eodhd.com/pricing — reached.
+- [S42] Twelve Data, Nigerian Stock Exchange — https://twelvedata.com/exchanges/xnsa — not reached (404); snippet.
+- [S43] Twelve Data, Pricing — https://twelvedata.com/pricing — reached.
+- [S44] Mansa API, Docs — https://mansaapi.com/docs — reached.
+- [S45] Mansa API, Pricing — https://mansaapi.com/pricing — reached.
+- [S46] Kobo Terminal (formerly NGX Pulse), API — https://koboterminal.com/api (301 from https://ngxpulse.ng/api) — reached.
+- [S47] afx.kwayisi.org/ngx — not reached (503).
+- [S48] African Markets, NGSE — https://www.african-markets.com/en/stock-markets/ngse — not reached (401).
+- [S49] Stears — https://www.stears.co/ — reached.
+- [S50] Investing.com, Terms and Conditions — https://www.investing.com/about-us/terms-and-conditions — reached (footer disclaimer).
+- [S51] TradingView, Data coverage — https://www.tradingview.com/data-coverage/ — reached.
+- [S52] CostBench, Bloomberg Terminal pricing pages (aggregator) — https://costbench.com/software/financial-data-terminals/bloomberg-terminal/ — snippet; unverified.
+- [S53] ICE, Exchange and Market Data Access Fees 2026 (NGX = ICE NGX natural gas) — https://www.ice.com/publicdocs/data/Market_Data_Subscriber_Fees.pdf — snippet.
+- [S54] DFM, Market Data Providers — https://www.dfm.ae/the-exchange/market-information/marketdata-providers — reached (list not rendered).
+- [S55] DFM MarketWatch ticker — https://marketwatch.dfm.ae/ext/ticker/en — reached.
+- [S56] DFM, Disclosures — https://www.dfm.ae/the-exchange/news-disclosures/disclosures — reached (entries not rendered).
+- [S57] DFM API docs — https://api.dfm.ae/docs/ — not reached ("Filenotfound").
+- [S58] LSEG, Dubai Financial Market data page — https://www.lseg.com/en/data-analytics/financial-data/pricing-and-market-data/equities-market-data/dubai-financial-market — snippet.
+- [S59] ADX, MCP Features — https://www.adx.ae/market-data-services/model-context-protocol/adx-mcp-features — not reached (403); snippet.
+- [S60] ADX, Directory of Vendors — https://www.adx.ae/members-and-participants/vendors/directory-of-vendors — not reached (403); snippet.
+- [S61] The Arabian Post, "ADX opens live market data to conversational AI", 14 Aug 2026 — https://thearabianpost.com/adx-opens-live-market-data-to-conversational-ai/ — reached.
+- [S62] ICE, catalog: Abu Dhabi Securities Exchange — https://developer.ice.com/fixed-income-data-services/catalog/abu-dhabi-securities-exchange-adx — reached.
+- [S63] UAE Capital Market Authority (formerly SCA) — https://www.uaecma.gov.ae/en/home.aspx (301 from sca.gov.ae) — reached.
+- [S64] Central Bank of the UAE, Statistics / Forex & EIBOR / homepage — https://www.centralbank.ae/en/research-and-statistics/statistics/ — not reached (403).
+- [S65] UAE FCSC, Statistics — https://fcsc.gov.ae/en-us/Pages/Statistics/Statistics.aspx — not reached (403).
+- [S66] Bayanat.ae open data portal — https://bayanat.ae/ — reached.
+- [S67] US SEC, "EDGAR Application Programming Interfaces" — https://www.sec.gov/search-filings/edgar-application-programming-interfaces — reached.
+- [S68] US SEC, Webmaster FAQ (10 requests/second; declared User-Agent) — https://www.sec.gov/about/webmaster-frequently-asked-questions — reached.
+- [S69] US SEC, Privacy and Security Policy — https://www.sec.gov/about/privacy-information — reached.
+- [S70] Federal Reserve Bank of St. Louis, FRED API Terms of Use — https://fred.stlouisfed.org/docs/api/terms_of_use.html — reached.
+- [S71] FRED API documentation — https://fred.stlouisfed.org/docs/api/fred/ — reached.
+- [S72] ALFRED — https://alfred.stlouisfed.org/ — reached.
+- [S73] US Treasury, Daily Treasury Par Yield Curve Rates 2026 — https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve&field_tdr_date_value=2026 — reached.
+- [S74] US Treasury Fiscal Data, API documentation — https://fiscaldata.treasury.gov/api-documentation/ — reached.
+- [S75] Massive (formerly Polygon.io), Pricing — https://massive.com/pricing (301 from polygon.io/pricing) — reached.
+- [S76] Alpha Vantage, Premium — https://www.alphavantage.co/premium/ — reached.
+- [S77] Financial Modeling Prep, pricing — https://site.financialmodelingprep.com/pricing-plans — not reached (403).
+- [S78] Tiingo, Pricing — https://www.tiingo.com/about/pricing — reached.
+- [S79] Nasdaq Data Link — https://data.nasdaq.com/ — not reached (empty/404).
+- [S80] Yahoo, Terms of Service (versions dated 15 May 2025 and 2 Jan 2026) — https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html — reached.
+- [S81] Yahoo Developer Network, API Terms of Use (REV 3-2022) — https://legal.yahoo.com/us/en/yahoo/terms/product-atos/apiforydn/index.html — reached.
+- [S82] Frankfurter v2 — https://frankfurter.dev/ , https://frankfurter.dev/currencies/ , https://api.frankfurter.dev/v2/rate/usd/ngn , https://api.frankfurter.dev/v2/rate/usd/aed — reached and probed 2026-11-02.
+- [S83] European Central Bank, Euro foreign exchange reference rates — https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html — reached.
+- [S84] exchangerate.host, Pricing — https://exchangerate.host/pricing — reached.
+- [S85] Open Exchange Rates, Sign up/pricing and currencies.json — https://openexchangerates.org/signup , https://openexchangerates.org/api/currencies.json — reached.
+- [S86] World Bank, "About the Indicators API Documentation" — https://datahelpdesk.worldbank.org/knowledgebase/articles/889392-about-the-indicators-api-documentation — reached.
+- [S87] World Bank, Terms of Use (general; dataset terms referenced) — https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets — reached.
+- [S88] IMF, "IMF API" resource page — https://data.imf.org/en/Resource-Pages/IMF-API — reached.
+- [S89] Financial Datasets, MCP Server docs — https://docs.financialdatasets.ai/mcp-server — reached.
+- [S90] Financial Datasets homepage — https://www.financialdatasets.ai/ — reached.
+- [S91] Distilla — https://distilla.ai/ — reached.
+- [S92] Claude Connectors Directory — https://claude.com/connectors — reached (dynamic page).
+- [S93] Repository `alhameenoki1-prog/Terminal-`: `src/data/countryProfiles.ts`, `src/services/{yahooService,yahooHistService,fredService,internationalYieldsService,chatService,ratesData}.ts`, `src/components/ChatPanel.tsx`, `vite.config.ts` — read 2026-11-02.
+- [S94] GitHub, we-promise/sure PR #3629 "add Mansa API provider for NGX" — https://github.com/we-promise/sure/pull/3629 — snippet (third-party).
+- [S95] Databento, "Understanding exchange license fees" — https://databento.com/blog/understanding-exchange-fees — snippet.
+- [S96] EMTA, NAFEX methodology (PDF) — https://www.emta.org/media/21ehrqek/796e70b5-690b-4923-819c-0be10d8725ac.pdf — snippet.
+- [S97] Proshare, Daily Rates Download — https://proshare.co/exchangerates/DailyRatesDownload — snippet (unverified value).
+- [S98] The Guardian Nigeria, "Rebased CPI: New era for Nigeria's inflation tracking" — https://guardian.ng/business-services/rebased-cpi-new-era-for-nigerias-inflation-tracking/ — snippet.
+- [S99] Africa Check, "Factsheet: Nigeria rebases its economy again" — https://africacheck.org/fact-checks/factsheets/factsheet-nigeria-rebases-its-economy-again-heres-what-sets-it-apart — snippet.
+- [S100] Leadership, "CSCS deepens market efficiency with new investor-centric services" — https://leadership.ng/cscs-deepens-market-efficiency-with-new-investor-centric-services/ — snippet.
+- [S101] Islam, P., Kannappan, A., Kiela, D., Qian, R., Scherrer, N., Vidgen, B., "FinanceBench: A New Benchmark for Financial Question Answering", arXiv:2311.11944, 20 Nov 2023 — https://arxiv.org/abs/2311.11944 — **[verified]** via arXiv API and abstract page (checked 2026-11-04).
+- [S102] Ince, O. S., Porter, R. B., "Individual equity return data from Thomson Datastream: Handle with care!", Journal of Financial Research, 2006 — **[unverified]** (OpenAlex quota exhausted 2026-11-02).
+- [S103] Lesmond, D. A., Ogden, J. P., Trzcinka, C. A., "A New Estimate of Transaction Costs", Review of Financial Studies, 1999 — **[unverified]**.
+- [S104] Scholes, M., Williams, J., "Estimating betas from nonsynchronous data", Journal of Financial Economics, 1977 — **[unverified]**.
+- [S105] Dimson, E., "Risk measurement when shares are subject to infrequent trading", Journal of Financial Economics, 1979 — **[unverified]**.
+- [S106] Ljungqvist, A., Malloy, C., Marston, F., "Rewriting History", Journal of Finance, 2009 — **[unverified]**.
+
+*Simulated specialists are not licensed professionals: licensing conclusions above require review by a lawyer admitted in Nigeria and the UAE before any contract is signed or any data is displayed to third parties.*
