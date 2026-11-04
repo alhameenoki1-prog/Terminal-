@@ -2,95 +2,116 @@ Review of: Document 8 — User Experience and Product Design Blueprint (v0.1, fi
 
 ## 1. Verdict and the three most important problems
 
-The core commitments are sound and well sourced: evidence strip, Working panel, two disclosure levels, frequency-framed uncertainty, no labels and no gamification. The academic citations I sampled are real and match their metadata. The problem is that Doc 8 was written, and then revised on 2026-11-04, without being reconciled with Docs 3, 4, 5c, 6 and 7, which now exist. Several of its specifications contradict them directly. The three most important problems:
+The core commitments are sound and well cited: evidence strip, Working panel, two disclosure levels, counted futures, no labels or gamification. The academic references I sampled are real. But Doc 8 was revised on 2026-11-04 without being reconciled with Docs 3, 4, 5c, 6 and 7, and several specifications contradict them.
 
-1. **The insight card and self-experiment break Doc 3's claims ladder.** The card puts an un-intervalled "38 % in 4 days" at L1 even though it lists alternative explanations it "cannot rule out". It uses trait language. It offers a two-month before/after intervention, where Doc 3 requires L2 eligibility and an ABAB design over at least 12 cycles. It also lets the model "paraphrase", where Doc 3 and Doc 5c require templates and figure tokens (§4.1, §4.5.6, Journey 4).
-2. **The multi-currency and data-state vocabulary does not match Docs 4 and 5c.** The FX decomposition method differs from Doc 4 and IAS 21. The Overview shows an FX effect with the wrong sign. Doc 8 uses one base currency where Doc 4 asks for two views. It defines three confidence bands where Doc 4 has four. Its five validation states do not match Doc 5c's state machine. Disputed figures enter valuations, which Doc 5c forbids. Conflict and Ageing share one colour.
-3. **The no-questionnaire promise has no real fallback, and it conflicts with Doc 6.** The success metric is "proposals accepted", which rewards automation bias rather than measuring precision. Doc 6 needs a yearly attested residency questionnaire, and its triggers (FX conversions are chargeable assets) fire almost at once. That makes "ask just in time, never in a wizard" unworkable for tax.
+1. **The insight card breaks Doc 3's claims ladder.** It shows an un-intervalled statistic, untested alternative explanations and trait language, and offers a two-month before/after self-experiment. The model is also allowed to "paraphrase" numbers (B1).
+2. **Multi-currency and data-state rules diverge from Docs 4 and 5c.** The FX method differs, the Overview FX effect has the wrong sign, confidence bands and validation states differ, and disputed figures feed valuations (B2, B3).
+3. **The "no questionnaire" promise has no real fallback.** Success is measured by proposals accepted (which rewards over-trust), and the question design conflicts with Doc 6's yearly attested residency questionnaire (M1, M2).
 
 ## 2. Findings, severity-ranked
 
 ### Blocking
 
-**B1 — Insight card contradicts the Doc 3 claims ladder (§4.5.6, Journey 4, §4.2.4, §4.1 Component B).**
-*Claim:* the card "38 % of discretionary spending happens in the 4 days after salary" is shown at evidence level ■■□ "Pattern (statistically measurable)", with "Other explanations we cannot rule out", a "not yet a stable trait" caption, and an optional two-month standing-transfer test compared before and after.
-*Why it is wrong:* Doc 3 §4.1 defines L1 as a statistic *with* an interval and a false-alarm rate that "passes pre-specified alternative-explanation checks". Doc 3's construct catalogue (§4.2, row 1) specifies days 0–6, a ratio with a bootstrap confidence interval, a circular-shift test, and the alternative explanations *tested and reported*, not merely listed. Doc 8's card has no interval and no number of cycles held. It also has no baseline: under a uniform distribution, 4 of about 30 days would already take about 13 %. Its alternatives are left untested, which is the very condition that disqualifies a result from L1. "Trait" is forbidden vocabulary at L2 in Doc 3. Doc 3 §4.6 makes interventions eligible only at L2 with a pre-registered impact model, alternating by pay cycle over at least 12 cycles. Doc 3 §4.5 Step 8 shows that even 12 months gives power of about 0.41 for a 15 % effect. A two-month before/after comparison will mislead. Doc 8's three-level indicator (Observed / Pattern / Supported explanation) also leaves out L3 and L4. Separately, Component B ("the model may paraphrase") conflicts with Doc 3 cross-cutting rule 4 (templated L0–L3 sentences only) and with Doc 5c §4.3.12 (the renderer substitutes figure tokens; "the model's own digits are not rendered"). The §4.2.4 example answer is free prose with digits.
-*Fix:* adopt Doc 3's five rungs and its sentence templates verbatim. Show ratio, interval, cycles held and the uniform baseline on the card. Show the result of each alternative-explanation check. Offer a "test something" section only at L2, using the Doc 3 §4.6 protocol. Change Component B to "the model composes from templates and figure tokens; it never emits digits".
+**B1 — §4.5.6, Journey 4, §4.1 Component B, §4.2.4: the insight card violates the Doc 3 ladder.**
+*Claim:* the card "38 % of discretionary spending happens in the 4 days after salary" is shown at ■■□ "Pattern". It lists "other explanations we cannot rule out", says "not yet a stable trait", and offers a two-month standing-transfer test evaluated before/after.
+*Why wrong:* Doc 3 §4.1 defines L1 as a statistic *with* an interval and false-alarm rate that "passes pre-specified alternative-explanation checks". Doc 3 §4.2 specifies days 0–6, a ratio with a bootstrap confidence interval, a circular-shift test, and alternatives *tested and reported*. The card has no interval, no cycle count and no baseline. A uniform pattern alone puts about 13 % of spending in any 4 of 30 days. Its alternatives are untested, which disqualifies L1.
+- "Trait" is forbidden wording.
+- Doc 3 §4.6 restricts interventions to L2 with a pre-registered ABAB design over at least 12 cycles. Doc 3 §4.5 Step 8 gives power of about 0.41 at 12 months for a 15 % effect, so a two-month before/after test will mislead.
+- The three-level indicator omits L3 and L4.
+- Component B ("the model may paraphrase") contradicts Doc 3 rule 4 (templates only) and Doc 5c §4.3.12 (figure tokens; "the model's own digits are not rendered"). The §4.2.4 example is free prose with digits.
+*Fix:* adopt Doc 3's rungs, templates and §4.6 protocol verbatim. Show ratio, interval, cycles held, uniform baseline and the result of each check. Make Component B template- and token-only.
 
-**B2 — The FX decomposition is inconsistent with Doc 4, Doc 6 and the document's own IAS 21 citation, and the Overview has the wrong sign (§4.1 worked example, §4.5.1, §4.5.5).**
-*Claim:* "transactional at closing rate +USD 405; revaluation of opening balance +USD 265". The Overview shows "+NGN 2.1M in Oct: +1.3M yours · +0.8M FX".
-*Why it is wrong:* F11 cites IAS 21 as translating transactions "at transaction-date rates". Doc 4 §4.2 and Doc 6 F4 both post each flow at its transaction-date rate and revalue monetary balances at period end. Doc 8's example instead translates all flows at the closing rate. On real data that gives a different split from Doc 4's ledger, so the screen and the ledger would disagree. The arithmetic of the example itself is correct; I recomputed it (7,843 → 8,514; 405 + 265). The sign problem is that the example has the naira *strengthening* in October (1,530 → 1,480 NGN/USD). In an NGN base, that *reduces* the naira value of the founder's USD 35,000 of investments and AED 79,500 (about USD 21,600). The FX effect is therefore at least about −NGN 2.8M, not +0.8M. A user who notices this will distrust every decomposition. There are also three decomposition schemes in the package: Doc 8 §4.1 has two terms, §4.5.5 has four (transactions / FX / market / residual), and Doc 4 §4.4.7 has three (net saving / market / FX translation). Doc 8 also leaves out the realised conversion-cost line that Doc 4 §4.5(3) requires on every own-account FX transfer; the §4.5.3 card shows only "fee NGN 2,500?".
-*Fix:* take Doc 4's posting-level method as normative and render its three terms plus conversion cost. Recompute the Overview example under a stated base. Add a render-time check that the FX-term sign agrees with the rate move and the net foreign-currency position.
+**B2 — §4.1 worked example, §4.5.1, §4.5.5: the FX decomposition contradicts Doc 4/Doc 6/IAS 21, and the Overview sign is wrong.**
+*Claim:* "transactional at closing rate +USD 405; revaluation of opening +USD 265"; Overview "+NGN 2.1M in Oct: +1.3M yours · +0.8M FX".
+*Why wrong:*
+- F11 cites IAS 21's transaction-date rates. Doc 4 §4.2 and Doc 6 F4 post flows at the transaction-date rate and then revalue at period end. Doc 8 translates all flows at the closing rate, so on real data its screen will not match the ledger. (The example's arithmetic does reproduce: 7,843 → 8,514, split 405 + 265.)
+- The example has the naira *strengthening* (1,530 → 1,480). In an NGN base that *reduces* the naira value of USD 35,000 of investments and AED 79,500 (about USD 21,600). The FX effect is at least about −NGN 2.8M, not +0.8M.
+- The package has three decomposition schemes: Doc 8 §4.1 has two terms, §4.5.5 has four, and Doc 4 §4.4.7 has three.
+- The conversion-cost expense line that Doc 4 §4.5(3) requires is absent from the transfer card (§4.5.3).
+*Fix:* adopt Doc 4's posting-level method and its three terms plus conversion cost. Recompute the Overview. Add a render-time sign check against the rate move and the net foreign-currency position.
 
-**B3 — Market-data states and confidence vocabularies are not the package's (§4.1 Component A, §4.5.8, Journey 5, §4.8 tokens).**
-*Claim:* validation states are Validated / Unvalidated / Stale / Conflict / Estimated, with confidence High ≥ 0.9, Medium 0.7–0.9, Low < 0.7, and Conflict shown "as a range of the conflicting values"; Journey 5 shows "the range of the resulting market capitalisation".
-*Why it is wrong:* Doc 5c §4.3.1 and §4.3.2 define `raw`, `auto_validated`, `validated` (human), `disputed`, `stale`, `expired`, `superseded` and `fetch_failed`. They also define an *Ageing (amber)* tier, data confidence grades A–D, a separate `last_traded_on` "no trade since" badge, and licence scope. Doc 5c §4.3.3 says a disputed figure is "excluded from valuation until resolved", so a market-capitalisation range built from a disputed share count is exactly what Doc 5c prohibits. Doc 5c §4.3.10 also lets AI state conclusions only on human-`validated` figures; Doc 8 does not distinguish auto-validated from validated. Doc 4 §4.2 uses four bands (≥ 0.98 / ≥ 0.90 / ≥ 0.70 / low) and sends *anything below 0.90 or model-produced* to review. Doc 8's "bulk accept all High" would therefore auto-accept items Doc 4 requires a person to review. Doc 8's conflict colour (#E69F00 orange) is the amber Doc 5c reserves for Ageing. Journey 1 marks a rate fetched on Saturday 31 Oct as "stale" on Tuesday 3 Nov. Under Doc 5c that is at most two business days old, so Ageing, not Stale. Doc 4's `incomplete` period badge and its "rate missing" badge (§4.5(6)) are absent.
-*Fix:* one state machine for the whole package, owned by Doc 5c and Doc 4, with Doc 8 mapping each state to a visual treatment and an accessible name. One confidence scale. Disputed values are shown side by side, never as a range feeding a derived figure.
+**B3 — §4.1 Component A, §4.5.8, Journey 5, §4.8: state and confidence vocabularies are not the package's.**
+*Claim:* states Validated/Unvalidated/Stale/Conflict/Estimated; confidence High ≥ 0.9 / Medium / Low < 0.7; conflict shown "as a range"; Journey 5 computes "the range of the resulting market capitalisation".
+*Why wrong:*
+- Doc 5c §4.3.1–4.3.2 has `raw`, `auto_validated`, `validated` (human), `disputed`, `stale`, `expired`, `superseded`, `fetch_failed`, an Ageing (amber) tier, A–D source grades, a "no trade since" badge and licence scope.
+- Doc 5c §4.3.3 excludes disputed figures "from valuation until resolved", so the market-cap range is prohibited.
+- Doc 5c §4.3.10 lets AI conclude only on human-validated figures.
+- Doc 4 §4.2 has four bands (0.98 / 0.90 / 0.70) and sends anything below 0.90 *or model-produced* to review. Doc 8's "accept all High" would bulk-accept items Doc 4 requires a person to review.
+- The conflict orange #E69F00 is Doc 5c's Ageing amber.
+- Journey 1 calls a rate fetched on Saturday 31 Oct "stale" on Tuesday 3 Nov. That is two business days, so Ageing under Doc 5c.
+- Doc 4's `incomplete` and "rate missing" badges are missing.
+*Fix:* one package-wide state machine (Doc 5c and Doc 4 own it; Doc 8 maps each state to a visual and an accessible name) and one confidence scale. Disputed values shown side by side, never as a range feeding derived figures.
 
 ### Major
 
-**M1 — The low-precision fallback is undefined, and the success metric rewards over-acceptance (§1, §4.3, Journey 1, §9.1, R1).** "Define fallbacks if below 90 percent" is not a fallback. "Ship manual column mapping" fixes *parsing*, not *inference*. The success criterion "≥ 90 % of proposals accepted without edit" measures acceptance, and an over-trusting user raises it. That is the automation bias F3 warns about. Doc 4 sets different gates: salary precision ≥ 0.95 before forecasting (§4.3.1), rules demoted below 0.90 precision (§4.3.6), and a queue sorted by *materiality × uncertainty*, whereas Doc 8 groups the queue by reason. Doc 8 never estimates queue size. Six months at Journey 2's 212 transactions a month is about 1,270 lines. If even 15 % fall below 0.90, the first queue has about 190 items, not 14. *Fix:* measure precision and recall against a founder-labelled sample (Doc 4 §9.6 asks for 200 transfers and 50 reversals). Specify graded fallbacks: gate each fact type on its measured precision; resolve in batches by counterparty; defer low-materiality items behind an "unresolved, excluded from totals" bucket; and set an upper limit on review minutes per batch.
+**M1 — §1, §4.3, Journey 1, §9.1: the low-precision fallback is undefined.** "Define fallbacks if below 90 %" is not a fallback. Manual column mapping fixes parsing, not inference. "≥ 90 % accepted without edit" measures acceptance, which an over-trusting user inflates (the F3 risk). Doc 4 sets different gates: salary precision ≥ 0.95 (§4.3.1), rules demoted below 0.90 (§4.3.6), and a queue sorted by materiality × uncertainty, whereas Doc 8 groups by reason. Queue size is never estimated. Six months at 212 lines a month is about 1,270 lines; at 15 % below 0.90, the first queue is about 190 items, not 14. *Fix:* measure precision and recall on a founder-labelled sample (Doc 4 §9.6). Gate each fact type on its measured precision. Resolve in batches by counterparty. Defer low-materiality items to an "unresolved, excluded from totals" bucket. Set a review-minutes budget per batch.
 
-**M2 — The minimum-questions list does not match Doc 6 (§4.3.4; §7 disagreement table).** Doc 6 §4.4 requires a *yearly* residency and circumstances questionnaire with attestation, covering about 20 items. Doc 8 lists six questions, asks each "once … never repeated in a wizard", and defaults citizenship to "Not asked". Doc 6 needs nationality for the UAE 90-day test and for US estate-tax status (F25, F31). Doc 6 R3's test, "Zero tax figures displayed without a current questionnaire", and its auditor-versus-product resolution (an "indicative / unaudited" watermark, audited mode after gates 1–3) have no counterpart in Doc 8. The just-in-time trigger also fails on its own terms. Under NTA s.34(1)(b), non-naira currency is a chargeable asset, and s.12 taxes residents on worldwide income. So the first FX conversion or UAE salary credit already "changes the tax treatment", and in practice the question arrives at onboarding. The §7 table still labels Tax's position "anticipated". *Fix:* replace the row with Doc 6's questionnaire as a dated, re-attested record; adopt the indicative/audited mode; drop "never repeated"; update the disagreement table with Doc 6's actual position.
+**M2 — §4.3.4, §7: the questions do not match Doc 6.** Doc 6 §4.4 requires a yearly attested residency and circumstances questionnaire of about 20 items, and R3 allows "zero tax figures displayed without a current questionnaire". Doc 6's disagreement 9 resolves into indicative/unaudited versus audited modes. Doc 8 has six questions, "never repeated in a wizard", and citizenship "not asked". Doc 6 needs nationality for the UAE 90-day test and for US estate-tax status. The just-in-time trigger also fails: under NTA s.34(1)(b) foreign currency is a chargeable asset and s.12 taxes worldwide income, so the first FX conversion or UAE salary credit triggers the question at once. The §7 table still calls Tax's position "anticipated". *Fix:* adopt Doc 6's questionnaire as a dated, re-attested record and its two modes; update the disagreement table.
 
-**M3 — Information-architecture gaps (§4.2).** There is no home for **liabilities** (Doc 4 §4.4.5: debt-service ratio, credit-bureau uploads), **pensions** (Doc 4 `Assets:Pension:RSA`), **FX and conversion costs** (Doc 4 §4.5; Doc 3 "FX hedging vs spending" construct), **budget views** (Doc 4 offers three; Doc 8 shows baseline bars only), **cash-flow forecast and scenarios** (Doc 4 §4.4.6), **risk-tolerance questionnaires** (Doc 4 Grable–Lytton; Doc 3 SOEP, DOSPERT and CFPB), the **market-data validator queue** (Doc 5c §4.3.10 makes the founder the validator of conclusion-driving figures, but Doc 8's review queue handles only ledger reasons), the **data-quality dashboard** (Doc 5c §4.3.8) and the **US estate-tax monitor** (Doc 6). The words "pension" and "liabilit" do not occur in Doc 8, yet the net-worth view (§4.5.5) is a net-worth view without liabilities. Cross-linking has a further problem: the path to tax runs *through category* and renders "Tax: not relevant" before residency is known. That is a tax conclusion, and tax relevance attaches to *kind* (FX conversion, dividend, disposal), not category. The transfer card (§4.5.3), the most tax-relevant object for this user, carries no tax chip. *Fix:* add Liabilities and Pensions under Overview › Net worth; add an FX & costs detail view; put tax chips on kind, with "Not yet determined" until the Doc 6 questionnaire is current.
+**M3 — §4.2: information-architecture gaps.** There is no home for:
+- liabilities (Doc 4 §4.4.5) or pensions (Doc 4 RSA accounts); "pension" and "liabilit" never occur in Doc 8, so the net-worth view has no liabilities;
+- FX and conversion costs (Doc 4 §4.5; Doc 3 FX construct);
+- Doc 4's three budget views or its forecast scenarios (§4.4.6);
+- risk-tolerance questionnaires (Doc 4 Grable–Lytton; Doc 3 SOEP, DOSPERT, CFPB);
+- the market-data validator queue (Doc 5c §4.3.10) or the data-quality dashboard (§4.3.8);
+- the US estate-tax monitor (Doc 6).
+Cross-links reach tax *via category* and render "Tax: not relevant" before residency is known, which is a tax conclusion. Tax relevance attaches to transaction kind (conversion, dividend, disposal), and the most tax-relevant object, the transfer card, has no tax chip. *Fix:* add Liabilities and Pensions under Net worth, and an FX & costs view. Put tax chips on kind, shown "Not yet determined" until the questionnaire is current.
 
-**M4 — Wireframe coverage and accessibility paths (§4.5, §4.8).** Only four of the 13 specifications are drawn (§4.5.1, §4.5.3, §4.5.6, §4.5.9), and none at phone width. The review queue, ledger, net worth, research note, tax workspace, settings and the assistant drawer with its Working panel are not drawn. States are listed once for all screens rather than per screen. Specific defects:
-(a) Contrast: computed against white, the specified tokens give vermilion #D55E00 3.87:1 (fails the 4.5:1 text minimum, and Doc 8 uses it for negative numerals), reddish purple #CC79A7 3.06:1, and orange #E69F00 2.25:1, which fails even the 3:1 non-text minimum Doc 8 itself sets. Grey "stale" numerals are content, not inactive controls, so WCAG 1.4.3 applies to them too.
-(b) The single-key shortcuts `j/k/a/c/t/u` and `/` need a way to turn them off or remap them (WCAG 2.1.4, Level A).
-(c) Session timeout needs a warning and an extension (2.2.1).
-(d) "Estimated = italic" is not exposed to screen readers. Inheriting the "stale" chip on every derived cell, with five strip fields per number, makes dense tables unlistenable. An accessible-name pattern is needed, for example the value plus one status word with the strip on demand.
-(e) "True minus sign" with optional parentheses: ICU emits a hyphen-minus (I reproduced `-₦1,234,567.89`), and parentheses are not announced as negative, so the token must carry the sign in its accessible name.
-(f) The dotplot needs a text alternative that states the frequency and range.
-(g) A floating assistant button on mobile risks 2.4.11 (focus not obscured).
-(h) Consistent help (3.2.6, Level A) is not mentioned.
-(i) A nine-column ledger at 360 px has no specified card form beyond "tables reflowing to card lists at 200 %".
-*Fix:* draw mobile wireframes for the ledger, review queue and goal view; run the palette through a contrast check (use darker variants for text); add an accessible-name specification per component.
+**M4 — §4.5, §4.8: wireframe and accessibility gaps.** Only four of 13 specifications are drawn (§4.5.1, .3, .6, .9), none at phone width. States are generic rather than per screen. The ledger, queue, net worth, research, tax, settings and the drawer with its Working panel are undrawn. Specific defects:
+- (a) Contrast against white: vermilion #D55E00 is 3.87:1 and fails 4.5:1 for negative numerals; #CC79A7 is 3.06:1; orange #E69F00 is 2.25:1 and fails even Doc 8's own 3:1. Grey stale numerals are content, so 1.4.3 applies.
+- (b) Single-key shortcuts `j/k/a/c/t/u` and `/` need a way to turn them off or remap them (2.1.4, Level A).
+- (c) Session timeout needs a warning and extension (2.2.1).
+- (d) Italic "estimated" is not announced by screen readers, and a five-field strip on every cell makes dense tables unlistenable. An accessible-name pattern is needed.
+- (e) ICU emits a hyphen-minus (reproduced: `-₦1,234,567.89`), and parentheses are not announced as negative.
+- (f) The dotplot needs a text alternative.
+- (g) The floating assistant button risks 2.4.11 (focus not obscured).
+- (h) Consistent Help (3.2.6, Level A) is not addressed.
+- (i) A nine-column ledger at 360 px has no card specification.
+*Fix:* phone-width wireframes for the ledger, queue and goal view; darker text variants; an accessible-name specification per component.
 
-**M5 — Uncertainty display: a single probability slipped back in, and model uncertainty is missing (§4.5.1, Journey 3, §4.6).**
-(a) The Overview line "Goals: USD 100k by Nov 2031 — 60 of 100 futures" carries no range or adjustment, which violates the document's own U10 ("never alone").
-(b) U9 brings back a numeric confidence on hover.
-(c) The 20-dot plot cannot represent "57", "63" or "84 of 100", because each dot is 5 futures. The text and the graphic disagree.
-(d) Journey 3 says the purchase is "from AED cash, not from contributions" yet moves the goal from 60 to 57 of 100. Either the AED cash is part of the goal assets or the count should not change.
-(e) The dotplot shows only sampling (aleatory) spread under placeholder parameters. Comparing "63 vs 60 of 100" between structures implies precision that parameter uncertainty swamps. Spiegelhalter's reviews [S23, S24], which Doc 8 cites, separate the two kinds of uncertainty.
-(f) "A 12 % average return sits above 80 of 100 historical five-year windows" uses the same "N of 100" frame for history as for simulated futures, which invites a probability reading.
-I re-ran Journey 6 (20,000 paths, lognormal monthly) and got 58, 62, 0, 82 and 95 of 100 against the stated 60, 63, 0, 84 and 95, with a required return of 5.3 % against 5.2 %. That is reproducible in substance, but 58 versus 60 is sampling and model-specification noise, which is exactly the point of (e).
-*Fix:* round counts to the plot's resolution or use 50 or 100 dots. Show parameter uncertainty (an assumption-range toggle, or a band of counts across Doc 5 parameter sets). Remove the bare Overview count or add the range. Separate historical base rates visually and verbally.
+**M5 — §4.5.1, Journey 3, §4.6: a single probability slipped back in, and parameter uncertainty is missing.**
+- The Overview line "USD 100k by Nov 2031 — 60 of 100 futures" has no range or adjustment, which violates U10.
+- U9 restores a numeric confidence on hover.
+- A 20-dot plot (5 futures per dot) cannot show 57, 63 or 84 of 100.
+- Journey 3 says the purchase is "from AED cash, not from contributions" yet moves 60 to 57.
+- Dotplots show only sampling spread under placeholder parameters, so "63 vs 60" implies false precision. The cited Spiegelhalter reviews [S23, S24] separate the two kinds of uncertainty.
+- "12 % sits above 80 of 100 historical five-year windows" reuses the futures frame for history.
+My re-run of Journey 6 (20,000 lognormal monthly paths) gave 58/62/0/82/95 against the stated 60/63/0/84/95, and a required return of 5.3 % against 5.2 %. That is reproducible in substance, but the 2-point gaps are model noise, which supports the false-precision point. *Fix:* match counts to dot resolution (or use 50 or 100 dots); show a parameter-range band; remove the bare Overview count; separate historical base rates.
 
-**M6 — Copy that reads as advice, verdict or reassurance (§4.5.9, Journey 3, §4.5.6, §4.2.1).**
-- "Biggest lever: contributions (USD 1,000/mo → 84 of 100) ▸ Try it" and "If you land low: add ~USD 150–300/month … or wait 8–14 months" are directive.
-- "A small change" (Journey 3) is a verdict.
-- "Spending follows availability of money, which is ordinary" is a normative reassurance.
-- "Can I afford…?" names an affordability verdict that the journey says the system never gives.
-- The banned list lacks "afford", "need to", "recommend", "best", "safe", "should consider", "beat", "risk-free", and Doc 3's L1 bans on "because" and "you tend to".
-- §4.2.4 labels arithmetic contributors "Drivers", which reads causally.
-*Fix:* phrase levers as "Changing X to Y changes the count to Z"; expand the lint list from Doc 3 §4.4 and §4.7; rename the feature "What happens if I spend…?".
+**M6 — §4.5.9, Journey 3, §4.5.6, §4.7: copy reads as advice, verdict or reassurance.**
+- Directive: "Biggest lever: contributions … ▸ Try it" and "If you land low: add ~USD 150–300/month … or wait 8–14 months".
+- Verdict: "a small change".
+- Normative reassurance: "spending follows availability of money, which is ordinary".
+- Implied verdict: the feature name "Can I afford…?".
+- The banned list lacks "afford", "need to", "recommend", "best", "safe", "should consider", "beat", "risk-free", and Doc 3's L1 bans ("because", "you tend to").
+- "Drivers" (§4.2.4) reads as causal.
+*Fix:* "Changing X to Y changes the count to Z"; extend the lint list from Doc 3 §4.4 and §4.7; rename the feature "What happens if I spend…?".
 
-**M7 — Performance and offline budgets assume an architecture no other document specifies (§4.8, §4.5 common states).** Doc 8 promises "offline-first with local database, background sync", with "all read actions available; writes queued". Doc 7 specifies a Python/FastAPI modular monolith on PostgreSQL with a Procrastinate worker, running on founder hardware (ADR-1 to ADR-4). It lists "a mobile app" under *do not attempt yet* and leaves local-first versus hosted unresolved (§7 item 1). No document defines a client replica, a sync protocol or conflict resolution for queued ledger writes; Doc 4's statements are "immutable once reconciled". Offline display of last-synced values is carry-forward, which Doc 5c §4.3.11 allows only as a labelled derived figure with its age. The budget of "≤ 300 KiB JS, ≤ 1.0 MiB total" uses Russell's *JS-light* column [S119]. I re-fetched it: JS-light is 2.0 MiB total / 0.3 MiB JS; JS-heavy is 1.2 MiB / 0.62 MiB. A charting, table-heavy, local-database single-page application is the JS-heavy case, so the cited source does not support the budget as stated. The data-cost estimate defaults to the NCC *floor* price (₦431.25/GB), which understates the about ₦575/GB average Doc 8 itself reports [S101]. Consent copy says "parsing runs on this device", but under Doc 7 it runs on the Compose host. *Fix:* make the offline claim conditional on a Doc 7 decision; specify offline as read-only with age badges until a sync design exists; re-base the budget on the JS-heavy column or justify JS-light with a bundle analysis; default the tariff to the measured average.
+**M7 — §4.8: performance and offline claims assume an unspecified architecture.** "Offline-first … local database, background sync; writes queued" has no counterpart in Doc 7. Doc 7 specifies a FastAPI/PostgreSQL monolith on founder hardware, lists "a mobile app" as "do not attempt yet", and leaves local-first unresolved. No sync or conflict model exists, and Doc 4 statements are immutable once reconciled. Showing last-synced values offline is carry-forward, which Doc 5c §4.3.11 permits only as labelled, aged derived figures. The "≤ 300 KiB JS / ≤ 1.0 MiB" budget uses Russell's *JS-light* column (re-fetched: 2.0 MiB / 0.3 MiB). A chart-heavy, table-heavy single-page app is the JS-heavy case (1.2 / 0.62 MiB). The tariff default is the NCC floor of ₦431.25/GB, below the about ₦575 average Doc 8 itself cites. The copy "Parsing runs on this device" is wrong under Doc 7. *Fix:* condition offline on a Doc 7 decision, and specify read-only offline with age badges until then; re-base the budget or justify it with a bundle analysis; default the tariff to the average.
 
-**M8 — The validation plan's measurability and consent (§4.9, F13).**
-(a) Phase 1 uses "real files of the founder's choosing". Brief §5.7 requires synthetic data until data architecture and privacy controls are approved, which they are not.
-(b) The founder is commissioner, designer-of-record and sole subject. Think-aloud sessions need an independent facilitator, and demand characteristics will inflate SEQ and SUS. SUS ≥ 80 at n = 1, administered monthly, has no reference distribution, and repeated administration adds practice effects.
-(c) The seeded-error test runs "in a clearly labelled sandbox", so the subject knows errors are present. Detection rates will be optimistic.
-(d) The n-of-1 alternation of dotplot versus dotplot-plus-HOPs in two-week blocks violates the n-of-1 assumption of a reversible condition [S132]. Comprehension learned in block A carries into block B.
-(e) Phase 2 says "5–8 external users" and also "five users per segment" across three segments, which is 15 or more.
-(f) The comprehension rubric, the "≥ 80 % comprehension" target and the Likert ≥ 4/5 "non-judgemental" item are not defined or validated.
-(g) Analytics are commendably minimal, with no amounts, counterparties or descriptors. But Doc 3's "Ostrich / engagement" construct needs app opens against portfolio returns, and no `app_opened` event exists. The two documents must agree whether that construct is in scope.
-(h) A daily diary prompt for eight weeks sits awkwardly with "no daily alerts". It is acceptable as consented research, but say so.
-*Fix:* use synthetic or founder-redacted packs until Doc 7's privacy controls pass review; use a facilitator who is not the founder; use crossover with washout or between-subject designs for comprehension; reconcile the Phase 2 counts; pre-register the rubric; settle the telemetry scope with Doc 3.
+**M8 — §4.9: measurability and consent of the validation plan.**
+- (a) Phase 1 uses "real files", which breaches Brief §5.7's synthetic-data rule while privacy controls are unapproved.
+- (b) The founder is sponsor, designer-of-record and sole subject. Demand effects will inflate SEQ and SUS, an independent facilitator is needed, and monthly SUS ≥ 80 at n = 1 has no norm and adds practice effects.
+- (c) The seeded-error sandbox is "clearly labelled", so detection will be optimistic.
+- (d) Alternating dotplot and HOPs in two-week n-of-1 blocks breaks the reversibility assumption [S132], because comprehension carries over.
+- (e) "5–8 users" conflicts with "five per segment" across three segments.
+- (f) The rubric and the ≥ 80 % comprehension and Likert targets are undefined.
+- (g) Doc 3's ostrich construct needs app opens, and no `app_opened` event exists.
+- (h) The daily diary prompt conflicts with "no daily alerts" unless it is labelled as research.
+*Fix:* synthetic or redacted packs; an independent facilitator; crossover with washout or between-subject designs; reconciled counts; a pre-registered rubric; telemetry scope agreed with Doc 3.
 
 ### Minor
 
-- m1 §4.7 says "Price as of **Fri** 31 Oct". 31 October 2026 is a Saturday. The §4.1 rate "CBN/NAFEM closing, as of 31 Oct" is also a Saturday, and NFEM does not fix at weekends. "NAFEM" is the pre-2024 name; Doc 4 and Doc 5c use NFEM. In Journey 1 the "WIRE IN" credit is dated 3 Oct, also a Saturday.
-- m2 Journey 5 gives an "NGX closing price as of … 16:30 WAT". Doc 5c §9.3 lists NGX trading hours as still to be fetched, so this time is unsupported. Use the time from the source record.
-- m3 F12 restricts "₦" to where glyph support is verified. U+20A6 has been in Unicode since 1.1 and is in all mainstream fonts; only the dirham sign (U+20C3, which I confirmed in Unicode 18.0 UnicodeData.txt) has a support problem. Docs 3 and 4 use ₦ throughout, so pick one convention for the package.
-- m4 The evidence strip shows `NGN 12,600,000.00` although Doc 8's GOV.UK rule says "no spurious decimals". Compact "164.2M" conflicts with the "million in words" rule. State the exceptions.
-- m5 Doc 8 picks the base currency by "majority of income currency". Doc 4 §4.4.7 recommends two default views (USD and NGN) plus a parallel-rate sensitivity line, and Doc 6 makes NGN the tax-reporting currency. Doc 8 needs to adopt or contest Doc 4's position explicitly.
-- m6 Doc 8's "Undo for 30 days on all ledger edits" conflicts with Doc 4's immutable reconciled statements and Doc 6's audit trail. Specify undo as a reversing entry, not deletion.
-- m7 The error copy "type the 6 missing lines … The other 13 pages were used" conflicts with Doc 4 §4.3.7: a statement that does not reconcile is rejected, and the period is marked *incomplete*.
-- m8 Journey 2's "NGN 551,667 ± 75,093" cannot be reproduced from the stated figures: 1.85M − 1.275M = 575,000, and spreading the fees gives about 560,000. Doc 8 says code was "retained in the session scratchpad", but none is in `research/scripts/`. Commit it.
-- m9 F10 open-banking status rests on October 2025 reporting. Doc 4 F1 has a 2026-11-02 check (phased rollout promised for mid-2026, no confirmed go-live), and the UAE Open Finance status is not mentioned. Update.
-- m10 The emergency-reserve denominator is "baseline spending" in Doc 8 and "essential spend" in Doc 4 §4.4.2.
+- m1 §4.7 has "Fri 31 Oct", but 31 Oct 2026 is a Saturday. The §4.1 rate "CBN/NAFEM closing, 31 Oct" is also a Saturday. "NAFEM" is the old name; Docs 4 and 5c use NFEM. The 3 Oct "WIRE IN" is a Saturday.
+- m2 Journey 5's "NGX close … 16:30 WAT" is unsourced. Doc 5c §9.3 lists NGX hours as still to be fetched.
+- m3 F12 limits "₦" to verified glyph support, but U+20A6 is universal. Only U+20C3, which I confirmed in Unicode 18.0 UnicodeData, is a problem. Docs 3 and 4 use ₦, so pick one package convention.
+- m4 `NGN 12,600,000.00` and "164.2M" break Doc 8's own GOV.UK rules. State the exceptions.
+- m5 Base currency "by majority income" versus Doc 4 §4.4.7 (USD and NGN views plus a parallel-rate line) and Doc 6 (NGN for tax).
+- m6 "Undo 30 days on all ledger edits" versus immutable reconciled statements and audit trail (Docs 4 and 6). Specify undo as a reversing entry.
+- m7 "The other 13 pages were used … type the 6 missing lines" versus Doc 4 §4.3.7 (an unreconciled statement is rejected and the period marked incomplete).
+- m8 Journey 2's "NGN 551,667 ± 75,093" is not reproducible from the stated figures (about 560,000). The scripts are not in `research/scripts/`.
+- m9 F10 open-banking evidence is from October 2025, while Doc 4 F1 was checked on 2026-11-02. UAE Open Finance is omitted.
+- m10 Reserve denominator: "baseline spending" in Doc 8 versus "essential spend" in Doc 4 §4.4.2.
 
 ## 3. Evidence-grade audit
 
@@ -155,29 +176,15 @@ Non-academic URLs, re-fetched on 2026-11-04:
 
 ## 5. Cross-document contradictions
 
-| Topic | Doc 8 | Other document | Ref |
-|---|---|---|---|
-| AI text generation | "The model may paraphrase" | Doc 3 §4.2 rule 4: templates only. Doc 5c §4.3.12: figure tokens; the model's digits are not rendered | B1 |
-| Payday window and statistic | 4 days, share, no interval | Doc 3: days 0–6, ratio with 95 % interval, cycles held, permutation test | B1 |
-| Intervention eligibility and design | L1 card, two-month before/after | Doc 3 §4.6: L2 only, ABAB, ≥ 12 cycles | B1 |
-| Evidence rungs | Three levels | Doc 3: L0–L4 | B1 |
-| FX translation of flows | Closing rate | Doc 4 §4.2 and Doc 6 F4: transaction-date rate plus period-end revaluation | B2 |
-| Decomposition terms | Two or four | Doc 4 §4.4.7: three, plus conversion-cost expense line | B2 |
-| Base currency | One, by majority of income | Doc 4: USD and NGN views by default. Doc 6: NGN for tax | m5 |
-| Confidence bands | Three (0.9 / 0.7) | Doc 4: four (0.98 / 0.90 / 0.70); < 0.90 or model-produced goes to review | B3 |
-| Data states | Five states | Doc 5c: eight states plus Ageing tier, A–D grades, no-trade badge, licence scope | B3 |
-| Disputed figures | Shown as range; market-cap range computed | Doc 5c §4.3.3: excluded from valuation | B3 |
-| Amber | Conflict | Doc 5c: Ageing | B3 |
-| Tax questions | Six, just in time, never repeated | Doc 6 §4.4: yearly attested questionnaire, about 20 items, no tax figures without it | M2 |
-| Citizenship | Not asked | Doc 6 F25/F31 and Doc 4 §4.4.8 step 1: asked | M2 |
-| Risk tolerance | Not asked | Doc 4: Grable–Lytton. Doc 3: SOEP, DOSPERT, CFPB | M3 |
-| Liabilities and pensions | Absent | Doc 4 chart of accounts and §4.4.5 | M3 |
-| Offline and mobile | Offline-first PWA, queued writes | Doc 7: server monolith; mobile app "do not attempt yet"; local-first unresolved | M7 |
-| Partial statements | "Other 13 pages were used" | Doc 4 §4.3.7: unreconciled statement rejected; period incomplete | m7 |
-| Open-banking status | Oct 2025 evidence | Doc 4 F1: checked 2026-11-02 | m9 |
-| Synthetic FX levels | USD/NGN about 1,480–1,530 | Doc 4/5c observed about 1,346 on 2026-11-02. Synthetic, but a reader comparing documents will be confused; label more loudly or align | — |
+The details are in §2. In summary:
+- **Doc 3:** AI paraphrase versus templates; 4-day share versus 0–6-day ratio with interval; L1 intervention versus L2 + ABAB ≥ 12 cycles; 3 rungs versus 5 (B1). Risk questionnaires and telemetry for the ostrich construct are missing (M3, M8).
+- **Doc 4:** closing-rate versus transaction-date FX; 2/4 versus 3 decomposition terms; no conversion-cost line (B2). 3 versus 4 confidence bands, and review rules (B3). One base currency versus two default views (m5). Partial statements used versus rejected (m7). Liabilities and pensions absent (M3). Open-banking status stale (m9).
+- **Doc 5c:** 5 versus 8 states plus Ageing; disputed values in valuations; amber collision; AI conclusions on non-validated figures; "stale" assigned before the SLO is breached (B3); token rendering (B1).
+- **Doc 6:** just-in-time versus yearly attested questionnaire; citizenship; indicative/audited modes; tax relevance by category (M2, M3).
+- **Doc 7:** offline-first PWA versus server monolith, with mobile "do not attempt yet" (M7).
+- **Synthetic FX levels:** USD/NGN about 1,480–1,530 in Doc 8 versus about 1,346 observed in Docs 4 and 5c on 2026-11-02. These are labelled synthetic, but the gap will confuse readers comparing documents.
 
-Doc 8 §2 says sibling documents "did not exist … at the time of writing". The file was nevertheless edited on 2026-11-04, after Docs 3–7 were committed, and §6 still states dependencies as wishes rather than referencing the now-published interfaces.
+Doc 8 §2 says the sibling documents "did not exist". The file was edited on 2026-11-04, after they were committed, and §6 still states the dependencies as wishes.
 
 ## 6. Questions the Investment Committee needs answered
 

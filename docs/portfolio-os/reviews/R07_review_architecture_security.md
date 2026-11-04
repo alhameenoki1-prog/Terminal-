@@ -2,11 +2,11 @@ Review of: Document 7 — Technology and Open-Source Research Report (v0.1, 2026
 
 ## 1. Verdict and the three most important problems
 
-Document 7 is well researched and mostly accurate. Its licence metadata and its Anthropic model IDs and prices held up when I re-checked them. Its overall shape (modular monolith, decimal append-only ledger, deterministic tools behind an LLM) is sound. It is not ready for the Investment Committee, for three reasons:
+Document 7 is well researched. Its licence metadata and its Anthropic model IDs and prices held up when I re-checked them. Its architecture is sound, but three problems keep it from the Investment Committee:
 
-1. **The "no number without a tool result" gate is weaker than the contract that Docs 5c, 6 and 8 already rely on, and it can be bypassed.** The model writes the digits itself. The gate accepts any value that appears anywhere in the trace, within 0.5%, and that includes raw statement text returned by `documents.search`. It does not catch a correct number attached to the wrong label, a flipped sign, or a number written in words.
-2. **The ledger specification cannot be built as written, and it conflicts with Docs 4 and 6.** The three documents use three different posting models. A `CHAR(3)` currency column cannot hold security units. The worked example claims to balance "exactly" when it does not. Single-entry transfers break statement cut-off.
-3. **The privacy and security posture contradicts its own recommendations, and one person could not operate it.** Raw statements would go to the Batch API, which is not eligible for zero data retention (ZDR) and keeps data for 29 days. The prompt-injection design claims that the privileged model "never sees raw document text", but it does. The control set is sized for a team, there are no effort estimates, and the main single-user risks are missing: parser exploits, browser-side exposure, and losing the key.
+1. **The "no number without a tool result" gate is weaker than the contract in Docs 5c, 6 and 8, and it can be bypassed.** The model writes the digits itself. The gate accepts any value found anywhere in the trace, within 0.5%, including raw statement text from `documents.search`.
+2. **The ledger specification cannot be built as written, and it conflicts with Docs 4 and 6.** The three documents use three posting models. A `CHAR(3)` currency column cannot hold security units. The worked example claims to balance "exactly" and does not. Single-entry transfers break cut-off.
+3. **The privacy and security posture contradicts itself and is too heavy for one person.** Raw statements would go to the Batch API, which keeps data for 29 days and is not eligible for zero data retention (ZDR). The privileged model *does* see raw document text. There are no effort estimates, and the main single-user risks are missing: parser exploits, browser-side exposure and key loss.
 
 ## 2. Findings, severity-ranked
 
