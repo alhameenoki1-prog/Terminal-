@@ -210,3 +210,252 @@ stale prob  obs vol true vol  OLS beta Dimson k=1 Dimson k=3 weekly beta zero-da
 **Presentation contract for a goal (example: "$100,000 targeting $150,000 in five years").** The product shows: (1) the required compound return (8.4% a year in USD); (2) which asset mixes have *historically* delivered that over rolling 5-year windows and how often (with the window count); (3) the risk those mixes carried (worst 5-year drawdown in the history, in the user's base currency); (4) the bootstrap probability of shortfall as a *range* (10th–90th percentile of the estimation band), with a plain sentence: "With the data we have, the chance of reaching this goal is somewhere between X and Y; the range is wide because five years of history cannot tell us the average return to within ±6 points a year"; (5) alternative structures (longer horizon, higher contributions, lower target) and what each does to the range; (6) the explicit statement that none of this is a forecast or a recommendation. Sequence risk is shown as the difference between the goal probability with and without contributions timed early versus late (path-dependence of contributions [S134, S135]).
 
 **Calibration testing (from day one).** Each forecast distribution issued is stored with its PIT value once the outcome is known; monthly, the product computes the PIT histogram [S136, S137], a Berkowitz test [S138] and coverage of the 50%/90% bands [S139, S140]. Until 24 outcomes exist, the engine is labelled "uncalibrated".
+
+### 4.8 Evaluation of the existing prototypes (item F)
+
+Files: `/home/user/Terminal-/src/components/MonteCarloPanel.tsx` (563 lines) and `/home/user/Terminal-/src/components/PerformancePanel.tsx` (331 lines). Both were written for a day-trading dashboard (single-asset price targets, closed-trade statistics), not for a multi-currency personal portfolio. Defects are numbered; severity: **H** (wrong number shown to a user), **M** (misleading or unvalidated), **L** (engineering).
+
+| # | Location | Defect | Sev. | Numerical evidence (`prototype_checks.py`) |
+|---|---|---|---|---|
+| D1 | `MonteCarloPanel.tsx` 49–69 (`Math.random`) | Non-seedable RNG: results are irreproducible; no golden tests possible; no antithetic/common random numbers across models | H | — |
+| D2 | 57–62, 95 | Student-t(ν=5) innovations are not variance-scaled (variance ν/(ν−2) = 5/3). A user-entered σ is simulated at σ·√(5/3) | H | sample variance 1.665; a 60% input simulates as ≈77.5% |
+| D3 | 113–114 | GARCH α = 0.08, β = 0.85 hardcoded, not estimated; no standard errors; "fat tails" claimed (554) but daily excess kurtosis is only ≈0.3 | M | realised vol 0.601 vs target 0.600; excess kurtosis 0.30 |
+| D4 | 127 | Variance clamped at 4σ²: an arbitrary truncation of the volatility distribution (immaterial at these parameters but silently alters the model) | L | identical moments with and without clamp at α+β = 0.93 |
+| D5 | 100 vs 123 | Drift conventions differ across engines: GBM uses μ − ½σ², GARCH uses μ (no Itô correction), OU uses a horizon-dependent θ; the same "μ" therefore means a different expected price in each model | M | — |
+| D6 | 306 | μ = 0.05 hardcoded; not estimated, not user-visible, not currency-specific; applied to BTC and S&P alike | H | — |
+| D7 | 229 | "Sharpe" is mean/SD of the *simulated terminal cross-section*, annualised by √(252/h), with no risk-free rate and no data: it restates μ/σ of the inputs | H | 0.270–0.300 for σ = 18%; 0.059–0.076 for σ = 60% (≈ 0.05/σ) |
+| D8 | 238–242 | "Max DD P50/P95" are 1 − P25/P50 and 1 − P5/P50 of *terminal prices* — a dispersion statistic, not a drawdown; the comment admits it | H | 252 d: prototype 34%/63% vs true path median 50%, 95th pct 76% |
+| D9 | 218–223, 103 | P(target)/P(stop) use terminal values only; `entry/target/stop` are explicitly `void`ed inside the path loop, so barrier hits during the horizon are ignored | H | P(stop −10%) at 63 d: terminal 40% vs path 71% (under-count ×1.75) |
+| D10 | 184–202, 322–323 | Cholesky mode simulates two assets but returns only `finals1`; asset 2 and ρ have no effect on any displayed number | H | — |
+| D11 | 139, 555 | OU half-life comments inconsistent and in mixed units (ln2/κ = 0.347 y = 87 trading days = 126 calendar days) | L | computed |
+| D12 | 140 | OU long-run mean θ depends on the chosen horizon (`mu*horizon/252`), so the model changes when the user changes the display horizon | M | — |
+| D13 | 159–161 | Merton λ, μ_J, σ_J hardcoded; no estimation or source | M | — |
+| D14 | 40–45, 292–296 | Regime multipliers 0.85/1.0/1.2/1.5 are arbitrary constants applied multiplicatively to σ; no estimation, no source, no uncertainty | M | — |
+| D15 | 225, 233–236 | Quantile indexing `sorted[floor(N·p)]` is off by one position for the lower tail; CVaR averages the lowest 500 of 10,000 (fine) but VaR uses the 501st value | L | — |
+| D16 | 248–251 | VaR/CVaR reported in price units per one unit of asset, unlabelled by currency; not scaled to position size | M | — |
+| D17 | 226–231 | Skewness/kurtosis of simple terminal returns with population (1/N) estimators; no standard errors; colour thresholds (541–542) arbitrary | L | — |
+| D18 | 510 | "Fan chart" bar heights `[25,48,80,52,28]` are hardcoded: the chart is decorative, not data-driven | H | — |
+| D19 | 298–328 | 10,000 × horizon steps run synchronously on the main thread after a 50 ms `setTimeout` (2.5 M normal draws for 1 y; 15 M with Student-t). No Web Worker, no progress, no cancellation | M | — |
+| D20 | whole file | No Monte Carlo standard errors shown | M | at N = 10,000, 21 d, σ = 60%: SD of P5 price ≈ 0.4%; SD of P(profit) ≈ 0.6 pt |
+| D21 | `PerformancePanel.tsx` 50–63 | Drawdown computed on cumulative realised P&L with `peak` starting at 0: denominator is the P&L peak, not account equity | H | P&L sequence [+50, −100, +30] on a 10,000 account → reported 200%; true 1.0% |
+| D22 | 42–48, 90–93 | "Sharpe" from the last ≤ 20 per-trade returns, annualised by √252 as if each trade were one day; no risk-free rate; holding periods ignored; no SE | H | 20 trades, mean 1%, SD 5% → "2.34"; Lo SE of the raw ratio ≈ 0.22 per period |
+| D23 | 313–328, 165–170 | "NEXUS Performance Assessment" issues sizing advice ("Scale position size") from ≥ 5 trades; composite edge score weights 0.6/0.4 arbitrary; USD sign hardcoded (144); no cash flows, no TWR/MWR, no currency | H | — |
+
+**What a validated implementation needs.** (1) A seedable, tested PRNG (e.g. a counter-based or xoshiro generator with a Ziggurat/Box–Muller normal) with golden-value tests against a reference implementation. (2) Unit tests with analytic cases: GBM terminal log-price mean and variance; Student-t variance after scaling; GARCH unconditional variance ω/(1−α−β); Merton compensator (E[S_T] = S₀e^{μT}); OU stationary variance σ²/(2κ); barrier probability for Brownian motion with drift (reflection-principle closed form) against the path simulator; Modified Dietz and TWR on hand-computed ledgers; max drawdown on a hand-built path. (3) Golden datasets: a frozen synthetic ledger with known TWR/MWR/drawdown; a frozen return panel with known Ledoit–Wolf intensity (cross-checked against scikit-learn's `LedoitWolf` [S157]). (4) Estimation, not constants: GARCH/jump parameters fitted by maximum likelihood with reported standard errors, or the model is not offered. (5) Monte Carlo error bars on every reported quantity; Web Worker execution with cancellation; results cached by (inputs, seed). (6) Separation of engine from UI so the same code runs in CI.
+
+### 4.9 Worked example with synthetic data (item H)
+
+Script: `/home/user/Terminal-/docs/portfolio-os/research/scripts/worked_example_5b.py` (numpy 2.5.3, pandas 3.0.5, scipy 1.18.1; seed 5). **All parameters are assumptions, not estimates of any real market.** Three assets: an NGN equity-index proxy (local vol 20%, 35% stale days), a USD equity proxy (vol 16%), an FGN bond proxy (local vol 5%, high nominal carry); USD/NGN drifts 12% a year with a one-day +45% jump at day 630 (≈ −31% in the USD value of naira assets); innovations are variance-scaled t5. Base currency USD. Core code:
+```python
+"""Document 5b — Section H worked example on SYNTHETIC data.
+Three assets: NGN equity index proxy (NGX-like, thinly traded), USD equity proxy, FGN bond proxy (NGN).
+Base currency USD. FX path includes a one-day devaluation jump. Reproducible seed. numpy/pandas only (+scipy if present).
+Run: python3 worked_example_5b.py"""
+import numpy as np, pandas as pd
+rng = np.random.default_rng(5)
+T = 1260  # 5 years of trading days
+dt = 1/252
+
+# ---------- 1. Synthetic data-generating process (all parameters are ASSUMPTIONS, not estimates) ----------
+# True local-currency daily log-returns, correlated: [NGN equity, USD equity, FGN bond]
+mu_loc  = np.array([0.22, 0.08, 0.17])        # annual drift in LOCAL currency (NGN nominal rates high)
+vol_loc = np.array([0.20, 0.16, 0.05])
+corr    = np.array([[1.0, 0.15, 0.10],[0.15, 1.0, 0.00],[0.10, 0.00, 1.0]])
+L = np.linalg.cholesky(corr)
+z = rng.standard_t(5, size=(T,3)) / np.sqrt(5/3)   # variance-scaled t5 innovations
+true_loc = (mu_loc - 0.5*vol_loc**2)*dt + (z @ L.T)*vol_loc*np.sqrt(dt)
+# Thin trading: NGN equity prints a zero return (stale price) on 35% of days; the missed move is recovered later
+obs = true_loc.copy(); carry = 0.0
+stale = rng.random(T) < 0.35
+for t in range(T):
+    if stale[t]: carry += true_loc[t,0]; obs[t,0] = 0.0
+    else:        obs[t,0] = true_loc[t,0] + carry; carry = 0.0
+# FX: log USDNGN (NGN per USD). Crawling depreciation 12%/yr, vol 6%, plus a one-day +45% jump (≈ -31% in USD value of NGN) at day 630
+fx = 0.12*dt + 0.06*np.sqrt(dt)*rng.standard_normal(T); fx[630] += np.log(1.45)
+# Convert NGN assets to USD: r_usd = r_ngn - d(log USDNGN)
+usd = obs.copy(); usd[:,0] -= fx; usd[:,2] -= fx
+names = ["NGN_equity","USD_equity","FGN_bond"]
+R = pd.DataFrame(usd, columns=names)             # daily log returns in USD
+Rngn = pd.DataFrame(obs, columns=names); Rngn["USD_equity"] = obs[:,1] + fx   # NGN-base view
+
+print("=== 1. Annualised statistics (USD base, full 5y sample) ===")
+stats = pd.DataFrame({"ann_mean": R.mean()*252, "ann_vol": R.std()*np.sqrt(252),
+                      "zero_days_local_ccy": (Rngn==0).mean()}).round(4)
+print(stats.to_string())
+print("\nSample correlation (USD base):\n", R.corr().round(3).to_string())
+pre, post = R.iloc[:630], R.iloc[630:]
+print("\nCorrelation NGN_equity vs FGN_bond: pre-devaluation %.3f | post %.3f  (shared FX factor dominates in USD terms)" %
+      (pre.corr().iloc[0,2], post.corr().iloc[0,2]))
+
+# ---------- 2. Covariance estimators ----------
+def lw_identity(X):
+    """Ledoit & Wolf (2004, J. Multivariate Analysis) shrinkage toward scaled identity. X: T x N, demeaned inside."""
+    Xc = X - X.mean(0); T_, N = Xc.shape
+    S = Xc.T @ Xc / T_
+    mu = np.trace(S)/N; F = mu*np.eye(N)
+    d2 = ((S-F)**2).sum()
+    b2 = sum(((np.outer(x,x) - S)**2).sum() for x in Xc)/T_**2
+    b2 = min(b2, d2); delta = b2/d2 if d2 > 0 else 0.0
+    return (1-delta)*S + delta*F, delta
+def lw_constcorr(X):
+    """Ledoit & Wolf (2004, J. Portfolio Management) shrinkage toward constant-correlation target."""
+    Xc = X - X.mean(0); T_, N = Xc.shape
+    S = Xc.T @ Xc / T_; s = np.sqrt(np.diag(S)); C = S/np.outer(s,s)
+    rbar = (C.sum()-N)/(N*(N-1)); F = rbar*np.outer(s,s); np.fill_diagonal(F, np.diag(S))
+    Y = Xc**2; pi_mat = (Y.T @ Y)/T_ - S**2; pi = pi_mat.sum()
+    term1 = ((Xc**3).T @ Xc)/T_; help_ = Xc.T @ Xc/T_; help_diag = np.diag(help_)
+    term2 = help_diag[:,None]*S; term3 = help_*np.diag(S)[:,None]; term4 = np.diag(S)[:,None]*S
+    theta = term1 - term2 - term3 + term4
+    rho = np.trace(pi_mat) + rbar*((1/s)[:,None]*s[None,:]*theta).sum() - rbar*np.trace(theta)  # standard formula
+# ... (full script in the repository: LW constant-correlation target, rolling windows, drawdown table, bootstrap, diagnostics, TWR/MWR, Sharpe SE, PIT)
+ew = R.mean(axis=1)  # equal-weight, rebalanced daily (approximation using log returns)
+tab = pd.DataFrame({n: dd_stats(R[n].values) for n in names} | {"EW_USD": dd_stats(ew.values), "NGN_equity_in_NGN": dd_stats(Rngn["NGN_equity"].values)}).T
+print(tab.round(3).to_string())
+print("Note: the same NGN equity series shows a mild drawdown in NGN and a deep one in USD — base currency must be stated on every figure.")
+
+# ---------- 4. Bootstrap goal probability with its own uncertainty band ----------
+# Goal: USD 100,000 today -> USD 150,000 in 5 years (8.45% p.a.), portfolio = equal weight, no contributions.
+def stationary_bootstrap(x, n_paths, horizon, mean_block, rng):
+    T_ = len(x); p = 1/mean_block; out = np.empty((n_paths, horizon))
+    idx = rng.integers(0, T_, n_paths)
+    for h in range(horizon):
+        out[:, h] = x[idx]
+        new = rng.random(n_paths) < p
+        idx = np.where(new, rng.integers(0, T_, n_paths), (idx+1) % T_)
+    return out
+goal_log = np.log(150_000/100_000); H = 1260
+def p_success(sample, n_paths=4000, mean_block=20):
+    paths = stationary_bootstrap(sample, n_paths, H, mean_block, rng)
+    return (paths.sum(1) >= goal_log).mean()
+base = ew.values
+p_hat = p_success(base)
+# Outer loop: resample the HISTORY itself (block bootstrap of the 5y sample) to express estimation uncertainty
+outer = []
+for b in range(40):
+    hist_b = stationary_bootstrap(base, 1, T, 20, rng)[0]
+    outer.append(p_success(hist_b, n_paths=2000))
+outer = np.array(outer)
+```
+
+**Output (verbatim):**
+
+```
+=== 1. Annualised statistics (USD base, full 5y sample) ===
+            ann_mean  ann_vol  zero_days_local_ccy
+NGN_equity    0.0671   0.2622               0.3643
+USD_equity    0.2435   0.1687               0.0000
+FGN_bond     -0.0628   0.1826               0.0000
+
+Sample correlation (USD base):
+             NGN_equity  USD_equity  FGN_bond
+NGN_equity       1.000      -0.000     0.658
+USD_equity      -0.000       1.000    -0.066
+FGN_bond         0.658      -0.066     1.000
+
+Correlation NGN_equity vs FGN_bond: pre-devaluation 0.221 | post 0.783  (shared FX factor dominates in USD terms)
+
+LW shrinkage intensities on the full sample: identity-target delta=1.000, constant-correlation delta=0.985
+Same, EXCLUDING the single devaluation day: identity delta=0.023, constant-correlation delta=0.127
+-> One structural-break day drives the estimated fourth moments and pushes the shrinkage intensity to its cap; the estimator then returns the target itself. Breaks must be handled explicitly (scenario or dummy), not fed to the estimator as if stationary.
+
+=== 2. Minimum-variance long-only weights, full sample (USD base) ===
+            sample  LW_identity(delta=1.00)  LW_constcorr(delta=0.99)    1/N
+NGN_equity   0.000                    0.333                     0.134  0.333
+USD_equity   0.537                    0.333                     0.479  0.333
+FGN_bond     0.463                    0.333                     0.388  0.333
+
+=== 2b. Weight instability: rolling 250-day windows (step 21d) ===
+            sample_mean  sample_sd  LWid_mean  LWid_sd  LWcc_mean  LWcc_sd
+NGN_equity        0.030      0.029      0.147    0.110      0.063    0.020
+USD_equity        0.323      0.270      0.240    0.057      0.320    0.299
+FGN_bond          0.647      0.252      0.613    0.160      0.617    0.297
+Mean absolute weight change between consecutive windows (turnover proxy): sample 0.076 | LW-identity 0.053 | LW-constcorr 0.084
+Small-N caveat: with N=3 and T=250 the sample covariance is already well conditioned, so shrinkage changes little; the instability that remains comes from the data (regime/devaluation), not from estimation noise alone.
+
+=== 2c. Short-history case: 60-day windows (what a new user actually has) ===
+            sample_sd  LWid_sd
+NGN_equity      0.050    0.070
+USD_equity      0.171    0.056
+FGN_bond        0.161    0.079
+
+=== 3. Drawdown table (daily, 5y synthetic) ===
+                   max_dd  peak_day  trough_day  days_peak_to_trough  days_to_recover  ann_return  ann_vol
+NGN_equity         -0.474     627.0       910.0                283.0              NaN       0.067    0.262
+USD_equity         -0.143     540.0       671.0                131.0             51.0       0.244    0.169
+FGN_bond           -0.399     390.0      1083.0                693.0              NaN      -0.063    0.183
+EW_USD             -0.262     572.0       671.0                 99.0              NaN       0.083    0.145
+NGN_equity_in_NGN  -0.175     758.0       873.0                115.0            118.0       0.313    0.192
+Note: the same NGN equity series shows a mild drawdown in NGN and a deep one in USD — base currency must be stated on every figure.
+
+=== 4. Goal: $100,000 -> $150,000 in 5 years (needs 8.45%/yr), equal-weight USD portfolio ===
+Point estimate P(success) = 53.6%  (Monte Carlo SE ±0.8% from 4,000 paths)
+Estimation-uncertainty band (resampling the 5y history, 40 reps): 10th-90th pct = 11% – 94%, min–max 2%–100%
+Sensitivity to assumed annual drift (shift the historical mean):
+   drift shift -4%/yr -> P(success) = 30%
+   drift shift -2%/yr -> P(success) = 40%
+   drift shift +0%/yr -> P(success) = 52%
+   drift shift +2%/yr -> P(success) = 64%
+Standard error of the 5y annualised mean return itself: ±6.5%/yr (vol 14.5%, 5 years) -> the drift is essentially unknown
+
+=== 5. Diagnostics for the equal-weight USD portfolio ===
+HHI = 0.333 (effective positions 1/HHI = 3.00); diversification ratio = 1.410; effective number of bets (PCA entropy) = 1.64
+Risk contributions: {'NGN_equity': np.float64(0.529), 'USD_equity': np.float64(0.139), 'FGN_bond': np.float64(0.332)}
+Currency exposure (USD base): NGN 67%, USD 33%
+
+=== 6. TWR vs Modified Dietz, one quarter (63 days), deposit of 50% of start value on day 10 ===
+TWR -6.27% | Modified Dietz -5.21% | IRR (money-weighted) -5.21% | end value 142,594
+Interpretation: TWR measures the strategy; MWR/IRR measures the investor's experience including timing of the deposit.
+
+=== 7. Sharpe ratio with standard error (Lo 2002, iid formula) ===
+USD_equity annualised SR = 1.44 ± 0.45 (1 s.e.) from 1260 daily obs; 95% CI ≈ [0.56, 2.32]
+
+=== 7b. Calibration check: Gaussian forecast applied to fat-tailed (t5) outcomes ===
+PIT histogram (10 bins, should be flat at 0.10): [0.079 0.083 0.1   0.113 0.122 0.119 0.119 0.1   0.087 0.079]
+Nominal 90% interval covers 91.3%; nominal 99% interval covers 97.1% -> centre over-covered, tails under-covered (Kupiec-type test would reject the 99% band)
+```
+
+**Reading the example.**
+1. *Covariance sensitivity.* On the full sample the single devaluation day pushes both Ledoit–Wolf intensities to their cap (1.00 and 0.985); without that day they are 0.023 and 0.127. The "shrunk" minimum-variance portfolio is therefore just the target (equal weights for the identity target). With N = 3 the sample covariance is not ill-conditioned; what makes the weights unstable is the data regime — rolling 250-day weights have standard deviations of 25–30 points for the sample estimator and the constant-correlation target, and 6–16 points for the identity target, which is stable only because it is shrinking toward 1/N. On 60-day windows (a new user's reality) the identity-target estimator roughly halves the instability of the USD-equity and bond weights. Conclusion: shrinkage is worth having as a *risk input*; it does not make an optimiser trustworthy, and it must never see break days as ordinary observations.
+2. *Drawdown table.* The same NGN equity series has a −17.5% maximum drawdown in naira and −47.4% in dollars; the FGN bond, "safe" in naira, has a −40% dollar drawdown with no recovery in the sample. Base currency is part of the definition of every risk number.
+3. *Goal probability.* The point estimate (53.6% ± 0.8% Monte Carlo error) looks precise; resampling the five-year history gives a 10th–90th percentile band of 11%–94%, and shifting the assumed drift by ±2 points a year moves the answer by ±12 points. The standard error of the historical mean return is ±6.5 points a year. The honest product statement is a range, with the reason for its width.
+4. *Diagnostics.* HHI 0.333 (three effective positions) but only 1.64 effective bets and 53% of risk from NGN equity; currency exposure 67% NGN. These are the numbers a user can act on without any optimiser.
+5. *Performance.* A 50% deposit ten days into a losing quarter: TWR −6.27%, MWR −5.21%. Both are correct answers to different questions.
+6. *Sharpe and calibration.* A five-year daily Sharpe of 1.44 carries a one-sigma band of ±0.45. A Gaussian forecaster on t5 outcomes passes casual inspection but fails at the 99% band (97.1% coverage).
+
+### 4.10 Model-selection decision matrix and phasing (item G)
+
+Scores 1 (poor) – 5 (strong). Weights: validity 0.25, data requirements 0.20, stability 0.20, lay interpretability 0.15, compute 0.05, personal-MVP suitability 0.15. Scores are the department's expert judgement (E4) informed by the findings cited.
+
+| Model / module | Validity | Data req. | Stability | Interpretability | Compute | MVP suitability | Weighted | Phase |
+|---|---|---|---|---|---|---|---|---|
+| Exposure decomposition (asset × currency × issuer) | 5 | 5 | 5 | 5 | 5 | 5 | 5.00 | **1** |
+| Descriptive risk (vol, downside, drawdown, HHI, DR, risk contributions) with CIs | 5 | 4 | 4 | 4 | 5 | 5 | 4.45 | **1** |
+| Historical/hypothetical stress + reverse stress | 4 | 3 | 5 | 5 | 5 | 5 | 4.40 | **1** |
+| TWR + MWR performance ledger, currency decomposition | 5 | 4 | 5 | 4 | 5 | 5 | 4.65 | **1** |
+| Ledoit–Wolf covariance (+EWMA second estimate), break isolation | 5 | 3 | 4 | 2 | 5 | 4 | 3.95 | **1** (internal) |
+| Block-bootstrap goal engine with uncertainty bands + scenario overlays | 4 | 3 | 3 | 4 | 4 | 5 | 3.85 | **1** |
+| Calibration logging (PIT/coverage) | 5 | 2 | 5 | 3 | 5 | 4 | 4.00 | **1** |
+| Sharpe/Sortino/Calmar with Lo SE; deflated SR for research | 4 | 3 | 3 | 3 | 5 | 3 | 3.45 | 1 (display rules) |
+| Risk-budgeting / risk-parity *display* | 4 | 3 | 4 | 4 | 5 | 3 | 3.75 | 2 |
+| Constrained minimum-variance "alternative view" | 3 | 3 | 2 | 2 | 5 | 2 | 2.65 | 2 (gated) |
+| Black–Litterman view-expression tool | 3 | 2 | 2 | 3 | 5 | 2 | 2.60 | 2 (gated) |
+| CVaR optimisation | 4 | 1 | 2 | 3 | 4 | 1 | 2.45 | Not yet |
+| Student-t GARCH simulation (estimated) | 4 | 2 | 2 | 2 | 3 | 2 | 2.55 | 2 research |
+| Regime-switching simulation | 3 | 1 | 2 | 2 | 3 | 1 | 2.00 | Not yet |
+| DCC-GARCH | 2 | 1 | 1 | 1 | 2 | 1 | 1.35 | Not yet |
+| Mean–variance (unconstrained) | 2 | 1 | 1 | 1 | 5 | 1 | 1.40 | Not yet |
+| Resampled efficiency / robust MV | 2 | 1 | 3 | 1 | 3 | 1 | 1.75 | Not yet |
+| Hierarchical risk parity | 3 | 2 | 3 | 1 | 4 | 1 | 2.30 | Not yet |
+| Kelly / fractional Kelly | 2 | 1 | 1 | 2 | 5 | 1 | 1.60 | Do not build |
+
+### 4.11 Statements the product may and may not make
+
+| May say (with inputs, as-of date and base currency attached) | May not say |
+|---|---|
+| "Your portfolio's yearly swing over the last 3 years was about 18% in USD (range 15–22% allowing for estimation error)." | "Your expected return is 11.3%." |
+| "67% of your money and 53% of your risk is exposed to the naira." | "You should move 20% into US equities." |
+| "In the 2023 naira unification, a portfolio like this would have lost about 31% in USD terms." | "There is a 2% chance of losing more than 31%." (unless from a labelled, calibrated distribution) |
+| "To reach $150,000 in 5 years you need about 8.4% a year; mixes that have delivered this over rolling 5-year windows did so in n of m windows and carried drawdowns of up to x%." | "This goal is 54% likely." (point probability without a band) |
+| "The chance of reaching the goal is somewhere between roughly 10% and 90%; the range is wide because five years of data cannot pin down average returns." | "Our model forecasts…" |
+| "This Sharpe ratio is not statistically different from zero with the data available." | "Strong edge — scale position size." |
+| "Assumptions used: … (editable)." | Any figure without source, as-of date, unit and currency |
