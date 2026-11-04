@@ -15,3 +15,4 @@ All inputs are synthetic or are dated assumptions stated in the script header. R
 | `r09_unit_economics_sensitivity.py` | Review R09 recomputation and sensitivity of Document 9's unit economics |
 | `../behavioural/payday_sim.py` | Document 3 synthetic payday-spending worked example |
 | `contracts_checks.py` | CANONICAL_CONTRACTS.md C1–C7 worked examples: per-commodity postings, FX residual rule, currency pool and lots, figure-token validator, entry-time status check, confidence rule, FX decomposition and sign check, goal output, tax basis period and watermark |
+| `doc05c_revision_checks.py` | Document 5c v0.2: entry-time primary-source check on the repo's policy rates (R0, Example C), NGX cost 2×2 and sensitivities incl. non-display and VAT, commercial floor, founder validation workload, NGX corporate-action date sequencing, price-group stale-close check, read-time freshness, kobo/naira dividend normalisation |
