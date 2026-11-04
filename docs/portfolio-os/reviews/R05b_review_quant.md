@@ -112,3 +112,40 @@ The matrix decorates the decision rather than making it. **Fix:** correct the to
 - Excluding break days from Σ also produces a vol and VaR that ignore the largest observed risk. The spec must say which displayed figures use the break-excluded Σ and which include breaks.
 
 **M10 — Five prototype defects the document misses (see §2a).** These matter because the "rebuild" tests in §9 should cover them.
+
+### 2a. Prototype defect audit (source re-read; `prototype_checks.py` re-run under `python3 -I`, output identical to Appendix A)
+
+| Defect | Status | Code evidence |
+|---|---|---|
+| D1 Math.random | Confirmed | MonteCarloPanel.tsx 51–52, 67 |
+| D2 unscaled t5 | Confirmed | 57–62 return z/√(χ²/5) without √(3/5); applied at 95, 100; variance 1.665 ≈ 5/3, 60% → 77.5% |
+| D3 hardcoded GARCH, "fat tails" | Confirmed | 113; note at 554; excess kurtosis 0.30 equals the closed form 3(1−0.93²)/(1−0.93²−2·0.08²) − 3 = 0.31 |
+| D5 drift conventions | Confirmed | 100 (μ−½σ²), 123 (μ), 140, 171 |
+| D6 μ = 0.05 | Confirmed | 306 |
+| D7 "Sharpe" | Confirmed | 229 |
+| D8 "Max DD" | Confirmed, with a nuance | 241–242 use P25 and P5, but the comment at 239 says "1 − P5/P50 and 1 − P1/P50": the code and its own comment disagree |
+| D9 barrier ignored | Confirmed | 218–223 terminal only; 103 `void`; ×1.75 under-count at 63 d reproduced |
+| D10 Cholesky asset 2 | Confirmed | 322–323 keep only `finals1` |
+| D11, D12, D13, D14, D18 | Confirmed | 139/555; 140; 159–161; 40–45/292–296; 510 |
+| D15 quantile indexing | Confirmed, but mis-scoped | `sorted[floor(N·p)]` is off by one at *every* p, not only the lower tail |
+| D21 drawdown | Confirmed, and worse than stated | PerformancePanel 50–63: because `peak` starts at 0, a run of only losses ([−100, −200]) reports **0%** drawdown |
+| D22 √252 on trade returns | Confirmed | 42–48, 90–93; Lo SE 0.22 × √252 = 3.49 > 2.34 |
+| D23 sizing advice | Confirmed | 313–328; also `profitFactor = Infinity` with no losers (100) satisfies the "Scale position size" branch |
+
+**New defects.**
+- N1: entering ρ = 0 silently becomes 0.65 (`parseFloat(corrRho) || 0.65`, 305), while the note at 557 displays 0.00. Vol 0 becomes 0.6 (293).
+- N2: |ρ| > 1 is accepted. `cholesky2x2` clamps l22 to 0 (77) and produces an invalid correlation without warning.
+- N3: the regime multiplier is on by default (285), so the user's σ is altered unless they opt out. In "crisis", with t5, 60% is simulated as 116%.
+- N4: Student-t is available only for GBM (468), yet the label claims "fat tails" for GARCH.
+- N5: the all-loss zero-drawdown case under D21 above.
+
+D4, D16, D17, D19 and D20 are as described. Their severity is reasonable.
+
+### Minor
+
+- m1. Raffinot [S43] is noted "online 2016". Crossref gives online 2017-12-22 and print 2018.
+- m2. `thin_trading_demo.py` line 25 prints "Daily observed vol is biased down", which contradicts its own output (0.303 → 0.313). The document's prose caveat is correct; the script is not.
+- m3. Plain-language copy "cannot tell us the average return to within ±6 points" gives a 1-SE (68%) range to a lay reader. Say "±13 points (95%)" or use a frequency format.
+- m4. "NAFEM" (§4.6, Disagreement 3) versus "NFEM" in Docs 5a and 5c. Use the current CBN name.
+- m5. `ew = R.mean(axis=1)` averages log returns. On the jump day that is −0.248 against −0.231 for the true rebalanced portfolio. This is disclosed but should be fixed in a golden generator.
+- m6. Dimson recovery matches theory: 1 − p^(k+1) = 0.9375 at p = 0.5, k = 3. This is a good check and should become a unit test.

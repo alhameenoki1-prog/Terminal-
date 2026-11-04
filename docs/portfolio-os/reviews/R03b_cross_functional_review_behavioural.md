@@ -85,3 +85,49 @@ The literature review is careful, well sourced and suitably modest. Every number
 - **m3 · Banned-vocabulary lists do not overlap.** Doc 3 forbids "always", "habit", "you tend to", "because you are", "irrational", "overconfident", "present-biased", money-type labels and "leakage". Doc 8's lint list (§4.7) contains none of these. Doc 3 should supply them to the lint list.
 - **m4 · F21.** Doc 6 F21 has since read the gazetted Ninth Schedule item 48 and s.184(i): ₦50 paid by the transferor; transfers under ₦10,000, salary payments and intra-bank self-transfers exempt. Doc 3 can upgrade this to E2 and drop "Tax dept to confirm". The ₦60 CBN item stays unverified.
 - **m5 · §4.3 gates.** "≥6 cycles for ≥1.3×" is hard-coded from the σ = 0.45 simulation but is not labelled E5. Mark it, and make the gate depend on the observed noise (as §9.3 already intends).
+
+### 2a. Decision map for every L0–L2 measure (planner and operator)
+
+| Measure (Doc 3 §4.2) | Concrete decision it improves | Verdict |
+|---|---|---|
+| Recurring-charge audit | Cancel or keep each subscription | **Actionable**; keep (value in ₦/AED per year still unmeasured for this founder) |
+| Fee, levy and FX-spread drag | Account choice, batching, conversion channel | **Actionable**; keep; add official–parallel spread cost |
+| Liquidity buffer by currency | Size and currency of the emergency reserve | **Actionable**; keep; "essential spending" must be user-confirmed |
+| Concentration and currency exposure | Rebalancing; currency mix against liabilities | **Actionable** but **owned by System D** (Doc 8 §4.5.7 already specifies it); Doc 3 should only cross-reference |
+| Family and obligation account | Setting a planned share; keeping cash for it | **Actionable** as a budget line; privacy-sensitive (M5) |
+| FX share within 7 days | Conversion policy | Actionable only with spread and tax (M4) |
+| Income-arrival ratio and payday cycle | None directly; only via end-of-cycle shortfall cost | **Interesting, not actionable** unless linked to fees, borrowing or missed contributions (M1) |
+| Mental-budget deviation | Budget setting | Actionable only if the user sets envelopes, which adds work; *Later* |
+| Disposition PGR−PLR | Sell or hold | Actionable version is a **tax-lot view**, which needs no psychology. Under Doc 6 F13, NGX share gains below ₦150 m proceeds and ₦10 m gain are exempt, so harvesting losses on Nigerian shares usually has no value. It matters for foreign shares taxed at personal rates |
+| Turnover and trading cost | Trading frequency | Actionable if the founder trades actively (unknown); report costs in currency |
+| Attention-driven buying, rank effect | Weak ("why now" prompt) | **Not actionable**; remove from MVP |
+| Ostrich login elasticity | None | **Not actionable**; conflicts with Doc 8 telemetry promise; remove |
+| SOEP risk item | Benchmark for portfolio structure | Weak alone; risk-capacity facts (Doc 8 §4.3.4) and goals dominate; keep one item, asked just in time |
+| CFPB well-being | Outcome only | Annual 5-item short form; not an intervention outcome (M3) |
+| Big Three literacy, fragility item | None for this founder | Remove for the personal MVP |
+
+### 2b. What can be removed without losing value (operator)
+- Duplicate inference engines. The payday ratio has a bootstrap interval, a circular-shift test, HAC regression, a Bayesian ROPE posterior *and* an SPC chart. Keep one estimator with an interval (circular-shift, as validated above) and the cycle-by-cycle table.
+- Benjamini–Hochberg control "across 15 constructs". Most rows are L0 arithmetic, not tests; apply it only to the two to four tested constructs.
+- Rows to drop for the MVP: ostrich, rank effect and attention-buying; the Holt–Laury, BIS-11, DOSPERT, Grable–Lytton, PtP and CFC instrument rows. Their analysis can stay in §3 as literature.
+- The ABAB machinery: pre-registration records, randomised pairs and harm-stopping rules (M2).
+- Concentration rows that duplicate System D.
+
+What remains is the claims ladder, the prohibited-output list, the transfer and obligation separation, recurring charges, fees and spreads, the buffer, and one guarded payday decomposition. That is perhaps 30% of the specified surface, and in our judgement (E4) nearly all of the decision value.
+
+## 3. Evidence-grade audit
+
+| Location | As graded | Problem | Proposed grade |
+|---|---|---|---|
+| F25 Fisher et al. + Molenaar | E1 | One study (six datasets) plus a conceptual manifesto; the brief defines E1 as replicated or meta-analytic | E2 (Fisher); E3 (Molenaar) |
+| F26 reminders (Karlan et al., three banks) | E1 | One peer-reviewed paper | E2 |
+| F27 DellaVigna & Linos | E1 | One study, though very large (126 RCTs) | E2 by the brief's definition; still the best point estimate |
+| §4.8 questionnaires (SOEP, CFPB, Big Three) | E1 | CFPB development is one official report (Doc 3 itself grades S119 E2); no Nigeria/UAE norms; no test–retest in the technical report | E2 psychometrics; E6 for use with this founder |
+| §8 Rec 2 | "E1–E2" | F21 is E3; F14 is E2 US data | E2–E3; E6 for founder value |
+| F17 "minimum-variance … not present bias" | stated as fact | Depends on liability currency; S101 is a macro portfolio model | E4 |
+| F13 → Rec 3 "E1 field support" | E1 | E1 for US and Iceland panels; transfer to a Nigeria–UAE salaried founder untested (R5 concedes) | E1 phenomenon; E6 applicability |
+| §4.3 minimum-sample gates | ungraded | Derived from one noise assumption | E5 |
+| F28 implementation intentions d ≈ 0.65; F26 SMarT 3.5%→13.6% | flagged as recalled | Correctly flagged; I also could not retrieve either abstract (OpenAlex has no abstract for S148 and a truncated one for S140; Semantic Scholar returned HTTP 429) | Remain unverified |
+| S104 NFEM rate | "search result only" | Page re-fetched and matches (₦1,346.91 on 29 Oct 2026) | Upgrade status to verified (E3) |
+
+Claims presented as fact without a source: "Bank-data studies find a similar after-income pattern in most people" (§4.5 Step 7); "Ramadan/Eid timing shifts ~11 days a year" (true astronomically, but unsourced); "school fees in January/May/September" (a Nigerian calendar assumption; founder to confirm).

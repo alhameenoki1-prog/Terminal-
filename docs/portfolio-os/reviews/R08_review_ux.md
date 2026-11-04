@@ -137,7 +137,7 @@ Academic references, re-verified on 2026-11-04 by Crossref DOI lookup (title, au
 | Doc 8 # | Reference | Result |
 |---|---|---|
 | S8 | Lee & See 2004, *Human Factors* | Verified |
-| S10 | Zhang, Liao & Bellamy 2020, FAT* | Verified. Abstract supports "calibrates trust … not sufficient to improve" accuracy |
+| S10 | Zhang, Liao & Bellamy 2020, FAT* | Verified. (abstract supports claim) |
 | S11 | Bansal et al. 2021, CHI | Verified |
 | S12 | Buçinca, Malaya & Gajos 2021, PACM HCI | Verified |
 | S22 | van der Bles et al. 2020, PNAS (n = 5,780) | Verified. Claim slightly overstated (§3) |
@@ -198,18 +198,18 @@ Doc 8 §2 says the sibling documents "did not exist". The file was edited on 202
 
 ## 7. Required changes before Investment Committee (priority order)
 
-1. Adopt Doc 3's claims ladder, sentence templates and intervention protocol on the insight card. Remove "trait" and the two-month before/after test. Make Component B template- and token-only (B1).
-2. Replace the FX worked example with Doc 4's method, correct the sign of the Overview FX effect, and add the conversion-cost line (B2).
-3. Map Doc 8's visual states one-to-one onto Doc 5c's state machine and Doc 4's confidence bands. Stop computing ranges from disputed inputs. Reassign the amber colour (B3).
-4. Specify graded low-precision fallbacks. Replace "≥ 90 % accepted" with measured precision and recall plus review-minutes per batch. Sort the queue by materiality × uncertainty (M1).
-5. Replace §4.3.4's tax rows with Doc 6's yearly questionnaire and indicative/audited modes. Put tax chips on transaction kind (M2, M3).
-6. Add Liabilities, Pensions, FX and costs, budget views, forecast scenarios, the risk questionnaire and the market-data validator queue to the IA (M3).
-7. Remove the bare Overview goal count. Align the count to dotplot resolution. Add a parameter-uncertainty display. Fix Journey 3 (M5).
-8. Fix contrast failures, character-key shortcuts, timeout, accessible names and the minus sign. Draw phone-width wireframes for the ledger, queue and goal view (M4).
-9. Rewrite directive copy and expand the banned list (M6).
-10. Make offline and performance claims conditional on a Doc 7 decision. Re-base the JS budget (M7).
-11. Fix the validation-plan design issues: synthetic data, independent facilitator, carry-over, Phase 2 counts, telemetry scope with Doc 3 (M8).
-12. Correct the minor date, name and reproducibility items and commit the worked-example scripts (m1–m10).
+1. Bring the insight card and Component B into line with Doc 3 (B1).
+2. Adopt Doc 4's FX method and fix the Overview sign (B2).
+3. Adopt a single state machine and a single confidence scale with Docs 4 and 5c (B3).
+4. Specify graded low-precision fallbacks, measured by precision and recall rather than acceptance (M1).
+5. Adopt Doc 6's questionnaire and its indicative/audited modes (M2).
+6. Fill the IA gaps and put tax chips on transaction kind (M3).
+7. Fix the uncertainty displays: no bare Overview count, dot resolution, parameter uncertainty, Journey 3 (M5).
+8. Fix the accessibility defects and draw phone-width wireframes (M4).
+9. Rewrite directive copy and expand the banned-word lint (M6).
+10. Condition offline and performance claims on Doc 7 (M7).
+11. Fix the validation-plan design (M8).
+12. Fix the minor items and commit the worked-example scripts (m1–m10).
 
 ## 8. What this reviewer could not check
 
