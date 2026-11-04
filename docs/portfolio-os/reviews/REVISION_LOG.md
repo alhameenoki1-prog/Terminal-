@@ -51,6 +51,7 @@ Each row is resolved by the owning department in the revision pass and closed wi
 | V-044 | Docs 6, 7, 8, 9 | Major items: prompt injection via ₦1 narrations, quote handles, review-queue flooding, fabricated balanced pairs; Fava has no authentication; ZDR requires a sales agreement that may end the household exemption; NDPA profiling undefined; NDPA s.43 consent contradicts Docs 6 and 9; third-party data in ledger; controls needing a second person; escrow paper unprotected; ≈ 3 h/week recurring operations | RT-B | Accepted | Open — Doc 10 / IC |
 | V-045 | Doc 5a Example 3 | Monitor and tax-refusal handling in Example 3 not yet conformed to C7 v0.2 (monitor class, SANDBOX label); outside the sections listed for conformance | Contract-conformance editor | Accepted; minor | Open — before Stage 4 sign-off |
 | V-046 | Docs 4, 5c | No CBN NFEM snapshot stored; press-sourced rate figures (S29, S104) labelled as press figures rather than replaced by the primary series | Contract-conformance editor | Accepted; the M-1 FX importer replaces them with the stored primary series | Open — M-1 |
+| V-047 | Doc 8 | Review-queue sizing still assumes 30 confirmations (C4 v0.2: 35, CC-8); investing-costs sub-line (CC-7) not added | Contract-conformance editor | Accepted; minor | Open — before Stage 4 sign-off |
 
 ## Contract errata raised during revision (owner: Canonical Contracts)
 
