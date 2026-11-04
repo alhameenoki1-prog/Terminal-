@@ -50,7 +50,7 @@ Evidence grades follow the brief (E1–E6). Source numbers refer to §10. "Check
 
 **F1. Nigerian and UAE listed companies report under IFRS, but the UAE evidence is dated.** Nigeria requires IFRS Accounting Standards for all companies whose securities trade in a public market, effective January 2012, under the Financial Reporting Council of Nigeria Act 2011 [S14]. For the UAE, the IFRS Foundation profile records that the Commercial Companies Law No 2 of 2015 requires "international accounting standards", that ADX and Nasdaq Dubai listing rules require IFRS, and that DFM-listed companies use IFRS in practice while some Islamic financial institutions used AAOIFI standards; the profile is internally inconsistent on whether DFM *requires* IFRS and was last updated 16 June 2016 [S15]. Grade: E2 for Nigeria; E3 for the UAE. The UAE rule must be re-checked against the Capital Market Authority (CMA). Federal Decree-Laws 32 and 33 of 2025 made the CMA the legal successor to the SCA from 1 January 2026, and SCA resolutions stay in force until replaced, to the extent they do not conflict [S54; Doc 6 F36] (Doc 5c). Implication: one IFRS-based statement model serves all three markets, but the UAE data layer must tolerate AAOIFI-format statements for some Islamic banks.
 
-**F2. NGX trading hours changed on 27 April 2026 to 09:00–16:00 WAT**, approved by SEC Nigeria; the prior window closed at 14:30 [S1, S2]. The NGX market-structure page shows pre-open at 09:00, continuous trading from 09:30, pre-close from 15:50 and close at 16:00, with a "+/-10%" price limit in the session table [S1]. Grade: E2 for the hours. **v0.2 regrade:** R05a's re-fetch found "+/-10%" only on the **pre-open** row, so it is not established as the daily limit for continuous trading. The 2018 interpretative guidance describes a ±5% limit around the reference price under the session structure of that time [S3]. The band is therefore **E3, unconfirmed or ambiguous**. The registry row stays `candidate` until the rulebook is read (§9).
+**F2. NGX trading hours changed on 27 April 2026 to 09:00–16:00 WAT**, approved by SEC Nigeria; the prior window closed at 14:30 [S1, S2]. The NGX market-structure page shows pre-open at 09:00, continuous trading from 09:30, pre-close from 15:50 and close at 16:00, with a "+/-10%" price limit in the session table [S1]. Grade: E2 for the hours. **v0.2 regrade:** R05a's re-fetch found "+/-10%" only on the **pre-open** row, so it is not established as the daily limit for continuous trading. The 2018 interpretative guidance describes a ±5% limit around the reference price under the session structure of that time [S3]. The band is therefore **E3, unconfirmed or ambiguous**. The registry row stays `candidate` until the rulebook is read (§9). Docs 5b and 5c hold the same status: a move to the ±10% level is a review item, not a confirmed limit day, until Doc 5c confirms the rule (Doc 5c §4.3.5; consistency pass, I4).
 
 **F3. NGX pricing methodology: three price groups with volume thresholds and tick sizes, and a 2026 revision approved but postponed.** The rule effective 29 January 2018 (SEC approval 14 March 2017) classifies equities as Group A (≥ N100: 10,000 units to move the price, tick N0.10), Group B (N5 to < N100: 50,000 units, tick N0.05) and Group C (< N5: 100,000 units, tick N0.01), with reclassification after four of the last six months in a band [S3, S4]. In June 2026 SEC approved revised bands (Group A ≥ N1,000; B N500–999.99; C < N500) with the same unit thresholds and ticks; implementation set for 17 August 2026 was postponed without a new date, and the exchange said the existing N100/N5 bands remain in force [S35, S36, S37]. Press reports conflict on whether a uniform 100,000-unit rule was in force at any point in 2024–2026 [S37, S38]. Grade: E2 for the 2018 rule; E3 for the 2026 status. The tick sizes are **partly confirmed**: S35 gives these ticks for the revised bands only, and the 2018 PDFs were not re-downloaded in v0.2 (per R05a). Implication: a published NGX price can lag economic value because small trades do not move it; the registry must store the rule *with its effective date*.
 
@@ -308,7 +308,7 @@ The analyst layer reads rules from the registry, never from code constants. Init
 | Market | Rule | Value | Effective | Source | Confidence |
 |---|---|---|---|---|---|
 | NGX | Trading hours | 09:00–16:00 WAT (pre-open 09:00; continuous 09:30; close 16:00) | 2026-04-27 | S1, S2 | E2 |
-| NGX | Price limit (equities) | ±10% shown on the **pre-open** row only; continuous-session daily limit unconfirmed | current page | S1 (per R05a) | E3, `candidate` (2018 guidance showed ±5%; rulebook to confirm) |
+| NGX | Price limit (equities) | ±10% shown on the **pre-open** row only; continuous-session daily limit unconfirmed | current page | S1 (per R05a) | E3, `candidate` (2018 guidance showed ±5%; rulebook to confirm; same status in Docs 5b §4.6 and 5c §4.3.5) |
 | NGX | Price groups / volume to move price / tick | A ≥ N100: 10,000 / N0.10; B N5–<N100: 50,000 / N0.05; C < N5: 100,000 / N0.01 | 2018-01-29 (2026 revision approved, postponed) | S3, S4, S35 | E2 (2026 status E3; ticks partly confirmed) |
 | NGX | Settlement | T+1 (earlier T+2 date unconfirmed) | 2026-06-01 | S9 | E2 |
 | NGX | Free float | 20% & ≥300 holders, or N20bn (Main) / N40bn (Premium) | 2019-05-06 | S5 | E2 |
@@ -417,6 +417,8 @@ The institutional analogue of "individual financial circumstances" is the invest
 6. *Tax and access.* Instruments the user cannot legally buy are excluded. Tax treatment runs in provisional mode as above.
 7. *Shari'a preference (if stated).* The DFM classification list or the stated screen is applied as a hard filter.
 
+**Output values (consistency pass, I7).** Each rule returns `pass`, `exclude` or `flag` for an instrument against a goal or bucket, with a reason code. Exclusions come from rules 1a, 2 (free float, liquidity share), 4, 5, 6 and 7. Rule 1b, the "price stale by rule" marker and rule 3's caps produce flags, as in Example 3. Doc 5b consumes the three values as set out in 5b §4.1. The result is never collapsed to yes/no, because that would turn flags into exclusions (R05a M6e).
+
 Every rule result carries `advice_sensitive: true` and names the regulatory trigger that would apply if the output were offered to another person (Doc 6 F35, SEC Nigeria robo-advisory rules; F36, UAE CMA "financial advisory"). Worked example 3 (§4.11) shows the filter for a synthetic household using that household's own parameters.
 
 ### 4.10 Research-quality and data-quality framework
@@ -438,6 +440,8 @@ The v0.1 V0–V3 scale is retired using the C3.7 mapping:
 | V2 two sources reconciled | `auto_validated` + `two_independent` |
 | V3 reconciled to filing page | `validated` with primary-document evidence |
 
+`two_independent` cannot be reached for NGX prices or NGX-relayed dividends. CSCS, Kobo and Mansa copy NGX, and the NGX dividends endpoint relays the issuer's notice (Doc 5c §4.3.3, F27). These fields are therefore `same_upstream` (or `single_source`). They reach the conclusion tier only through V = `validated` or the C3.3 single-source protocol: internal-consistency checks and plausibility bands pass, and a 1-in-20 human sample plus every band break finds no error (Doc 5c §4.3.3).
+
 **Inputs that must be eligible for a conclusion-driving calculation (C3.4) before any conclusion:**
 - last price and its trade date;
 - shares outstanding, period-end and period-weighted, with bonus and rights adjustments;
@@ -456,6 +460,8 @@ A single-source input, such as a country-risk edition, qualifies only through th
 - *Fundamentals* should be judged against the filing calendar, not fixed day counts: `ageing` once the next filing is due under the registry's filing-deadline rule, and `stale` once it is overdue or a newer period has been published.
 - A *country-risk edition* is `fresh` for up to 7 months.
 - *Market events* also downgrade freshness: a price unchanged while the index moved, a newer filing announced on the exchange, or an MPR unchanged across a scheduled MPC.
+
+Doc 5c v0.2 adopted the filing-calendar rule, with fallback day counts while no deadline is registered, and the consistency pass added the country-risk row (Doc 5c §4.3.2). The script's `fresh_5c()` implements that table (V-031). Doc 5c governs data status; C3 governs the vocabulary.
 
 **Note status is computed, never typed.** It is `invalidated` if any trigger has fired. Otherwise it is the worst F among the note's conclusion-driving inputs (`current` when that worst F is `fresh`). Display follows C3.4: a stale figure is shown with its badge and is excluded from conclusion-driving calculations, and a derived figure inherits the worst F and the minimum V of its inputs.
 
@@ -509,7 +515,7 @@ Every figure below is printed by `research/scripts/doc05a_worked_examples.py` (`
 #### Example 1 — Research note for hypothetical NGX "Bank X" (rebuilt in v0.2)
 
 **Why it was rebuilt.** The v0.1 note failed its own gates (R05a B1, B2). The script reproduces each failure:
-- its FY2025 inputs were 308 days old and its H1-2026 inputs 127 days old. Both were "stale" under the v0.1 freshness table, yet the header said "current". Under the canonical Doc 5c table they would be "ageing" and "fresh" respectively;
+- its FY2025 inputs were 308 days old and its H1-2026 inputs 127 days old. Both were "stale" under the v0.1 freshness table, yet the header said "current". Both are also "stale" under Doc 5c v0.2's fallback rules (annual stale after 270 days; interim stale after 120). The earlier claim that they would be "ageing" and "fresh" under Doc 5c used 5c's withdrawn v0.1 thresholds and is withdrawn (V-031);
 - it carried a V1 row under an "all inputs V2+" header;
 - it mixed period ends (2025-12-31 and 2026-06-30), so the period-alignment test Q1 fails;
 - "27.5% of PBT" was 110/400, a pre-tax gain over profit after tax;
@@ -531,12 +537,12 @@ Every figure below is printed by `research/scripts/doc05a_worked_examples.py` (`
 
 | Field | Value | Unit | Period / as-of | Source ref | Status (C3) |
 |---|---|---|---|---|---|
-| Last price | 60.00 | NGN/share | close 2026-11-03 | Exchange daily list and CSCS daily list (synthetic) | `validated`, `two_independent` |
+| Last price | 60.00 | NGN/share | close 2026-11-03 | Exchange daily list (synthetic); the CSCS daily list is a copy-fidelity comparator only, because CSCS copies NGX | `validated`, `same_upstream`. Single source in effect: eligible via the C3.3 protocol (Doc 5c §4.3.3) |
 | Shares: period-end / TTM weighted | 30.0 / 30.0 | bn | 2026-09-30 / TTM | Q3 note 24. Rights issue completed June 2025, **before** the TTM window, so there is no share change in the window | `validated` |
 | PBT / tax / PAT | 600 / 180 / 420 | NGN bn | TTM to 2026-09-30 | Derived: FY2025 + 9M-2026 − 9M-2025 (formula stored) | `validated` (derived; minimum V of inputs) |
 | FX revaluation gains (pre-tax); tax attributed in tax note | 150; 30% | NGN bn; % | TTM | Q3 note 9; tax note | `validated` |
 | Equity, opening / closing | 1,450 / 1,650 | NGN bn | 2025-09-30 / 2026-09-30 | Interim statements of financial position | `validated` |
-| DPS (TTM) | 4.00 | NGN | FY2025 final 3.00 (closure of register 2026-03-20, paid 2026-04-10) + 2026 interim 1.00 (paid 2026-10-15) | Exchange corporate-action releases | `auto_validated`, `two_independent` |
+| DPS (TTM) | 4.00 | NGN | FY2025 final 3.00 (closure of register 2026-03-20, paid 2026-04-10) + 2026 interim 1.00 (paid 2026-10-15) | Issuer notices; the exchange corporate-action releases relay them | `auto_validated`, `same_upstream`. Conclusion-eligible only while the C3.3 sampling rule holds |
 | Gross loans / Stage 3 / Stage 3 ECL | 3,000 / 150 / 120 | NGN bn | 2026-09-30 | Q3 note 18 (IFRS 9 staging) | `validated` |
 | Prudential NPL ratio (CBN definition) | 4.6% | % | 2026-09-30 | Pillar 3 table | `validated` |
 | CET1 / Tier 1 / CAR / leverage | 17.5 / 18.0 / 22.0 / 7.5 | % | 2026-09-30 | Pillar 3 | `validated` |
@@ -545,7 +551,7 @@ Every figure below is printed by `research/scripts/doc05a_worked_examples.py` (`
 | Composite Risk Rating † | not published | — | — | — | not available: payout cap shown for every value |
 | Forbearance status † | none disclosed | — | 2026-09-30 | Annual report, CBN releases | `candidate` (absence of disclosure is not evidence) |
 | Qualifying capital vs threshold † | 520 vs 500 | NGN bn | 2026-09-30 | Note 30; threshold from press [S32] | `candidate` (threshold lacks a primary snapshot, C3.5) |
-| MPR | 23.0% | % | 2026-09-22 | CBN MPC page [S10] | `validated` (C3.5 snapshot) |
+| MPR | 23.0% | % | 2026-09-22 | CBN MPC page [S10] | `auto_validated`, `single_source` (C3.5 snapshot passed; one registry record with Doc 5c §4.3.1) |
 | Country risk, rating / CDS basis | 12.24% / 9.27% total ERP | % (USD) | edition 2026-07-01; CDS 2026-06-30 | [S27] | `auto_validated`, `single_source`; sampling rule met by internal-consistency checks (spread × 1.5545 = CRP; 4.20% + CRP = total ERP; both pass) |
 | FGN 10-year; US 10-year; inflation scenarios | 18.0%; 4.42%; NGN 12 / 15 / 18%, USD 2.5% | % | — | Labelled synthetic assumption set | assumption (M = `estimated`) |
 
@@ -616,7 +622,7 @@ Every implied payout in the table is below Bank X's distributable cap in the Low
 
 **Header.**
 - Company Y Inc. (synthetic) · note type: update · as-of 2026-11-04.
-- Basis: TTM to 2026-09-30, from the FY2025 10-K and the Q3-2026 10-Q (synthetic). In v0.1 the FY2025 10-K stood alone; it would be "ageing" under the canonical Doc 5c table, and a newer period exists (R05a m4).
+- Basis: TTM to 2026-09-30, from the FY2025 10-K and the Q3-2026 10-Q (synthetic). In v0.1 the FY2025 10-K stood alone. At 308 days it is "stale" under Doc 5c v0.2's annual fallback (more than 270 days), and a newer period exists (R05a m4; corrected from "ageing", V-031).
 - Data: SEC EDGAR companyfacts JSON for the synthetic CIK, fields `us-gaap:NetCashProvidedByUsedInOperatingActivities`, `us-gaap:PaymentsToAcquirePropertyPlantAndEquipment` and `dei:EntityCommonStockSharesOutstanding`, each stored with `accn`, `fy`, `fp`, `form` and `filed` [S19].
 - Status (computed): current. API facts reconciled to the filing page, so `validated`. `advice_sensitive: true`.
 
@@ -666,6 +672,7 @@ Every implied payout in the table is below Bank X's distributable cap in the Low
 Rent alone is 72.4% of net income at the synthetic rate. In the earmarked case, rent plus required saving is 104–110% of net income, so the goal is **not feasible on current income** unless income rises, the date moves or the amount falls. If every liquid asset is counted, rent plus saving is 88–97% of income. That leaves 3–12% for all other spending and empties the safety and rent buckets. Moving the return assumption from 0% to 6% changes the required saving by 16.6%. The starting balance and income are the larger levers. This is arithmetic, not a forecast. v0.1 counted only USD 15,000 and did not say so (R05a m3).
 
 **Step 3 — research-coverage list (information only).** Starting universe: about 150 NGX equities, about 130 DFM/ADX equities, several thousand US instruments.
+- DFM/ADX equities get **exposure only** in the MVP. Doc 5c licenses no DFM data, and ADX Starter has no price history (5c §4.6). Rule 5 therefore excludes them from valuation, and Doc 5b computes no risk or goal analytics for them (5b §4.1). A UAE holding is valued from its custodian or broker statement (consistency pass, I6).
 - After the liquidity and free-float checks (rule 2): about 40 NGX names.
 - After the data-quality gate (rule 5): about 25.
 - Of these, about 7 are banks. They stay in coverage with the flag "employer sector: the user's 25% sector cap may bind once human-capital exposure is counted". v0.1 excluded them by a house rule ("bank stocks beyond 0%"), which is withdrawn.
@@ -902,7 +909,7 @@ v0.1 checked these against OpenAlex by DOI with the hosted reference-lookup tool
 
 | Finding (R05a numbering) | Revision-log ID | Action | Where | Note |
 |---|---|---|---|---|
-| B1 Example 1 fails its own freshness and validation gates; mixed periods; "post-recapitalisation" vs share count; qualifying-capital threshold from press | V-014 | Fixed | §4.10 (computed status, Q1, Q2), §4.11 Ex. 1 | Rebuilt on TTM to 2026-09-30. Rights issue placed before the TTM window. Qualifying-capital line is `candidate` and excluded from conclusions. Under the now-canonical Doc 5c thresholds the v0.1 FY2025 inputs would be "ageing", not "stale"; the fix stands either way |
+| B1 Example 1 fails its own freshness and validation gates; mixed periods; "post-recapitalisation" vs share count; qualifying-capital threshold from press | V-014 | Fixed | §4.10 (computed status, Q1, Q2), §4.11 Ex. 1 | Rebuilt on TTM to 2026-09-30. Rights issue placed before the TTM window. Qualifying-capital line is `candidate` and excluded from conclusions. Under Doc 5c v0.2 thresholds both v0.1 inputs are also "stale", so B1 stands in full (corrected in the consistency pass, V-031) |
 | B2 FX gains "27.5% of PBT" were a share of PAT; invalidation (5) inherits the confusion | V-014 | Fixed | §4.3 earnings mix, Ex. 1 | 25.0% of PBT pre-tax/pre-tax; after-tax share of PAT shown separately; trigger (5) is pre-tax over pre-tax |
 | B2 normalised ROE nets a pre-tax gain off post-tax profit | V-014 | Fixed (method differs from reviewer's) | §4.3 rule 1, Q3, Ex. 1, §7 | The tax-note attribution is used, not a fixed 30%. Untaxed variant shown (20.3% / 17.4%). Disagreement recorded in §7 |
 | B2 growth inconsistent with payout across P/B and DDM rows | V-014 | Fixed | Q4(a)–(c), Ex. 1 | Implied payouts shown per cell; disclosure line; DDM cells flagged where g exceeds sustainable growth at normalised ROE |
@@ -967,16 +974,17 @@ v0.1 checked these against OpenAlex by DOI with the hosted reference-lookup tool
 | IC Q8 which outputs become advice | — | Fixed (flags); review deferred | §4.9, §4.10 | Owner **Legal/Compliance** |
 | IC Q9 recapitalisation outcome; banks under forbearance | — | Deferred | §7 (13), §9 item 3 | Owner **Doc 5c** (data); not found in this pass |
 | IC Q10 ±10% band daily or pre-open | — | Deferred | F2, §9 item 1 | Owner **Doc 5c** |
+| Consistency pass, 2026-11-04 (Doc 5 §9.2 I1–I7) | V-031, V-032, V-033 | Fixed; version stays 0.2 | Script `fresh_5c()`; F2; §4.5; §4.9; §4.10; Ex. 1–3; this section | `fresh_5c()` now uses Doc 5c v0.2 thresholds. The v0.1 inputs (308 and 127 days old) are `stale`, and Example 1's computed status is unchanged (`fresh`). NGX price and dividend relabelled `same_upstream` and tied to the single-source protocol. MPR set to Doc 5c's `auto_validated`, `single_source` record. ±10% band `candidate` in step with 5b and 5c. Ternary admissibility stated. DFM/ADX equities are exposure-only in the MVP. B1-grading dissent and contract observation 1 withdrawn. Script re-run under `python3 -I` |
 
-**Counts.** 65 rows: 50 Fixed (one with a method that differs from the reviewer's, one by withdrawing the claim); 7 Fixed with a residual item deferred to a named owner; 1 Fixed in part and Rejected in part (m2); 7 Deferred with an owner. No finding was dropped.
+**Counts.** 65 review rows, not counting the consistency-pass row: 50 Fixed (one with a method that differs from the reviewer's, one by withdrawing the claim); 7 Fixed with a residual item deferred to a named owner; 1 Fixed in part and Rejected in part (m2); 7 Deferred with an owner. No finding was dropped.
 
 **Disagreements with the reviewer (preserved).**
 1. *Normalisation tax rate (B2).* The reviewer tax-effects the FX gain at 30%. The department uses the tax note's attribution and shows the untaxed variant. A fixed statutory rate can be wrong in either direction: unrealised revaluation gains may be untaxed, and realised gains may bear the windfall levy (§7).
 2. *m2.* 27.50% was correct from February to July 2025, so the hard-coded value was not wrong "already in 2025" before 23 September.
-3. *B1 grading.* B1 is correct under the v0.1 table. Under the contract-mandated Doc 5c thresholds, however, the FY2025 inputs would be "ageing", not "stale". That is why we propose filing-calendar freshness for fundamentals.
+3. *B1 grading (withdrawn in the 2026-11-04 consistency pass).* This dissent rested on Doc 5c's withdrawn v0.1 table. Under Doc 5c v0.2 the FY2025 and H1-2026 inputs are both `stale`, so R05a's B1 stands in full (V-031).
 
 **Observations on the contracts (no departure; raised for the contract owners).**
-1. *C3, freshness thresholds.* C3 delegates the thresholds to Doc 5c §4.3.2. There, annual fundamentals are "fresh" up to 300 days, which is too lax for NGX filing deadlines (R05c M8 agrees). This document follows C3 and proposes filing-calendar thresholds to Doc 5c (§4.10).
+1. *C3, freshness thresholds (withdrawn in the 2026-11-04 consistency pass).* It cited 5c's v0.1 "fresh up to 300 days" rule, which Doc 5c v0.2 had already withdrawn in favour of the filing calendar (5c §4.3.2). Nothing remains to raise.
 2. *C3.3, sampling rule.* The single-source sampling rule ("1 in 20" human samples) barely samples a semi-annual series such as a country-risk edition. We suggest that every edition of a semi-annual single-source series be human-checked.
 3. *C5.1, rate field.* C5.1 names the CBN NFEM field `central`, while the CBN page describes the official rate as the volume-weighted average. The field mapping should be confirmed by Doc 5c.
 

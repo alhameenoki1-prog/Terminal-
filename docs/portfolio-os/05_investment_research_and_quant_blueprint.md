@@ -18,7 +18,7 @@ Reviewers required: Investment Committee (the founder); Legal & Compliance; Tax 
 4. **Goals use the C6 engine**: a count such as "about 40 of 100". It cannot be calibrated at the goal horizon for one user within the MVP (5b F26).
 5. **Circumstances decide what is researched.** In 5a's synthetic household the goal is infeasible on current income, so no security research is triggered.
 
-**Inconsistencies (§9, I1–I12).** The most material: 5a's freshness code uses 5c's withdrawn v0.1 thresholds, and 5a labels NGX prices "two independent", which 5c shows is impossible. Neither changes a published conclusion; both need fixing.
+**Inconsistencies (§9, I1–I12).** The most material: 5a's freshness code uses 5c's withdrawn v0.1 thresholds, and 5a labels NGX prices "two independent", which 5c shows is impossible. Neither changes a published conclusion. Both were fixed in the 2026-11-04 consistency pass, with I3–I11; I12 stays open (status in §9.2).
 
 **Top recommendations (§10):** the status-and-rendering layer; the circumstances filter with C6; the measurement-first quant layer; the written NGX licence request.
 
@@ -257,7 +257,7 @@ The goal engine **displays** admissibility flags and never applies them silently
 
 ### 7.4 Which scripts reproduce which numbers
 
-All run with `python3 -I` from `research/scripts/`. We re-ran the five scripts cited in §8 on 2026-11-04; outputs match the figures quoted and the 5b hash matched.
+All run with `python3 -I` from `research/scripts/`. We re-ran the five scripts cited in §8 on 2026-11-04; outputs match the figures quoted and the 5b hash matched. After the consistency pass, `doc05a_worked_examples.py` was re-run under `python3 -I`. Only its line on the v0.1 inputs changed: both are now `stale` under 5c v0.2. Example 1 is still `fresh`, and every figure quoted in §8 is unchanged.
 
 | Script | Reproduces |
 |---|---|
@@ -271,7 +271,7 @@ All run with `python3 -I` from `research/scripts/`. We re-ran the five scripts c
 
 ## 8. A single integrated worked example (synthetic)
 
-**Case file SYN-05.** One pass through the pipeline of §2, quoting script outputs only. **Caveat:** the reports built their examples on *different* synthetic entities and FX bases (5a: Bank X and a household at 1,330 NGN/USD; 5c: 1,345.01; 5b: a generated path). The stages are read in sequence but **never combined arithmetically** (shared fixture: §10 Rec 9).
+**Case file SYN-05.** One pass through the pipeline of §2, quoting script outputs only. **Caveat:** the reports built their examples on *different* synthetic entities and FX bases (5a: Bank X and a household at 1,330 NGN/USD; 5c: 1,345.01; 5b: a generated path). The stages are read in sequence but **never combined arithmetically** (shared fixture: §8.1; §10 Rec 9).
 
 **Stage 1 — A world fact enters (5c; `doc05c_revision_checks.py` part A).** The repository's policy rate of 27.50, entered on 2026-03-02, fails C3.5 against the primary value of 26.50 and is blocked as `disputed`. Its `expiry_at` comes from the calendar (2026-05-27), not from the typed date. The current record is 23.00 from 2026-09-22.
 
@@ -312,6 +312,32 @@ All run with `python3 -I` from `research/scripts/`. We re-ran the five scripts c
 
 **What the example shows.** The decision-relevant information sits upstream: entry check and status, circumstances arithmetic, and currency-dependent risk. For this household the security note matters least.
 
+### 8.1 Appendix: shared synthetic test household SYN-HH-01 (consistency pass, I10)
+
+One fixture for 5a, 5b and 5c, so that a later version of this example can combine stages arithmetically. It **extends the existing contract household C5.4** (`contracts_checks.py` `c5()`, also used by `doc08_journey_figures.py`) instead of creating a new one. Every value is synthetic. This is an input specification, not a result: nothing in §8 has been recomputed on it yet.
+
+| Item | Fixture value | Taken from | What it tests |
+|---|---|---|---|
+| Dates and FX path | 30 Sep → 30 Oct 2026. Synthetic CBN NFEM ₦1,530.00/$ → ₦1,480.00/$ (16 Oct fixing 1,500.00). AED/USD 3.6725 peg, `candidate` until a CBUAE snapshot | C5.4 | C5.2 fixing dates; C5.3 sign check |
+| Cash | NGN 12,000,000; USD 35,000; AED 85,000 | C5.4 | Three-currency net worth in the USD and NGN views |
+| US-domiciled ETF | 12 units, USD 250.00 → 257.50 | C5.4 | Market term; 30% US dividend withholding; estate-tax monitor (below USD 60,000, so it does not fire) |
+| NGX bank equity | Bank X (BNKX), 50,000 shares at NGN 60.00, 5a Example 1's price re-dated to 30 Oct | 5a Ex. 1 price; holding new | `same_upstream` close under the single-source protocol; rule 1b and rule 3 flags |
+| FGN bond | NGN 5,000,000 face, priced at par, five years to maturity | New | `NG-BOND-EXEMPT-2026`; NGN-bond risk in 5b |
+| UAE equity | 2,000 shares of synthetic DFM stock "UAE-EQ1" at AED 10.00, from a broker statement of 30 Sep 2026 | New | Exposure-only path: "valued from statement of ‹date›"; no risk or goal figures (I6) |
+| October flows | AED −5,500 (15 Oct); NGN 1,000,000 → USD 660 (Sun 18 Oct); salary NGN +2,350,000 (26 Oct); NGN −480,000 (28 Oct) | C5.4 | C1.5 conversion cost; C5.3 flows |
+| Liability | Rent AED 120,000 a year, paid quarterly | 5a Ex. 3 | Rule 1a |
+| Goals | G1: USD 100,000 by 31 Oct 2031, essential, USD 800 a month. G2: rent reserve, the next 12 months of rent, in AED. G3: safety, 6 months of expenses in AED and NGN | Doc 8 J6; 5a Ex. 3 | C6 engine; 5a buckets |
+| Circumstances | Residency unknown (provisional mode). Employer sector banking, confirmed. User parameters as in 5a Ex. 3: 24-month window, 5% issuer cap, 25% sector cap, equities only for goals of five years or more | 5a Ex. 3 | Provisional mode; no house defaults |
+| Expected admissibility (test oracle) | Bank X: `flag` for G1 (rule 1b), `exclude` for G2 and G3 (rules 1a, 4). ETF: `pass` for G1, `exclude` for G2 and G3. FGN bond: `flag` for G1 (rule 1b), `exclude` for G2 (rule 1a). UAE-EQ1: `exclude` from valuation (rule 5), exposure only | 5a §4.9 | 5b §4.1 ternary mapping |
+| Status traps | Bank X close `same_upstream`; Fri 30 Oct fixing read on Tue 3 Nov is `ageing` (Doc 8 script §1); policy rate 23.00% `auto_validated`, `single_source`; UAE-EQ1 statement price dated 30 Sep | 5c §4.3.1–4.3.3 | Read-time freshness and badges |
+
+**Scripts to adopt it next** (no script was rewritten in this pass):
+1. `doc05a_worked_examples.py`, Example 3: replace its household (NGN 25m, AED 40,000, USD 15,000 at 1,330) with SYN-HH-01 and the C5.4 FX path, and print the admissibility oracle.
+2. `worked_example_5b.py`: keep the generated return process, but take SYN-HH-01's weights, FX path and G1, and print UAE-EQ1's "not simulated" line. Its output hash will change and must be re-pinned.
+3. `doc05c_revision_checks.py` part G: compute the read-time status of SYN-HH-01's figures.
+
+`contracts_checks.py` and `doc08_journey_figures.py` already use the C5.4 cash and G1. The first script to adopt the fixture should write it once, as a file under `research/scripts/` loaded by path, so that the others read the same values.
+
 ## 9. Cross-report disagreements and open questions
 
 ### 9.1 Disagreements preserved from the source reports
@@ -345,6 +371,20 @@ All run with `python3 -I` from `research/scripts/`. We re-ran the five scripts c
 | I10 | No shared synthetic fixture (FX 1,330 / 1,345.01 / generated) | §8 | Examples cannot be reconciled end to end | Rec 9 | Quant, Data |
 | I11 | 5b needs a registered break list from 5c; 5c lists regime breaks (P10) but no deliverable | 5b §6; 5c §6 | Goal-engine step G-2 has no input owner | 5c owns it | Doc 5c |
 | I12 | C5.1 names the CBN field `central`; CBN calls the official rate the NFEM volume-weighted average | 5a §11; 5c §4.1.4 | Field mapping open | Confirm from the CBN export | Doc 5c; Doc 6 |
+
+**Status after the consistency pass (2026-11-04; V-031, V-032, V-033).**
+- **I1 fixed.** `fresh_5c()` uses 5c v0.2 thresholds. The v0.1 inputs print `stale` and `stale`, and Example 1 stays `fresh`. 5a's B1-grading dissent and contract observation 1 are withdrawn (5a §4.11, §11).
+- **I2 fixed.** The NGX price and dividend are `same_upstream`. They are eligible only through V = `validated` or the C3.3 single-source protocol (5a §4.10, Ex. 1).
+- **I3 fixed.** 5a points to 5c's single MPR record (`auto_validated`, `single_source`).
+- **I4 fixed.** The limit is `candidate` in 5a, 5b and 5c. A move at either level is a review item.
+- **I5 fixed.** 5b and 5c cite the registry grades: T+1 and the hours E2, the T+2 date E3.
+- **I6 fixed.** UAE equities are exposure-only, stated in 5a Ex. 3, 5b §4.1, 5c §1 and §4.6, and Doc 8 §4.5.7, with the UI labels.
+- **I7 fixed.** The ternary mapping is in 5b §4.1, and the output values in 5a §4.9.
+- **I8 fixed in part.** 5b labels the drift band and participation rate as user-editable display defaults (E5). Legal's confirmation is still open.
+- **I9 fixed.** The country-risk row is in 5c §4.3.2.
+- **I10 addressed** by the §8.1 fixture specification. Adoption by the scripts is pending.
+- **I11 fixed.** 5c §6 lists the break list as its deliverable.
+- **I12 open.** The field mapping depends on the C5.1 revision now under way in `CANONICAL_CONTRACTS.md`, which this pass did not edit.
 
 ### 9.3 Open questions carried forward
 
@@ -416,6 +456,13 @@ Full, verification-graded lists are in 5a §10, 5b §10 and 5c §10. Only the it
 11. Damodaran, A., *ctrypremJuly26.xlsx* (1 July 2026 update), NYU Stern, https://pages.stern.nyu.edu/~adamodar/pc/datasets/ctrypremJuly26.xlsx. Accessed 2026-11-04 (5a-S27). Practitioner dataset (E3).
 12. CFA Institute, *2020 Global Investment Performance Standards (GIPS) for Firms* (2019; effective 1 January 2020), https://www.gipsstandards.org/wp-content/uploads/2021/03/2020_gips_standards_firms.pdf. Accessed 2026-11-04 (5b-S96). Standards body (E3).
 13. Frankfurter v2 exchange-rate API, https://frankfurter.dev/. Accessed 2026-11-02 (5c-S82). Aggregator of official rates; used only for the illustrative conversion rate.
+
+**Revision history**
+
+| Version | Date | Change |
+|---|---|---|
+| 0.2 | 2026-11-04 | Consolidated from 05a, 05b and 05c v0.2 |
+| 0.2 | 2026-11-04 | Consistency pass, 2026-11-04 (V-031, V-032, V-033). Added the status of I1–I12 to §9.2 and the shared synthetic household SYN-HH-01 as §8.1. Updated the notes in §1 and §7.4. No quoted figure changed; `doc05a_worked_examples.py` re-run under `python3 -I` |
 
 ---
 *Prepared by the simulated Investment Management, Quantitative Finance and Data Quality functions. Simulated specialists are not licensed professionals. A regulated financial adviser, a chartered accountant, a licensed tax practitioner and counsel must review this document before anything in it is relied upon or offered to third parties. All examples are synthetic. Nothing here is a forecast or a promise of returns.*

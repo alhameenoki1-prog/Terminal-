@@ -550,7 +550,8 @@ The table below lists the states each screen must handle beyond these.
 | Transfer card | residual outside band (unexplained difference, not spread); dealer rate printed or not; legs in different periods |
 | Net worth | pension value carried forward from the last statement; liability statement missing; parallel-rate sensitivity open |
 | Insight card | below Doc 3 minimum sample ("Not enough history yet: N of M pay cycles"); possible pattern (interval overlaps the ROPE, the band within which a ratio counts as "no meaningful difference"); behavioural consent off |
-| Goal view | C6 refusal (reason shown); capacity facts unconfirmed; assumption set changed since the last run |
+| Goal view | C6 refusal (reason shown); capacity facts unconfirmed; assumption set changed since the last run; holdings not simulated (UAE equities, §4.5.7) |
+| Portfolio exposure and risk | UAE equity held: exposure only, risk and goal figures not computed (§4.5.7); risk figures that cover only part of the portfolio |
 | Research note | disputed field; licence expired or revoked; symbol changed; no trade since |
 | Taxes | indicative mode; rule refused; alternative treatments; watermark level |
 
@@ -682,6 +683,7 @@ Ledger row as a card (phone):
 - *Summary:* value in the active view, allocation by asset class, currency exposure (look-through) against the currency of liabilities (R03b M4), top-five concentration, and 1-year volatility and maximum drawdown with as-of dates.
 - *Detail:* ordered correlation matrix with numbers printed; drawdown chart; risk-adjusted measures with window and benchmark named.
 - Daily change comes third (P6).
+- *UAE equities in the MVP (consistency pass, I6).* Doc 5c has no licensed DFM data, and ADX's free tier has no price history (Doc 5c §4.6). A UAE equity therefore appears in value, allocation, currency exposure and concentration, with the badge "valued from statement of ‹date›". Volatility, drawdown, correlation, risk contribution and stress cells for it show "Not available: no licensed price history" instead of a number, never a blank or a zero. Portfolio-level risk figures carry a coverage line: "Risk figures cover ‹share› of portfolio value; UAE equities are not included." The goal view either shows C6's refusal, when a UAE equity is above 10% of the goal portfolio, or the line "Not simulated: ‹value› of UAE equities, no price history" (Doc 5b §4.1).
 
 **4.5.8 Research note view.**
 - *Header:* security, exchange, currency, price, and the badge row per Component A.
@@ -1316,8 +1318,9 @@ All web sources accessed 2026-11-02 unless stated. v0.2 re-checks made on 2026-1
 | R03b §5 #4 retention conflict; ostrich telemetry | V-028 | Fixed | §4.5.13, §4.9 | Per-store retention table; no returns-linked opens |
 | R03b §5 #6 phantom "more frequent nudges" disagreement | — | Fixed | §7 | Row deleted |
 | R03 M1 ladder restructure (L0a/L0b, L2 as analogy, causal rung) | V-026 | Deferred | §4.5.6 | Owner: Doc 3. Doc 8 renders whatever rung IDs Doc 3 publishes; the interim shows L2 only as collapsed "research context" |
+| Consistency pass, 2026-11-04 (Doc 5 §9.2 I6) | V-033 | Fixed; version stays 0.2 | §4.5 state table, §4.5.7 | UAE equities shown with exposure only: "valued from statement of ‹date›", "Not available: no licensed price history" in risk cells, a coverage line on portfolio risk, and a C6 refusal or a "Not simulated" line in the goal view. No figure changed, so `doc08_journey_figures.py` was not touched |
 
-**Counts.** 62 rows:
+**Counts.** 62 review rows, not counting the consistency-pass row:
 - 56 Fixed. Four carry a qualification: R08 M1 (one point disputed), R08 M7 (tariff shown as a range), R08 §3 U4 (regraded, rule kept per C6) and the 44 px convention (labelled E4).
 - 3 Fixed in part with a Deferred remainder: R08 M4(i), R03b M3 and R03b M5.
 - 2 Rejected: R08 M8(g) and R08 §5 FX levels.

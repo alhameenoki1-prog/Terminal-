@@ -17,7 +17,7 @@ Reviewers required: Legal & Compliance (licensing, terms of use, NGX non-display
 
 **3. The repository's policy rate was wrong on the day it was written.** `cbRate: 27.50` was committed on 2026-03-02, when CBN's rate was 26.50% and no MPC was due on the typed "next meeting" date [S107, S110]. The Fed rate committed the same day was 75 bp wrong [S114]. v0.1's expiry control would have shown 27.50% as fresh for 30 days. Root cause **R0, wrong at entry**, now leads the control set: no world fact leaves `candidate` until it matches a primary-source snapshot (C3.5).
 
-**4. DFM is not covered in the personal MVP.** No licensed machine-readable route was reachable; DFM holdings are valued from custodian or broker statements.
+**4. DFM is not covered in the personal MVP, and UAE equities get exposure but no risk or goal analytics.** No licensed machine-readable route was reachable; DFM holdings are valued from custodian or broker statements. ADX's free Starter tier carries no price history, so neither market's equities meet Doc 5b's data floors (§4.6).
 
 **Contracts.** C2 (figure tokens) and C3 (status axes) are adopted as binding; this document's conflicting versions are removed.
 
@@ -261,6 +261,8 @@ Illustrative record, revised (values REAL as of 2026-11-04 except the hashes and
  "expiry_at":null,"notes":"Entry check C3.5 passed (value equals snapshot; as_of not earlier than latest decision). Next MPC date not on the decisions page: no calendar record, so cadence fallback applies (§4.3.2). Press report [S32] stored as a non-corroborating mirror (same_upstream)."}
 ```
 
+This is the **single registry record** for the MPR. Doc 5a's registry row and Example 1 point to it, with the same V and C values (consistency pass, I3).
+
 v0.1's example used a press article as the source, with a note that the primary was "not yet attached". Under C3.5 that record could not have left `candidate`. It showed the weakness described in R0.
 
 #### 4.3.2 Freshness thresholds (one table, merged with Doc 5a §4.10)
@@ -276,6 +278,7 @@ Freshness F is computed when a figure is read (C3.2), from `as_of_date`, `publis
 | AED/USD peg | A registered world fact under C3.5 [C5.1]; no freshness clock. The deviation check (§4.3.5) can move it to `disputed` | | | | C5.5 |
 | Policy rate (CBN, Fed, CBUAE) | Until the next scheduled meeting in a sourced calendar record | From that meeting's last day until a decision is ingested (≤ 7 days) | > 7 days after a scheduled meeting with no ingested decision | > 30 days after | 5a's market-event rule adopted. **Fallback with no calendar record:** ageing > 60 days after `as_of`, stale > 75, expired > 120 |
 | CPI | Until the next scheduled release (NBS calendar) | Release day + 3 business days with nothing ingested | > 75 days after reference-month end | > 120 days | Fallback day counts (45/75/120) as in 5a and v0.1 |
+| Country-risk edition (Damodaran, semi-annual; single source) | ≤ 7 months (213 days) after the edition date | 214–396 days | > 396 days | — (shown with its badge) | Doc 5a §4.10 proposal, adopted in the consistency pass (Doc 5 I9). Every edition is human-checked (Doc 5a §11 observation 2) |
 | Interim (quarterly) fundamentals | Until the registry filing deadline for the next interim | Deadline passed, nothing filed | A newer period filed but not ingested, or deadline + 30 days | Two newer periods exist | Tied to the next expected filing (R05c M8). **Fallback** (deadline not registered): ageing > 45 days after period end, stale > 120, expired > 200 |
 | Audited annual statements | Until the registry deadline for the next annual | Deadline passed, nothing filed | Newer annual filed but not ingested, or deadline + 30 days | > 450 days after FYE | v0.1's "fresh ≤ 300 days" withdrawn. **Fallback:** ageing > 120, stale > 270 (5a), expired > 450. NGX filing deadlines are not yet fetched (E4) |
 | Shares outstanding | Until next CA event | Any open CA lifecycle (§4.3.4) | CA past its expected credit date and not applied | — | 5a's rule adopted |
@@ -320,7 +323,7 @@ One sampling error sends the series back to review of each figure. The badge alw
 2. Every CA record requires an issuer document (N5 PDF or EDGAR filing) as `source_record_id` with an evidence snapshot. Vendor CA feeds create `candidate` records only.
 3. **CA record dates.** NGX events unfold over weeks, so one "effective date" is not enough. Each record holds: `declared_on`, `ex_date` (mark-down), `qualification_date` (closure of register), `approval_date` (AGM or court/SEC sanction), `listing_date`, `credit_date` (CSCS), `payment_date`. Each date is optional per type and carries its own source. On NGX a bonus is marked down at the ex-date, approved at the AGM, and listed and credited weeks later (E4, practitioner knowledge reported by R05c; to be confirmed against the NGX Rulebook, §9).
 4. **CA lifecycle** (a property of the CA record, not a figure status): `announced → ex → approved → listed → credited → closed`, plus `withdrawn`. While a CA is open past `ex`, the entity's shares-outstanding figure is F=`ageing` (§4.3.2). If the share change has not arrived within N business days of the ex-date (registry parameter; initial N = 60, E5), F becomes `stale` and a review item opens. This replaces v0.1 rule 5 ("shares and market cap must change on the same effective date … blocks the record"), which would have blocked every ordinary NGX bonus.
-5. **Settlement-cycle history.** Ex-date logic reads the settlement regime in force on each date from the rule registry: T+3 until 27 November 2025, T+2 from 28 November 2025, T+1 from 1 June 2026 (Doc 5a F4, E2 via 5a). The derivation of an ex-date from a qualification date under T+n is a registered rule (E4 until confirmed against the Rulebook).
+5. **Settlement-cycle history.** Ex-date logic reads the settlement regime in force on each date from the rule registry: T+3 until 27 November 2025, T+2 from 28 November 2025, T+1 from 1 June 2026 (Doc 5a F4, §4.5: T+1 is E2; the T+2 date is E3 and unconfirmed, because 28 November 2025 is the date of a CSCS news item; consistency pass, I5). The derivation of an ex-date from a qualification date under T+n is a registered rule (E4 until confirmed against the Rulebook).
 6. **Types and factors.** Cash dividend: (close − D)/close on ex-date, used for total-return series only and flagged. Bonus n-for-m: m/(m+n). Split k:1: 1/k. Consolidation: inverse of split. Rights issue: theoretical ex-rights price ÷ cum price. The record also holds rights trading dates, the subscription price and any **supplementary allotment**, because the 2024–26 bank recapitalisation rights issues used them (Doc 5a F11). Scrip dividend: an election record, with the share factor applied only to the elected quantity. **Par-value change:** price factor 1, recorded explicitly so that a vendor's misreading of it as a split is caught. **Dividends declared in kobo:** stored in the published unit and normalised before any comparison.
 7. **Holding-company successions.** A scheme of arrangement that swaps shares 1:1 into a new holding company changes ISIN and ticker. Reported examples are GTB→GTCO, Access Bank→Access Holdings and FBNH→First HoldCo (dates and ratios E4, from R05c; each must be sourced from the scheme document before entry). These are held in a `succession` table: (old ISIN, old ticker, new ISIN, new ticker, ratio, effective date, document). Price history and lots run through it, so an entity master keyed on ISIN + MIC does not break the history.
 8. **Ex-date test, made honest.** On each CA ex-date, the observed raw gap (close_ex ÷ close_cum) is compared with the CA factor. If the adjusted ex-date return falls outside the stock's 99th percentile of absolute ordinary daily returns, a **review item** is raised, not an automatic `disputed`. By construction that band is exceeded on about 1% of genuine days, and ex-dates cluster in results season. A large unexplained gap on a day *without* a CA record raises "possible missing CA" against the entity.
@@ -330,7 +333,7 @@ One sampling error sends the series back to review of each figure. The badge alw
 
 | Check | Rule | Outcome |
 |---|---|---|
-| Daily move | Return > 4 SD, or beyond the daily price limit in the market-rule registry (NGX ±10% per Doc 5a F2, flagged there as conflicting with the 2018 ±5% guidance), without a CA record | review; `disputed` if confirmed against a second observation |
+| Daily move | Return > 4 SD, or beyond the daily price limit in the market-rule registry (the NGX row is `candidate`, E3: ±10% appears only on the pre-open row of NGX's session table, and the 2018 guidance gives ±5% (Doc 5a F2, §4.5). Until the Rulebook is read, a move at either level raises a review item and is never treated as a confirmed limit day, in Docs 5a, 5b and 5c alike; consistency pass, I4), without a CA record | review; `disputed` if confirmed against a second observation |
 | Close outside the day's high–low | Hard check | `disputed` |
 | **Identical close for ≥ 3 sessions** | Flag only if traded volume on each of those sessions is **at or above the price-group threshold** needed to move the price (2018 rule, Doc 5a F3: Group A ≥ N100 → 10,000 units; B N5–<N100 → 50,000; C < N5 → 100,000), read from the registry with its effective date. v0.1 flagged any non-zero volume, which is normal on NGX because small trades do not move the price (script part F) | review |
 | Magnitude jump ×10³ between consecutive fundamentals periods | Scale error | `disputed` |
@@ -520,6 +523,8 @@ International figures are shown ex-VAT. Whether Nigerian VAT applies to a supply
 | **Validation labour** | Founder as validator under the single-source protocol (§4.3.10) | ≈ 20 h/yr (≈ 23 min/week), E5 | Founder to confirm |
 | **Total cash** | | **Floor ≈ USD 26/mo** (local, no non-display, free secondaries). **≈ USD 104/mo** if personal analytics is non-display (local). **≈ USD 1,147/mo** international with non-display, optional NGX feeds and paid US/ADX. **Ceiling ≈ USD 1,990/mo** (international, the "Non-Trading" non-display line, API band, optional feeds, VAT on NGX, paid US/ADX) | |
 
+**UAE-equity analytics gap (consistency pass, I6).** With this stack, UAE equities get **exposure but no risk or goal analytics** in the MVP. DFM has no licensed route, so positions are valued from statements (U9). ADX Starter carries current or last-day prices only, and whether a paid tier's history and terms would serve is unverified (U4). Neither meets Doc 5b's price floors (60 / 250 / 1,000 trading days) or C6's 36-month rule. UAE equities therefore appear in value, allocation, currency and concentration views. No volatility, VaR, drawdown, correlation, stress or goal figure is computed for them (5b §4.1). The UI labels each such holding "valued from statement of ‹date›" and "risk and goal analytics not available: no licensed price history". Portfolio-level risk states the share of value it leaves out (Doc 8 §4.5.7). The gap closes only with a licensed DFM route or an ADX tier with history whose terms permit processing.
+
 **Fixed income (Rec 11, Later).** FMDQ note 9 says "Only Real-Time API is available for Closing Prices" [S21]. A non-member end user who needs bond closing prices by API therefore needs the Daily Quotations List (NGN 322,500) plus the real-time API connection (NGN 537,500), not the EOD API (NGN 322,500). That is NGN 860,000 a year including VAT, ≈ USD 639 at 1,345.01 (FMDQ's own column, at NGN 500/USD, says USD 1,720). It would be NGN 645,000 if an EOD API sufficed.
 
 **Commercial product (Nigerian retail/diaspora; display of NGX data to users).** The minimum NGX set from the 2026 schedule [S3] is:
@@ -568,7 +573,7 @@ With FMDQ's NAFEM EOD distribution licence (NGN 3,359,375, VAT-inclusive) [S21],
 - **Portfolio & Quant (Doc 5b):** the adjusted-series contract; the C5 FX hierarchy; benchmark constituents. For NGX beta under non-synchronous trading, use the Scholes–Williams and Dimson estimators [S104, S105].
 - **Tax (Doc 6):** the legally required FX field and CPI vintage; VAT on NGX fees for a non-resident end user.
 - **AI (Doc 7):** adopt C2 in §4.6; deterministic MCP clients.
-- **Product/UX (Doc 8):** C3.4 states, including the "single source", "same upstream", "valued from statement" and "no trade since" badges.
+- **Product/UX (Doc 8):** C3.4 states, including the "risk and goal analytics not available" label for UAE equities (§4.6), the "single source", "same upstream", "valued from statement" and "no trade since" badges.
 - **Finance (Doc 9):** use the §4.6 2×2 and the sensitivities in the cost model (V-012).
 - **Founder:**
   - residency, which sets the local or international basis (brief §4);
@@ -581,7 +586,8 @@ With FMDQ's NAFEM EOD distribution licence (NGN 3,359,375, VAT-inclusive) [S21],
 - the source registry with licence scopes, `terms_version` and independence groups (Legal, AI);
 - the merged freshness table (Product, 5a);
 - the golden dataset and synthetic fixtures (Engineering);
-- the DQ dashboard (audit, founder).
+- the DQ dashboard (audit, founder);
+- the **registered break list** (devaluation, unification and FX-regime dates, P10, each a C3.5 world fact) for Doc 5b §4.6 and goal-engine step G-2. This department owns it (consistency pass, I11).
 
 ## 7. Risks, open uncertainties and disagreements
 
@@ -786,6 +792,7 @@ Access date 2026-11-02 unless stated (v0.2 re-checks dated 2026-11-04); "reached
 |---|---|---|
 | 0.1 | 2026-11-02 | Draft for cross-department review |
 | 0.2 | 2026-11-04 | Revised after review R05c [S112] and against `CANONICAL_CONTRACTS.md` C2, C3, C5 [S111]. Numbers recomputed by `research/scripts/doc05c_revision_checks.py` |
+| 0.2 | 2026-11-04 | Consistency pass, 2026-11-04 (V-031, V-032, V-033; Doc 5 §9.2 I3–I6, I9, I11). The MPR record is named as the single registry record. NGX ±10% limit is `candidate` in step with 5a and 5b. T+2 date cited at E3. Country-risk freshness row added. UAE-equity analytics gap stated with its UI label. Break-list ownership stated. No number changed; version stays 0.2 |
 
 **Response to each finding.** Finding IDs are R05c's (B = blocking, M = major, m = minor). Rows without an ID come from R05c §3 (evidence-grade audit, "G" + row order), §5 (cross-document contradictions, "X" + item) and §6 (Investment Committee questions, "Q" + item).
 
