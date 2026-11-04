@@ -131,3 +131,46 @@ What remains is the claims ladder, the prohibited-output list, the transfer and 
 | S104 NFEM rate | "search result only" | Page re-fetched and matches (₦1,346.91 on 29 Oct 2026) | Upgrade status to verified (E3) |
 
 Claims presented as fact without a source: "Bank-data studies find a similar after-income pattern in most people" (§4.5 Step 7); "Ramadan/Eid timing shifts ~11 days a year" (true astronomically, but unsourced); "school fees in January/May/September" (a Nigerian calendar assumption; founder to confirm).
+
+## 4. Citation and source spot-check (all checked 2026-11-04)
+
+**Academic (Crossref `api.crossref.org/works/<DOI>` and OpenAlex `api.openalex.org/works/doi:<DOI>`; abstracts compared with Doc 3's quoted figures)**
+
+| Ref | DOI | Metadata | Quoted figures | Status |
+|---|---|---|---|---|
+| S160 Ariely & Wertenbroch 2002 | 10.1111/1467-9280.00441 | Match; Crossref `updated-by` shows a publisher **retraction** (10.1177/09567976261488042, 2 Sep 2026) | — | **Verified, retraction confirmed** |
+| S8 Brown et al. 2024 | 10.1257/jel.20221698 | Match | 607 estimates, 150 articles, 1.955 [1.820, 2.102] | Verified |
+| S145 DellaVigna & Linos 2022 | 10.3982/ECTA18709 | Match | 126 RCTs, 23 m, 8.7 pp / 33.4% vs 1.4 pp / 8.0%, ~70% | Verified |
+| S3 Ruggeri et al. 2020 | 10.1038/s41562-020-0886-x | Match | N = 4,099, 19 countries, 94% of 17 items, 12 of 13 contrasts | Verified |
+| S76 Levi & Benartzi 2026 | 10.1111/jofi.70087 | Match (J. Finance 2026) | Discretionary spending falls after app install; larger in evening and for low self-control proxies | Verified |
+| S56 Olafsson & Pagel 2025 | 10.1162/rest_a_01566 | Match | Attention falls discretely as balances turn negative | Verified |
+| S74 Einav, Klopack, Mahoney 2025 | 10.1257/aer.20231612 | Match | Card-replacement cancellations; inertia roughly doubles revenue | Verified |
+| S54 Sicherman et al. 2015 | 10.1093/rfs/hhv073 | Match | Logins fall 9.5% after market declines | Verified |
+| S152 Medina 2020 | 10.1093/rfs/hhaa108 | Match | −14% late fees, +9% overdraft fees; net +5% for prior overdraft users (Brazil) | Verified (Doc 3 should name Brazil) |
+| S148 Gollwitzer & Sheeran 2006 | 10.1016/S0065-2601(06)38002-1 | Match | d ≈ 0.65 not retrievable | Metadata verified; figure **unverified** |
+| S140 Thaler & Benartzi 2004 | 10.1086/380085 | Match | Abstract truncated before figures | Metadata verified; figure **unverified** |
+
+**Non-academic (re-fetched with WebFetch or curl, 2026-11-04)**
+
+| Source | URL | Result |
+|---|---|---|
+| S103 Vanguard CPI | vanguardngr.com/2026/10/breaking-nigerias-inflation-rate-drops-to-14-63/ | 14.63% Sep 2026, food 19.59%, m/m 0.06%, Sep 2025 20.98% — match. Core: page garbled ("13.29% in August from 13.29% in August"), so the core discrepancy is still open |
+| S104 WithinNigeria FX | withinnigeria.com/2026/10/31/… | NFEM ₦1,346.91 (29 Oct); parallel ₦1,385–1,390 — match; upgrade |
+| S105 Legit.ng stamp duty | legit.ng/1690443-… | ₦50 from 1 Jan 2026, ≥ ₦10,000, sender bears, salary and intra-bank self-transfers exempt — match |
+| S107 NAN / EFInA 2023 | nannews.ng/financial-inclusion-reaches-64-efina-survey-reveals/ | 64% formal, 10% informal-only, 26% excluded, 74% overall — match |
+| S119 CFPB technical report | files.consumerfinance.gov/f/documents/201705_cfpb_financial-well-being-scale-technical-report.pdf | Marginal reliability ≥ 0.89 / > 0.80 confirmed; score = IRT×15 + 50 (SD 15); no test–retest statistic found |
+| NDPA 2023 text (for M5) | placng.org/i/wp-content/uploads/2023/06/Nigeria-Data-Protection-Act-2023.pdf | Scanned bill copy; ss. 3, 24, 25, 26, 27, 30, 34–37, 65 read from page images |
+| UAE PDPL | u.ae/en/about-the-uae/digital-uae/data/data-protection-laws (updated 4 Dec 2025); dlapiperdataprotection.com (UAE) | u.ae has no sensitive-data or profiling text; DLA Piper quotes the "family" limb and says executive regulations unpublished (as of Jan 2025); uaelegislation.gov.ae returned 403 |
+
+## 5. Cross-document contradictions
+
+1. **Doc 3 Rec 4 against Doc 8 P1, §4.3.4 and §5.** Doc 3 asks questionnaires at onboarding; Doc 8 rejects questionnaire-first onboarding and never schedules Doc 3's instruments (M3).
+2. **Doc 3 §4.2, §4.4 and §4.6 against Doc 8 §4.4 Journey 4 and §4.5.6.** Different window, statistic, confounder handling and intervention design (B1).
+3. **Doc 3 L0–L4 against Doc 8's three-level indicator.** The mapping mixes E-grade and rung. Doc 8 also says hypotheses appear "never as the headline", while Doc 3's L3 sentence form is a stand-alone output. Choose one rule (B1).
+4. **Doc 3 forbidden forms against the Doc 8 §4.7 lint list.** No overlap (m3).
+5. **Doc 6 §4.1 retention (≥ 6 years, WORM) against Doc 8 §4.5.13 "delete everything" against Doc 3 §4.6 "the record is kept".** No document says which data classes each rule covers (M5).
+6. **Doc 6 F40 ("financial data not sensitive") against inferences revealing religion, health and family** under NDPA s.65 and the PDPL definition (M5).
+7. **Doc 3 F17 "hedging" against Doc 6 s.34(1)(b) foreign currency as a chargeable asset** (M4).
+8. **Doc 3 F7 and §4.2 ostrich telemetry against Doc 8 §4.9 aggregate-only instrumentation** (M5).
+9. **Doc 8 §7, "Behavioural (anticipated): more frequent nudges".** Doc 3 argues the opposite (F11, F27, R4 favour architecture over informational nudges). This disagreement does not exist and should be removed. The real disagreement is that Doc 3 wants pay-eve prompts while Doc 8 has notifications off by default; opt-in resolves it.
+10. **Doc 3 §6 asks System G to "confirm the ₦50 stamp duty".** Doc 6 F21 already has (m4).

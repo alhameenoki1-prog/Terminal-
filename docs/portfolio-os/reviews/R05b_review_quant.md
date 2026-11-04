@@ -149,3 +149,97 @@ D4, D16, D17, D19 and D20 are as described. Their severity is reasonable.
 - m4. "NAFEM" (§4.6, Disagreement 3) versus "NFEM" in Docs 5a and 5c. Use the current CBN name.
 - m5. `ew = R.mean(axis=1)` averages log returns. On the jump day that is −0.248 against −0.231 for the true rebalanced portfolio. This is disclosed but should be fixed in a golden generator.
 - m6. Dimson recovery matches theory: 1 − p^(k+1) = 0.9375 at p = 0.5, k = 3. This is a good check and should become a unit test.
+
+## 3. Evidence-grade audit
+
+| Claim | Graded | Problem | Should be |
+|---|---|---|---|
+| F15 "0.22→0.78 … shared currency factor" | E1 (bundled with S73–S77) | The synthetic part is an artefact (B1) | Literature E1; delete the synthetic claim |
+| F25 prototypes not validated, "E2 (code inspection)" | E2 | The brief defines E2 as a peer-reviewed or official publication; code inspection is not that | E5 plus replication (reproducible script) |
+| F22 calibration demo | E1 | The demo's 99% label is wrong (M4) | E1 for the methods; correct the demo |
+| F2 "0.02–0.13 on break-free data" | E5 | Wrong sample (M9) | Restate with 250-day ranges |
+| §4.3/§4.6 floors (60/250/1,000 d; zero-day < 10%; ρ₁ > 0.2; GARCH ≥ 1,000 d) | Ungraded | Presented as specification facts | E5, each with a test plan |
+| §4.7 "until 24 outcomes … uncalibrated"; "±10 points" | Ungraded | Statistically unsupported (M3) | E5 with a power calculation |
+| §4.10 matrix | E4 | Arithmetic errors (M1) | E4, recomputed |
+| F24 GIPS provisions | E3, with S96 "unverified text" | Acceptable, but the spec is built on it | Keep E3; block coding until the text is read |
+| F11 Vanguard 5% bands | E4 | S60 still unreachable (re-fetch 2026-11-04: "Service Unavailable") | Keep E4 |
+
+## 4. Citation and source spot-check
+
+**Academic (Crossref DOI lookups on 2026-11-04; OpenAlex returned "rate limit exceeded"; the hosted reference-lookup MCP timed out twice)**
+
+| Ref | Status |
+|---|---|
+| S2 Michaud 1989 FAJ 45(1) 31–42 | Verified |
+| S5 DeMiguel, Garlappi, Uppal RFS 22(5) 1915–1953 | Verified (online 2007-12) |
+| S9 Chopra & Ziemba JPM 19(2) 6–11 | Verified |
+| S16 Ledoit & Wolf JMVA 88(2) 365–411 | Verified (print Feb 2004; the "online 2003" note is fine) |
+| S28 Caporin & McAleer *Econometrics* 1(1) 115–126 | Verified |
+| S33 Idzorek (Elsevier chapter) | Verified by bibliographic query (2007); the DOI resolves via doi.org |
+| S43 Raffinot JPM 44(2) | Verified; online-year note wrong (m1) |
+| S44 Jaeger et al. JFDS 3(3) 31–51 | Verified |
+| S66 Magdon-Ismail et al. J. Appl. Prob. 41(1) | Verified |
+| S69 Woerheide & Persson FSR 2(2) 73–85 | Verified (issued 1992-12) |
+| S94 Grundke J. Risk Model Validation 5(1) | Verified |
+| S98 Lo 2002 FAJ 58(4) | Verified |
+| S124 Politis & White 2004 | Verified; **the 2009 correction is missing** (M8) |
+| S32/S34 SSRN 334304, 1314585 | Verified |
+| **S71 Meucci 2009 "Managing Diversification", *Risk*** | **Not found** in Crossref by title; SSRN DOI 10.2139/ssrn.1358533 returns 404. Remains unverified, and so does "effective number of bets", which feeds a Phase 1 display (§4.3) |
+| **S135 Bengen 1994 JFP 7(4)** | **Not found** in Crossref; unverified. Widely cited, but the document's [unverified] tag is correct |
+| **S95 Dietz 1966** | Book indirectly confirmed: Crossref holds 1967 reviews of *Pension Funds: Measuring Investment Performance* in J. Finance 22(1) (doi:10.2307/2977326) and J. Risk & Insurance 34(3) |
+| **S103 Young 1991 Calmar** | Not found; unverified trade-magazine piece, correctly flagged. Calmar is a Phase 1 display, so its definition should be pinned to the spec, not to this source |
+
+**Non-academic (re-fetched 2026-11-04)**
+
+| Source | Result |
+|---|---|
+| S84 World Bank PA.NUS.FCRF API | Matches all values (158.6 / 192.4 / 253.5 / 305.8 / 426.0 / 645.2 / 1,479.0 / 1,518.4) |
+| S87 FRED DCOILBRENTEU | Matches: 143.95, 33.73, 115.19, 26.01, 70.25, 9.12, 133.18, 76.02 on the stated dates |
+| S88 FRED SP500 | Matches: 3,386.15 → 2,237.40 (−33.9%); 4,796.56 → 3,577.03 (−25.4%). It is a price index, not total return; say so |
+| S47 Google Patents US6003018A | Filed 1998-09-09, granted 1999-12-14, "Expired – Lifetime", anticipated expiry 2018-09-09 (Google flags status as non-legal) |
+| S64 BIS d457 | 14 Jan 2019, corrected 25 Feb 2019, ES-based internal models; 97.5% not on the landing page (as the document admits) |
+| S157 scikit-learn LedoitWolf | Target μI, μ = tr(S)/p; cites JMVA 2004; centres by default. Consistent with the script |
+| S117 J.P. Morgan LTCMA | 2027 (31st) edition, 10–15-year horizon, data as of September 2026 |
+| S85 Nairametrics 24 Jun 2023 | I&E 770.17 (23 Jun) against 663.04 (16 Jun); intraday 815. Supports S85, but undermines the "31%" in §4.11 (M5) |
+| S60 Vanguard PDF | Still unavailable |
+
+## 5. Cross-document contradictions
+
+1. **Doc 8 Journey 6** simulates with point parameters ("7% nominal, 11% vol", 20,000 paths) and shows one frequency ("60 of 100"). Doc 5b forbids point drifts in the goal engine and forbids a probability without a band. Doc 8 U1–U4 also needs the "size of adjustment" in currency and months, which 5b does not produce. One display contract is required (see B3).
+2. **Doc 5c** sets "official NFEM for valuation". Doc 5b Disagreement 3 lets the user choose the valuation rate, including parallel. These must be reconciled. My proposal: official for the ledger of record, user-chosen as a labelled alternative view.
+3. **Doc 5a §4.10** says a stale figure "is excluded from any computed value" and derived figures "inherit the worst freshness". Doc 5b *needs* zero-volume closes as observations (Dimson, weekly aggregation). Doc 5c P1 separates `last_traded_on` from `as_of_date`, and that distinction must be written into the quant input contract. Otherwise every NGX volatility is "stale".
+4. **Doc 5a Example 3** makes NGN equities inadmissible for a USD goal. Doc 5b's goal example is 67% NGN. The goal engine needs 5a's admissible-universe filter as an input; no interface is defined.
+5. NAFEM versus NFEM terminology (m4). Doc 5c cites Lesmond 1999 as unverified where 5b verifies it.
+
+## 6. Questions the IC needs answered
+
+- If the goal band is about 10–90% for most goals by construction, what decision does the founder make differently because of it? What does the founder see instead?
+- What is the base currency, and which FX rate is the ledger of record?
+- What exactly is calibrated in the MVP, at what horizon, and with what power? What happens if calibration cannot be established for years?
+- Will the "alternative views" stability gate (10-point SD) ever pass on realistic data? If not, say that the optimisation feature requested in System D is deferred indefinitely (brief §5.9).
+- Who supplies NGX 2008–09 and S&P 2007–09 series, under what licence and at what cost?
+- Is the founder's holding set small enough that the TWR/MWR golden ledger can be hand-reconciled before launch?
+
+## 7. Required changes before the IC (priority order)
+
+1. Correct B1 (correlation artefact), M4 (98% versus 99% label), M5 (the "31%" sentence) and M1 (matrix totals and phase rule).
+2. Redesign the goal-engine output (B2 and B3): demeaned bootstrap plus a labelled drift assumption; predictive probability as the headline, in Doc 8 format; H/T and drift sensitivity shown as the reason for the width; a band, if kept, computed with ≥ 500 replicates and a Monte Carlo SE.
+3. Fix reproducibility (B4): exact solver, lockfile, environment hash in the golden data; re-run and re-quote §4.9.
+4. Write the TWR/MWR/currency coding contract with golden cases, and confirm it against the GIPS text (M6).
+5. Specify the joint bootstrap and one break-handling rule; cite the Politis–White correction (M8, M9).
+6. Replace the calibration protocol with a feasible 1-month-ahead design and exact binomial thresholds (M3).
+7. Define the reverse-stress metric (M7). Add N1–N5 and the D21 all-loss case to the §9 test list. State that golden values must be distribution-level tolerances across the Python and TypeScript PRNGs, not bit-exact.
+8. Reconcile with Docs 5a, 5c and 8 (§5 above).
+
+**The never-build list (item 9)** is defensible as it stands: Kelly, edge scores and sizing advice are permanent bans; DCC, HRP and resampling are "not yet". But the ban is driven by objective mismatch, not by score (Kelly 1.60 outranks DCC 1.35), and the document should say so. Add explicitly: auto-rebalancing and order placement, leverage or margin, and any single "probability of success" gauge (agreeing with Doc 8).
+
+## 8. What I could not check
+
+- The GIPS 2020 text, the RiskMetrics 1996 document and the BIS 97.5% level (same gaps as the authors).
+- Meucci 2009, Bengen 1994 and Young 1991 in any index. OpenAlex was rate-limited all day and the hosted lookup tool timed out, so all academic checks are Crossref-only.
+- The NGX rulebook (S156) and the ±10% price-limit claim.
+- The constant-correlation Ledoit–Wolf implementation against a reference (scikit-learn has none), so the 0.985 intensity is unconfirmed.
+- Real NGX zero-return fractions.
+- Whether TypeScript reimplementations would reproduce the Python results.
+
+All numbers above come from my own re-runs (scratchpad scripts `mv.py`, `lw.py`, `chk.py`, `dm.py`). I modified no file under review or under `src/`.

@@ -101,3 +101,105 @@ The core of the document holds up: provenance comes first, market rules live in 
 - **m4.** Example 2 reproduces exactly (grid 48.7–55.2 down to 40.2–44.1; implied WACC 8.86% at g = 3%). Its FY2025 10-K inputs are also "stale" under §4.10 (B1).
 - **m5.** S12 (PenCom) and S16 (DMO) now return 404. The registry needs a "source moved" state.
 - **m6.** Mohanram (2005) is volume 10, issue 2–3. The document gives "10" only.
+
+## 3. Evidence-grade audit
+
+| Location | Claim | Given | Supportable | Reason |
+|---|---|---|---|---|
+| F19 | Accrual, F-score and M-score effects | E1 (US) | E1 historical; E2/E3 current | Decay evidence (M5) |
+| §4.2 | Piotroski "E1/E2 … replication by Hou et al." | E1/E2 | E2 | HXZ result not cited specifically |
+| F12 | CAR minimums | E2 | E2 but incomplete | Buffers, HLA and leverage omitted (M2) |
+| F2, §4.5 | NGX ±10% daily limit | E2 | E3 | Appears only on the pre-open row (M4) |
+| F4 | T+2 on 28 November 2025 | E2 | E3 | News-item date, not a stated go-live date |
+| F7 | MSCI effective February 2024 | E2/E3 | E3 / unconfirmed | Not in the re-fetched source |
+| §4.5 | Dividend WHT "2026-01-01 (Tax Act)" | E3 | Replace with Doc 6 primary citation | Search summary only |
+| F16, §4.6 | FGN securities' interest tax-exempt | E2 | Contradicted for T-bills | Doc 6 F12 |
+| §4.9 rules 1–4 | Thresholds (24 months, 5%, 25%, 5 years) | E4/E5 | E5 | No source, and no discipline is named as the E4 brief requires |
+| Example 1 | "no regulatory payout cap" | E3 | Contradicted | CBN rules on FX gains and forbearance |
+| §4.4 | NGN route formula attributed to the Damodaran framework | implicit E3 | Error | M1 |
+
+Claims presented as fact without a source: "the NGX is bank-heavy" (no index weight cited); "vendor feeds for NGX have no corporate-action or rule metadata" (Doc 5c shows some do, e.g. the NGX API's News & CA product); "the founder's earlier failure was breadth without provenance" (the brief records inaccuracy, not breadth).
+
+## 4. Citation and source spot-check
+
+Academic references (Crossref DOI or bibliographic lookup, 2026-11-04). OpenAlex returned "budget exhausted" and the hosted lookup tool timed out, so Crossref was used for all checks.
+
+| # | Reference | Doc status | My result |
+|---|---|---|---|
+| S60 | Sloan 1996, *TAR* 71(3) 289–315 | unverified | **Verified**: doi:10.2308/tar-9608042309 (add the DOI) |
+| S66 | Hou, Xue & Zhang 2020, *RFS* 33(5) 2019–2133 | unverified | **Verified** (doi:10.1093/rfs/hhy131; online December 2018) |
+| S83 | Bekaert & Harvey 1995, *JF* 50(2) 403–444 | unverified | **Verified** |
+| S93 | French & Poterba 1991 | unverified | **Partially verified**: NBER WP w3609 (doi:10.3386/w3609) matches title and authors; the *AER* P&P 81(2) version is not indexed in Crossref |
+| S62 | Piotroski 2000 | verified | **Verified** |
+| S64 | Beneish 1999 | verified | **Verified** |
+| S70 | Altman 2005 | verified | **Verified** |
+| S76 | Goyal, Welch & Zafirov 2024 | verified | **Verified** (37(11) 3490–3557) |
+| S84 | Chhabra 2005 | partial | **Verified** (7(4) 8–34) |
+| S85 | Nevins 2004 | partial | **Verified** (6(4) 8–23) |
+| S63 | Mohanram 2005 | verified | **Verified**; issue is 2–3 |
+| S101 | Novy-Marx 2013 | verified | **Verified** |
+| new | Pincus, Rajgopal & Venkatachalam 2007; Green, Hand & Soliman 2011 | — | **Verified** (cited in M5) |
+
+Non-academic URLs (re-fetched 2026-11-04):
+
+| Src | URL | Result |
+|---|---|---|
+| S1 | ngxgroup.com/…/trading-market-structure | Fetched. Hours confirmed; ±10% shown on the pre-open row only |
+| S2 | ngxgroup.com/ngx-expands-trading-window… | Fetched. Confirmed |
+| S7 | doclib.ngxgroup.com/…FPI Report September 2026.pdf | Downloaded. All figures confirmed |
+| S9 | cscs.ng/ngt1/ | Fetched. T+1 confirmed; T+2 date is a news date |
+| S10 | cbn.gov.ng/MonetaryPolicy/Decisions.html | Fetched. Confirmed, plus 75% non-TSA CRR |
+| S12 | pencom.gov.ng/…ADDENDUM….pdf | **404** |
+| S16 | dmo.gov.ng/fgn-bonds | **404** |
+| S26 | aswathdamodaran.blogspot.com/2026/07/… | Fetched. ERP 4.42 − 0.22 = 4.20; "currencies should not carry risk premiums" confirmed |
+| S27 | pages.stern.nyu.edu/~adamodar/…/ctrypremJuly26.xlsx | Downloaded and parsed. All F23 values confirmed; CDS-based alternative found |
+| S30 | tg.efghermes.com/Market/GetById/1904 | Fetched. DFM values confirmed (secondary, undated) |
+| S32 | arise.tv/cbn-raises-capital-requirements… | Fetched. Confirmed |
+| S35 | nairametrics.com/2026/08/16/ngx-postpones… | Fetched. Confirmed |
+| S40 | businesspost.ng/?p=215905 | Fetched. FTSE confirmed; MSCI date differs |
+| S52 | cbn.gov.ng/Out/2021/BSD/1. GUIDELINES ON REGULATORY CAPITAL.pdf | Downloaded. CAR confirmed; buffers, HLA, leverage and distribution rules found |
+| new | nairametrics.com/2025/06/14/cbn-suspends-dividends… | Fetched. Forbearance dividend suspension; references the September 2023 FX-gains circular |
+
+## 5. Cross-document contradictions
+
+1. **5a vs 5c, freshness thresholds.** For prices, 5a says stale after 2 trading days and expired after 5; 5c says stale after more than 3 and expired after more than 20. For annual statements, 5a says stale after 270 days; 5c says fresh up to 300.
+2. **5a vs 5c, validation statuses.** 5a uses V0–V3. 5c uses raw / auto_validated / validated together with confidence grades A–D. One system has to be chosen.
+3. **5a vs 5c, MPR grading.** 5a grades the MPR E2 (CBN page "fetched"). 5c F11 grades it E3 because the "communiqué not fetched". My fetch of the CBN decisions page supports E2, so 5c should be upgraded. 5c also lists the 75% CRR that 5a omits.
+4. **5a vs 5c, AED peg.** 5a grades it E3; 5c grades it E4.
+5. **5a vs Doc 6, tax treatment.** T-bill interest (exempt in 5a, taxed in Doc 6). Dividend WHT basis and effective date. Foreign currency as a chargeable asset. US estate tax in Example 3. See M3.
+6. **5a vs Doc 3.** Per-goal loss-tolerance instrument. Human-capital inference. Assumed founder preference. See M6.
+
+## 6. Questions the Investment Committee needs answered
+
+1. Which country-risk basis is the house default, rating or CDS? Who owns that choice, and how often is it revisited?
+2. Is the cost-of-equity grid derived mechanically from the routes, or can analysts set it by hand? If by hand, how is anchoring to the MPR prevented?
+3. Is there a period-alignment and sustainable-growth check in the quant gate? If not, who caught the errors in Example 1?
+4. When residency and tax status are unknown, which is the current state, does the admissible universe stay empty, or is there a labelled provisional mode?
+5. Who sets the 5%, 25%, 24-month and 5-year thresholds, on what evidence, and can the founder override them with a logged reason?
+6. What instrument will elicit per-goal loss tolerance, given Doc 3's adopted measures?
+7. Does R5 (the bank module) stay a Personal-MVP must-have before the CBN distribution, buffer and forbearance rules are in the registry?
+8. Which outputs would become regulated advice at commercialisation under SEC Nigeria and the UAE CMA, and will the permitted-language list be reviewed by counsel?
+9. What was the final outcome of the recapitalisation programme by licence category, and which NGX banks remain under forbearance?
+10. Is the NGX ±10% band a daily limit or a pre-open constraint?
+
+## 7. Required changes before the Investment Committee, in priority order
+
+1. Rebuild Example 1 (B1, B2): aligned periods, tax-effected normalisation, consistent g and payout, a mechanically derived cost-of-equity grid, the CBN distribution rules, and a status computed from freshness.
+2. Correct the NGN route formula and add the rating-versus-CDS axis (M1).
+3. Extend §4.3 with CET1, Tier 1, leverage, the buffer and HLA floors, liquidity ratio, the 75% CRR, forbearance and single-obligor limits, and a Stage 3 vs prudential-NPL distinction (M2).
+4. Align the tax statements with Doc 6 (M3).
+5. Re-grade the market rules per M4 and the screens per M5, and cite the international and local literature.
+6. Fix the internal contradictions in §4.9 and Example 3 (M6). Remove the assumed founder position.
+7. Flag the embedded allocation rules and valuation views as advice-sensitive (M7).
+8. Reconcile the freshness and validation taxonomies with Doc 5c (§5).
+
+## 8. What I could not check
+
+- DFM and ADX official rulebooks. Only the broker page S30 was re-fetched; S31 (ADX) was not.
+- The NGX 2018 pricing, free-float and circuit-breaker PDFs (S3–S6), which were not re-downloaded.
+- PenCom (S12) and DMO (S16), both now returning 404.
+- The MSCI effective date and the 2023 FTSE "Unclassified" move.
+- The enacted rate and years of the windfall tax on banks' FX gains.
+- The post-deadline recapitalisation outcome.
+- The specific F-score result in HXZ, and whether the AER P&P version of French–Poterba exists (no Crossref record).
+- I did not use OpenAlex (daily budget exhausted) or the hosted lookup tool (timed out). All academic checks are Crossref only.
