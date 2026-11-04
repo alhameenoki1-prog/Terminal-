@@ -97,7 +97,24 @@ Two of these will feel like a loss. The AI layer (H) and investment research (C)
 
 ## 6. The path, step by step
 
-ROADMAP_PLACEHOLDER
+The sequence is fixed. Dates depend on your weekly hours (Doc 10). The figures below assume 20 hours a week starting 9 November 2026, with ranges from Doc 10.
+
+| Step | What it delivers | Date at 20 h/week | Range |
+|------|------------------|-------------------|-------|
+| Fact-find | Your answers to §8, and approval of the decisions in §7 | 13 Nov 2026 | fixed |
+| M-0 Secure base | Conditions CP-1 to CP-10: a separate OS account, encrypted storage, backups that can still be erased | 20 Nov 2026 | 17–24 Nov |
+| Spike | A 2–3-day test of the Beancount + Fava base on synthetic statements | 27 Nov 2026 | 23 Nov–2 Dec |
+| M-1 | Reconciled ledger from your statements, importers, transfer matching, first reports | 8 Jan 2027 | 21 Dec–3 Feb |
+| M-2 | Records pack v1 to your tax practitioner | 26 Feb 2027 | 21 Jan–19 Apr |
+| M-3 and Gate P | Broker lots, the goal calculator, the remaining reports; review of whether to continue | 14 May 2027 | 15 Mar–11 Aug |
+
+- **Total effort** is about 13.4 person-weeks (range 9.1–19.8), plus about one reviewer-week for an external security review and about one reviewer-week a year from a second person.
+- **At 10 hours a week** the 2027 pack is prepared by hand and M-3 leaves the 2027 plan. At 40 hours a week everything finishes by about 10 February 2027.
+- **The 15 January 2027 rule protects your filing, not slack.** At 20 hours a week the pre-build work uses almost all of the schedule margin. If M-1 is not done by 15 January, the pack is prepared by hand.
+- **Pack v1 needs a lot schedule you prepare by hand**, because broker lots are automated only in M-3.
+- **An open conflict.** The committee targets 60 minutes a month of operating time. The security panel's own figures for the MVP's remaining chores come to about 43–73 hours a year, several times that target. Doc 10 leaves this to be measured in M-1 rather than hiding it.
+
+The twelve conditions before real data, the test plan and the falsification tests with their decision rules are in Doc 10 §5–§6.
 
 ## 7. Decisions only you can make
 
