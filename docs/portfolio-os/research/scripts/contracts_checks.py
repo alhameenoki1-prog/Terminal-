@@ -127,19 +127,55 @@ def c1():
 
 # ---------------------------------------------------------------- C2 figure tokens
 STORE = {
-    "fig_7a1": {"value": D("0.0812"), "field": "perf.twrr_1y", "unit": "fraction", "ccy": "USD", "status": "validated"},
-    "fig_7a2": {"value": D("-0.2345"), "field": "risk.max_drawdown", "unit": "fraction", "ccy": "USD", "status": "validated"},
-    "fig_7a3": {"value": D("4084410.00"), "field": "ledger.balance", "unit": "money", "ccy": "NGN", "status": "auto_validated"},
-    "date_7a": {"value": date(2026, 10, 31), "field": "asof", "unit": "date", "ccy": None, "status": "validated"},
+    "fig_7a1": {"value": D("0.0812"), "field": "perf.twrr_1y", "unit": "fraction", "ccy": "USD", "status": "validated",
+                "period": "per_1y", "scope": "pf_main"},
+    "fig_7a2": {"value": D("-0.2345"), "field": "risk.max_drawdown", "unit": "fraction", "ccy": "USD", "status": "validated",
+                "period": "per_1y", "scope": "pf_main"},
+    "fig_7a3": {"value": D("4084410.00"), "field": "ledger.balance", "unit": "money", "ccy": "NGN", "status": "auto_validated",
+                "period": None, "scope": "acct_a1"},
+    "fig_7a4": {"value": D("1250000.00"), "field": "spend.total", "unit": "money", "ccy": "NGN", "status": "auto_validated",
+                "period": "per_q3", "scope": "acct_a1"},
+    "date_7a": {"value": date(2026, 10, 31), "field": "asof", "unit": "date", "ccy": None, "status": "validated",
+                "period": None, "scope": None},
+    "per_1y": {"value": (date(2025, 11, 1), date(2026, 10, 31)), "field": "period", "unit": "period", "ccy": None,
+               "status": "validated", "period": None, "scope": None},
+    "per_oct": {"value": (date(2026, 10, 1), date(2026, 10, 31)), "field": "period", "unit": "period", "ccy": None,
+                "status": "validated", "period": None, "scope": None},
 }
-NUMBER_WORDS = re.compile(
-    r"\b(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|"
-    r"sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|"
-    r"thousand|million|billion|trillion|half|third|thirds|quarter|quarters|double|doubled|triple|tripled|"
-    r"dozen|January|February|March|April|June|July|August|September|October|November|December|"
-    r"Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b", re.IGNORECASE)
-TOKEN = re.compile(r"\{\{(fig|calc|count|range|date|dir|quote):([a-z0-9_.]+)(?:\|as=([a-z0-9_.]+))?(?:\|fmt=([a-z0-9_]+))?\}\}")
+
+# v0.2 (RT-B, C2.2(2)): lexical rules. Text is NFKC-normalised and case-folded before word checks; format,
+# control and numeral characters are rejected on the raw text; letters outside the allow-list are rejected.
+_EN = """zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen
+seventeen eighteen nineteen twenty thirty forty fifty sixty seventy eighty ninety hundred thousand million billion
+trillion zillion nil nought naught tens dozens hundreds thousands millions billions trillions first second third fourth
+fifth sixth seventh eighth ninth tenth eleventh twelfth thirteenth fourteenth fifteenth sixteenth seventeenth
+eighteenth nineteenth twentieth thirtieth fortieth fiftieth sixtieth seventieth eightieth ninetieth hundredth
+thousandth millionth billionth once twice thrice half halves halved third thirds quarter quarters double doubled
+triple tripled quadruple dozen couple k m bn mn tn"""
+_OTHER = """okan ookan eji meji eta meta erin merin arun marun efa mefa eje meje ejo mejo esan mesan ewa mewa mokanla
+mejila metala merinla meedogun ogun ogbon ogoji aadota ogota ogorun egberun miliyonu
+daya biyu uku hudu biyar shida bakwai takwas tara goma ashirin talatin hamsin dari dubu miliyan
+wahid ithnan ithnain thalatha arbaa khamsa sitta sabaa thamaniya tisaa ashara ishrun mia alf milyun
+uno dos tres cuatro cinco seis siete ocho nueve diez doce trece catorce quince veinte treinta cien ciento mil millon
+deux trois quatre cinq sept huit neuf dix onze douze vingt trente cent mille"""
+_DATES = """january february march april may june july august september october november december jan feb mar apr jun
+jul aug sep sept oct nov dec monday tuesday wednesday thursday friday saturday sunday mon tue tues wed thu thur thurs
+fri sat sun eid sallah ramadan christmas xmas easter diwali"""
+_CLAIMS = """all none every each both most majority minority few fewer several many more less higher lower greater
+smaller larger bigger above below exceed exceeds exceeded than rose risen rise rises rising fell fallen fall falls
+falling increase increased increases increasing decrease decreased decreases decreasing grew grown shrank shrunk
+dropped declined jumped surged climbed plunged slumped yesterday today tonight tomorrow last next previous ago recent
+recently lately earlier later day days daily week weeks weekly weekend fortnight month months monthly year years
+yearly annual annually quarterly decade ytd mtd qtd"""
+NUM_WORDS = set((_EN + " " + _OTHER + " " + _DATES).split())
+CLAIM_WORDS = set(_CLAIMS.split())
+WORD = re.compile(r"[a-z]+(?:['’][a-z]+)*")
+ROMAN = re.compile(r"\b(?=[MDCLXVI]{2,}\b)M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})\b")
+ALLOWED_CHARS = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ .,;:!?'\"()-/&%\n"
+                    "‘’“”–—…")
+TOKEN_TYPES = {"fig", "calc", "count", "range", "date", "period", "dir", "quote", "name"}
 AS_REQUIRED = {"fig", "calc", "count", "range", "date"}     # v0.2 (CC-2): as= is mandatory for every value-bearing type
+OPTIONS = {"as", "per", "scope", "fmt"}
 
 
 def render_value(f, fmt):
@@ -150,58 +186,129 @@ def render_value(f, fmt):
         return f"{f['ccy']} {q2(v):,}"
     if fmt == "date_long":
         return f"{v.day} {v.strftime('%B %Y')}"
+    if fmt == "period_long":
+        a, b = v
+        return f"{a.day} {a.strftime('%B %Y')} to {b.day} {b.strftime('%B %Y')}"
     if fmt == "int":
         return f"{int(v)}"
     if fmt == "times1":
-        return f"{v.quantize(D('0.1'), rounding=ROUND_HALF_EVEN)}\u00d7"
+        return f"{v.quantize(D('0.1'), rounding=ROUND_HALF_EVEN)}×"
     if fmt == "range_times1":
         lo, hi = v
-        return (f"{lo.quantize(D('0.1'), rounding=ROUND_HALF_EVEN)}\u00d7 to "
-                f"{hi.quantize(D('0.1'), rounding=ROUND_HALF_EVEN)}\u00d7")
+        return (f"{lo.quantize(D('0.1'), rounding=ROUND_HALF_EVEN)}× to "
+                f"{hi.quantize(D('0.1'), rounding=ROUND_HALF_EVEN)}×")
     raise ValueError(fmt)
 
 
-def lint_text(payload):
-    errors = []
-    if any(unicodedata.category(ch) == "Nd" for ch in payload) or any(ch in "\u00bd\u00bc\u00be\u2153" for ch in payload):
-        errors.append(f"free digit in text: {payload!r}")
-    m = NUMBER_WORDS.search(payload)
+def lint_numerals(payload):
+    """Rules for any fixed or model text: characters, numerals, number words (several languages), dates.
+    Returns the first violation only, in a fixed order, so each rejection names one cause."""
+    for ch in payload:
+        cat = unicodedata.category(ch)
+        if cat in ("Cf", "Co", "Cs", "Cn") or (cat == "Cc" and ch not in "\n\t"):
+            return [f"format/control character in text: U+{ord(ch):04X} {unicodedata.name(ch, '?')}"]
+    if any(unicodedata.category(ch) == "Nd" for ch in payload):
+        return [f"free digit in text: {payload!r}"]
+    for ch in payload:
+        if unicodedata.category(ch) in ("Nl", "No"):
+            return [f"numeral character in text: U+{ord(ch):04X} {unicodedata.name(ch, '?')}"]
+    norm = unicodedata.normalize("NFKC", payload)
+    for ch in norm:
+        if ch not in ALLOWED_CHARS:
+            return [f"character outside the text allow-list: U+{ord(ch):04X} {unicodedata.name(ch, '?')}"]
+    m = ROMAN.search(norm)
     if m:
-        errors.append(f"number/date word in text: {m.group(0)!r}")
-    return errors
+        return [f"Roman numeral in text: {m.group(0)!r}"]
+    for m in WORD.finditer(norm.lower()):      # allow-list leaves ASCII letters only, so positions are kept
+        if m.group(0) in NUM_WORDS:
+            return [f"number/date word in text: {norm[m.start():m.end()]!r}"]
+    return []
+
+
+def lint_text(payload):
+    """Model-written connecting text: numeral rules, then quantifier, comparative, direction and relative-time
+    words, which may only come from count, cmp, dir and period tokens."""
+    errs = lint_numerals(payload)
+    if errs:
+        return errs
+    norm = unicodedata.normalize("NFKC", payload)
+    for m in WORD.finditer(norm.lower()):
+        if m.group(0) in CLAIM_WORDS:
+            return [f"quantity/direction/time word in model text: {norm[m.start():m.end()]!r}"]
+    return []
+
+
+def parse_token(payload):
+    if not (payload.startswith("{{") and payload.endswith("}}")):
+        return None
+    head, *opts = payload[2:-2].split("|")
+    if ":" not in head:
+        return None
+    typ, fid = head.split(":", 1)
+    if typ not in TOKEN_TYPES or not re.fullmatch(r"[a-z0-9_.]+", fid):
+        return None
+    kv = {}
+    for o in opts:
+        k, _, v = o.partition("=")
+        if k not in OPTIONS or not v or k in kv:
+            return None
+        kv[k] = v
+    return typ, fid, kv
 
 
 def validate_and_render(segments, allow):
     out, errors = [], []
+    sentence = {"periods": set(), "fig_periods": set()}
+
+    def close_sentence():
+        if sentence["periods"] and sentence["fig_periods"] and sentence["periods"] != sentence["fig_periods"]:
+            errors.append(f"period token {sorted(sentence['periods'])} does not match figure period "
+                          f"{sorted(sentence['fig_periods'])} in the same sentence")
+        sentence["periods"], sentence["fig_periods"] = set(), set()
+
     for kind, payload in segments:
         if kind == "text":
             errors += lint_text(payload)
             out.append(payload)
+            if re.search(r"[.!?]", payload):
+                close_sentence()
             continue
         if kind == "tpl":
             text, errs = render_template(*payload, allow)
             errors += errs
             out.append(text or "")
             continue
-        m = TOKEN.fullmatch(payload)
-        if not m:
+        parsed = parse_token(payload)
+        if not parsed:
             errors.append(f"malformed token {payload!r}")
             continue
-        typ, fid, as_field, fmt = m.groups()
+        typ, fid, kv = parsed
         if fid not in allow:
             errors.append(f"token id not returned by a tool this turn: {fid}")
             continue
         f = STORE[fid]
+        as_field = kv.get("as")
         if typ in AS_REQUIRED and not as_field:
             errors.append(f"missing as= on {typ} token {fid}")
             continue
         if as_field and as_field != f["field"]:
             errors.append(f"semantic mismatch: {fid} is {f['field']}, model claimed {as_field}")
             continue
+        if typ == "fig" and f["period"] and kv.get("per") != f["period"]:
+            errors.append(f"period binding: {fid} covers {f['period']}, token says per={kv.get('per')}")
+            continue
+        if typ == "fig" and f["scope"] and kv.get("scope") != f["scope"]:
+            errors.append(f"scope binding: {fid} belongs to {f['scope']}, token says scope={kv.get('scope')}")
+            continue
+        if typ == "period":
+            sentence["periods"].add(fid)
+        if typ == "fig" and f["period"]:
+            sentence["fig_periods"].add(f["period"])
         if typ == "dir":
             out.append("rose" if f["value"] > 0 else "fell" if f["value"] < 0 else "was unchanged")
         else:
-            out.append(render_value(f, fmt))
+            out.append(render_value(f, kv.get("fmt")))
+    close_sentence()
     return ("PASS", "".join(out)) if not errors else ("REJECT", errors)
 
 
@@ -255,23 +362,25 @@ def render_template(tpl_id, co_id, allow):
 
 def register_template(text):
     """Registration-time lint of a template's fixed text (slots removed): same rules as model text."""
-    errs = lint_text(re.sub(r"\{[a-z_]+\}", "", text))
+    errs = lint_numerals(re.sub(r"\{[a-z_]+\}", "", text))
     return "REGISTER" if not errs else ("REFUSE REGISTRATION", errs)
 
 
 def c2():
     print("\n=== C2 Figure-integrity contract ===")
-    allow = {"fig_7a1", "fig_7a2", "fig_7a3", "date_7a"}
+    allow = {"fig_7a1", "fig_7a2", "fig_7a3", "fig_7a4", "date_7a", "per_1y", "per_oct"}
     cases = {
-        "A good": [("text", "Your time-weighted return over the past year was "),
-                   ("tok", "{{fig:fig_7a1|as=perf.twrr_1y|fmt=pct1}}"), ("text", " and the largest drawdown was "),
-                   ("tok", "{{fig:fig_7a2|as=risk.max_drawdown|fmt=pct1}}"), ("text", ", as of "),
+        "A good": [("text", "Your time-weighted return over the period "), ("tok", "{{period:per_1y|fmt=period_long}}"),
+                   ("text", " was "), ("tok", "{{fig:fig_7a1|as=perf.twrr_1y|per=per_1y|scope=pf_main|fmt=pct1}}"),
+                   ("text", " and the largest drawdown was "),
+                   ("tok", "{{fig:fig_7a2|as=risk.max_drawdown|per=per_1y|scope=pf_main|fmt=pct1}}"), ("text", ", as of "),
                    ("tok", "{{date:date_7a|as=asof|fmt=date_long}}"), ("text", ".")],
         "B free digits": [("text", "You should expect 12% next year.")],
         "C number words": [("text", "Expect roughly twelve percent.")],
         "D mislabelled": [("text", "Drawdown was "), ("tok", "{{fig:fig_7a1|as=risk.max_drawdown|fmt=pct1}}")],
         "E invented id": [("text", "Balance "), ("tok", "{{fig:fig_9zz|fmt=money}}")],
-        "F free date": [("text", "As of October your balance was "), ("tok", "{{fig:fig_7a3|as=ledger.balance|fmt=money}}")],
+        "F free date": [("text", "As of October your balance was "),
+                        ("tok", "{{fig:fig_7a3|as=ledger.balance|scope=acct_a1|fmt=money}}")],
     }
     for k, segs in cases.items():
         print(k, "->", validate_and_render(segs, allow))
@@ -282,6 +391,17 @@ def c2():
         "H rung above construct": [("tpl", ("L2b.result@0.2", "co_pay6"))],
         "I construct not returned": [("tpl", ("L1.after_income@0.2", "co_pay6"))],
         "J missing as= on date": [("text", "As of "), ("tok", "{{date:date_7a|fmt=date_long}}")],
+        # v0.2 (RT-B): binding to period and scope, and the lexical hardening
+        "K period token vs figure": [("text", "Over the period "), ("tok", "{{period:per_oct|fmt=period_long}}"),
+                                     ("text", " you spent "),
+                                     ("tok", "{{fig:fig_7a4|as=spend.total|per=per_q3|scope=acct_a1|fmt=money}}"),
+                                     ("text", ".")],
+        "L wrong per= binding": [("text", "You spent "),
+                                 ("tok", "{{fig:fig_7a4|as=spend.total|per=per_oct|scope=acct_a1|fmt=money}}")],
+        "M wrong scope= binding": [("text", "You spent "),
+                                   ("tok", "{{fig:fig_7a4|as=spend.total|per=per_q3|scope=acct_b2|fmt=money}}")],
+        "N homoglyph": [("text", "Only \u043ene account failed to reconcile.")],
+        "O quantifier": [("text", "All of your accounts reconcile.")],
     }
     for k, segs in tcases.items():
         print(k, "->", validate_and_render(segs, allow if k.startswith("I") else allow_b))
