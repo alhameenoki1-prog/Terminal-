@@ -1,0 +1,6 @@
+# Pinned interpreter packages for the scripts in this folder that are not standard-library-only.
+# Versions are those every quoted output was produced with (2026-11-04). Run every script with `python3 -I`.
+# scipy is deliberately NOT listed: no script may depend on it (V-015). A script that needs a missing package
+# must stop with an error rather than switch to a different code path.
+numpy==2.5.3
+pandas==3.0.5
