@@ -25,6 +25,8 @@ Sections
   L  official-parallel FX spread (R03b M4, V-030)
   M  year-one questionnaire burden, v0.1 vs v0.2 (R03b M3, V-029)
   N  budget-view experiment: between-person sample size (Doc 4 sec. 4.4.1; Doc 4 v0.2 sec. 6)
+  O  template registry: C2.2 item 12 registration gate on every sec. 4.10 entry (contracts v0.2, CC-2);
+     uses register_template() from contracts_checks.py, loaded by file path
 """
 import sys
 
@@ -214,7 +216,7 @@ print(f"   from y/y {yoy:.2%}: {(1 + yoy) ** (1 / 12) - 1:.2%} a month (v0.1 sho
       f"September 2026 m/m as published: {mom:.2%}")
 
 # ---------------------------------------------------------------- L
-print("\nL. Official (NFEM) vs parallel USD/NGN, 29-30 Oct 2026 (press tracker S104)")
+print("\nL. Press-reported NFEM figure (S104; not a CBN 'NFEM Rate' snapshot, C5.1) vs parallel USD/NGN, 29-30 Oct 2026")
 nfem = 1346.91
 for par in [1385.0, 1390.0]:
     print(f"   parallel {par:,.2f}: gap {(par / nfem - 1):.2%} of the official rate")
@@ -235,3 +237,46 @@ print("\nN. Budget-view experiment (Doc 4 sec. 4.4.1): between-person sample siz
 sd_pp, delta_pp = 10.0, 2.0  # E5 assumptions: SD of monthly savings rate 10 pp; difference worth detecting 2 pp
 n_arm = 2 * (1.96 + 0.8416) ** 2 * (sd_pp / delta_pp) ** 2
 print(f"   SD {sd_pp:.0f} pp, difference {delta_pp:.0f} pp: {n_arm:.0f} users per arm (one person cannot supply this)")
+
+# ---------------------------------------------------------------- O
+print("\nO. Template registry: C2.2 item 12 registration gate (fixed text with slots removed)")
+import importlib.util
+_spec = importlib.util.spec_from_file_location("contracts_checks", Path(__file__).resolve().parent / "contracts_checks.py")
+_cc = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_cc)
+REGISTRY = {
+    "L0a.recorded@0.2": "On {date}, {amount} left {account}.",
+    "L0b.classified@0.2": ("Spending in categories you marked as flexible was {amount} between {start} and {end}; "
+                           "{in_review} of it is still awaiting your review."),
+    "L0b.window_totals@0.2": ("In the {win_days} days after salary arrived, spending in categories you marked as flexible "
+                              "was {win_total}; on other days it was {other_total}. {in_review} of it is still awaiting "
+                              "your review."),
+    "L0b.before_after@0.2": ("Since you set up the standing order on {date}, your savings rate has been {after} against "
+                             "{before} before. This is a description, not a test of its effect."),
+    "L1.after_income@0.2": ("Over {cyc_n} pay cycles, spending in categories you marked as flexible during the {win_days} "
+                            "days after salary arrived averaged {ratio} the rate on other days (approximate range {ci}). "
+                            "This held in {cyc_held} of {cyc_n} cycles. Removed before this was calculated: bills and fees "
+                            "{x_bills}, currency conversions {x_fx}, investment contributions {x_inv}, transfers you "
+                            "marked as family {x_fam}."),
+    "L1.possible@0.2": "A possible pattern; too early to tell.",
+    "L1.too_early@0.2": ("Not enough history yet: {have} of {need} pay cycles needed for a pattern this size, given how "
+                         "much your spending varies."),
+    "L2a.after_income@0.2": ("Large bank-data studies in the United States and Iceland found a similar pattern after income "
+                             "arrives. They disagree on why: bills timed with pay, attention, and available cash all play "
+                             "a part. This describes those studies, not you."),
+    "L2b.result@0.2": ("In the {n_with} cycles with {condition}, {outcome} was lower by {diff} ({range}) than in the "
+                       "{n_without} without; order was randomised within {n_pairs} pairs."),
+    "L3.stem@0.2": "A possible explanation is {hypothesis}; this could be checked when {data}.",
+    "L4.no_anchor@0.2": ("This view needs a single regular income date; your income arrives on several dates, so it is "
+                         "not shown."),
+    "L4.not_measured@0.2": "The system does not measure this.",
+}
+WITHDRAWN = {
+    "L4.no_anchor (v0.2 wording)": ("This view needs one regular income date; your income arrives on several dates, so it "
+                                    "is not shown."),
+    "L3 stem (v0.2 wording)": "One possibility is {hypothesis}; this could be checked when {data}.",
+}
+for k, v in REGISTRY.items():
+    print(f"   {k}: {_cc.register_template(v)}")
+for k, v in WITHDRAWN.items():
+    print(f"   withdrawn {k}: {_cc.register_template(v)}")

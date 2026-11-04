@@ -99,7 +99,7 @@ Each finding states the evidence grade, the source numbers (see §10), and — w
 | Rank effect [S31] | Position rank at sale | Sale probability by rank | Salience | — | — |
 | Login/ostrich [S54, S56] | Login timestamps vs returns/balances | Login elasticity to negative returns | Selective attention | Anxiety vs rational inattention | "Avoidance personality" |
 
-Conditions: at least 30–50 sale events for a meaningful PGR−PLR [S28 used thousands of accounts; for one account the CI will be wide — see §4.5 note]; prices and costs with provenance; and NGX/DFM/ADX data validated by System C. *v0.2:* precision at small counts is worse than v0.1 stated: ±0.25 with 20 paper gains and 20 paper losses, and about 58 of each for ±0.15 (§4.5 Step 9). The attention, rank and login rows are literature only and are not built (§4.2).
+Conditions: at least 30–50 sale events for a meaningful PGR−PLR [S28 used thousands of accounts; for one account the CI will be wide — see §4.5 note]; prices and costs with provenance; and NGX/DFM/ADX data that are conclusion-eligible under C3.4 (System C). *v0.2:* precision at small counts is worse than v0.1 stated: ±0.25 with 20 paper gains and 20 paper losses, and about 58 of each for ±0.15 (§4.5 Step 9). The attention, rank and login rows are literature only and are not built (§4.2).
 
 **F16. Robo-advice and automation change observed behaviour.** Robo-adviser adoption reduced disposition, trend-chasing and rank effects for previously under-diversified investors [S77] (**E2**). This is evidence that *decision architecture* rather than *insight* moves investor behaviour — relevant to §3F.
 
@@ -272,7 +272,7 @@ The catalogue is cut to constructs that inform a named decision (R03b §2a, §2b
 - *Holt–Laury, BIS-11, DOSPERT, Grable–Lytton, Propensity to Plan and Consideration of Future Consequences:* kept in §3 as literature only.
 
 **Data-quality gate (replaces v0.1 §9.1–9.2; R03 §5.3, R03b M3).**
-- *Ground truth:* the founder's decisions in the review queue. There is no separate 200-label exercise.
+- *Ground truth:* the founder's decisions in the review queue. There is no separate 200-label exercise. These are `self` events (C3.3a): precision is measured against the founder's own decisions, not an independent label, and the gate's results are reported as "self-checked".
 - *Transfer matching:* precision ≥ 0.98 and recall ≥ 0.95 on confirmed review-queue items. These are Doc 4 v0.1's targets, kept here as E5 thresholds. They are measured with Doc 4 v0.2's stratified labelled set and calibrated posteriors (Doc 4 §4.3.2; C4).
 - *Audit sample:* each month, 10 auto-applied classifications drawn with probability proportional to amount are inserted into the queue, unmarked.
 - *Value-weighted error:* the estimated misclassified value in the payday window must be ≤ 2% of window outflows (E5, to be calibrated). Value weighting matters because one misclassified ₦2.4m rent line moves the ratio more than a hundred small errors.
@@ -317,6 +317,8 @@ The catalogue is cut to constructs that inform a named decision (R03b §2a, §2b
 | L2b within-person result | `L2b.result` | "In the ⟨count⟩ cycles with X, Y was lower by ⟨amount⟩ (range) than in the ⟨count⟩ without; order was randomised within ⟨count⟩ pairs." | "The prompt worked" or "failed"; any mechanism |
 | Before/after description of a user decision (§4.6) | `L0b.before_after` | "Since you set up the standing order on ⟨date⟩, your savings rate has been ⟨amount⟩ against ⟨amount⟩ before. This is a description, not a test of its effect." | "Because of the standing order" |
 | L3 hypothesis | `L3.*` | "A possible explanation is …; this could be checked when …" (v0.2 stem "One possibility" failed C2 registration on "One") | Presenting it as an insight |
+
+Each row is a C2 `tpl` template in the §4.10 registry. Its fixed text, with slots removed, passes the C2.2 item 2(a)–(e) registration gate (script §O). The placeholders are registry slots, never model text.
 
 ### 4.5 Worked example: six months, salary on the 25th, "spending spike" analysis (synthetic data)
 
@@ -515,7 +517,7 @@ Grades apply F12's one-notch discount to mechanism claims not replicated in fiel
   - (c) questionnaires (constructs 11–12);
   - (d) any experiment (§4.6).
 - **Notice.** The notice names "automated decision-making, including profiling" (s.27(1)(g)).
-- **Withdrawal.** Withdrawal is one control, as easy as giving consent (s.35(2)). It stops computation at once and deletes derivations within 30 days (E5).
+- **Withdrawal.** Withdrawal is one control, as easy as giving consent (s.35(2)). It stops computation at once and shreds the class B key, so behavioural data are unreadable in the live store at once and in backups within the key-store rotation window (≤ 30 days, E5; C8-I5).
 
 **4.9.4 Automated decisions.** No behavioural construct may drive a decision with legal or similarly significant effect without human involvement (s.37(1)). The MVP automates no decision from these constructs. If intervention eligibility is ever automated for other users, the s.37(2)(c) consent route and the s.37(3) safeguards apply: human intervention, the right to express a view, and the right to contest.
 
@@ -532,16 +534,16 @@ Grades apply F12's one-notch discount to mechanism claims not replicated in fiel
 
 Doc 4 v0.2's "Giving & family" group separates religious or charitable giving (a consumption category) from remittances to family (`TransferOut:Family`). We ask Doc 4 to flag religious giving as a sensitive category and to keep school fees as a scheduled category, so the register can act on each (§6).
 
-**4.9.6 Storage, retention and deletion** (reconciles Doc 6, Doc 8 and v0.1).
-- **Separate store.** Behavioural derivations are kept in a store separate from the tax vault. They comprise:
+**4.9.6 Storage, retention and deletion** (follows contract C8, which governs; reconciles Doc 6, Doc 8 and v0.1).
+- **Class B, behavioural.** Behavioural derivations are C8 class B, encrypted under their own data key and backed up to their own recipient, separately from the tax vault. They comprise:
   - statistics;
   - behavioural tags beyond ledger categories;
-  - questionnaire responses;
-  - experiment records.
-- **Retention.** They can be recomputed from the ledger, so the store keeps current values plus 24 months of history (E5; R03b M5). Everything in it is deleted on withdrawal.
-- **Tax vault.** Statements, documents and the journal follow Doc 6: kept at least 6 years under NTAA s.31(5), in write-once storage, as a legal obligation.
-- **Doc 8's "delete everything".** It must therefore read: "delete behavioural data now; ledger and tax records are deleted when the legal retention period ends".
-- **Pre-registration hashes.** Kept outside both stores; they contain no personal data.
+  - questionnaire answers not used for tax;
+  - pre-registration records and experiment and intervention logs.
+- **Retention.** They can be recomputed from the ledger, so class B keeps current values plus 24 months of history (E5; R03b M5), and nothing at all once behavioural consent is withdrawn. Withdrawal shreds the class B key (§4.9.3). Only the withdrawal event is kept, in the content-free integrity log (class S: consent ID and time).
+- **Tax vault (class T).** Statements, documents, the journal and the classifications and questionnaire answers that decide a tax figure are kept **until the user erases them**. v0.1's "write-once storage" is withdrawn: compliance-mode object lock is forbidden on personal data (C8-I4). Erasure is always possible and never blocked. The system first warns and offers a one-step export. The statutory minimum (NTAA s.31(5), as read by Doc 6) is the taxpayer's duty, shown as a warning, never enforced. While `NG-RECORDS-RETENTION-2026` is below `sourced`, no retention date is computed or shown, and the warning reads: "Tax law may require you to keep these records for several years; the period is not yet sourced here. Export first?" (C8 mechanism 4).
+- **Doc 8's "delete everything".** It must therefore read: "delete behavioural data now; ledger and tax records can also be deleted, after a warning and an offer to export; backup copies become unreadable within the stated rotation window" (C8; Doc 8 §4.5.13).
+- **Pre-registration hashes.** The hash committed to an external timestamp (§4.3) is outside the system's stores and contains no personal data. The pre-registration record itself is class B and is erased with it.
 
 **4.9.7 Where processing happens.**
 - **Local rendering.** Templates are filled locally by the renderer (C2). Counterparty names are never sent to a cloud model; the model sees token IDs and masked `quote` handles only (C2.2 item 7).
@@ -577,24 +579,45 @@ gates: {min_cycles: noise_calibrated_power_0.8_at_1.3x, data_quality: doc03_4.2_
         persistence: hold_between_looks}
 rope: [0.90, 1.10]
 max_rung: L1
-templates: [L0b.window_totals, L1.after_income, L1.possible, L1.too_early, L4.no_anchor]
-context_template: L2a.after_income          # never raises the indicator
+templates: [L0b.window_totals@0.2, L1.after_income@0.2, L1.possible@0.2, L1.too_early@0.2, L4.no_anchor@0.2]
+context_template: L2a.after_income@0.2      # never raises the indicator
 ux_rung_display: {L0a: fact, L0b: fact, L1: headline, L2b: headline_top, L2a: research_context_only, L3: not_tested_yet_only}
 ```
 
-**Template text (C2 token form).** Only the renderer resolves tokens. The model may only *select* a template ID whose rung is at or below the construct's current rung, and may not add connecting text to a behavioural card. This is the template enforcement C2.6 item 3 assigns to Doc 3.
+**Template registry (C2 `tpl` segments; C2.2 item 12).** Doc 3 owns the registry. It is versioned and insert-only: a change is a new version row, never an edit. Each entry holds `template_id`, `version`, `status` (`draft`/`approved`/`retired`), `rung`, `placement`, the fixed text with named slots, and a slot table (slot → token type, `as=` field, `fmt`). The model selects a template and a construct-output ID and writes no slot. The renderer fills each slot from the construct output, with the slot's `as=` and `fmt` from the registry, and with `per=` and `scope=` taken from the construct output's period and scope (C2.2 item 5). The model may not add connecting text inside a template, and its adjacent `text` segments may not compose a behavioural sentence. Before an entry can be `approved`, its fixed text with slots removed must pass C2.2 item 2(a)–(e) and the §4.7/Doc 8 forbidden-form lint, and every slot must declare `as=` and `fmt`. A template that fails is refused registration, not waived. At render the C2.2 item 12 checks (a)–(f) apply: approved version; construct output returned this turn; template rung at or below the construct's current rung; template listed in the specification above; slot fields match; the construct output meets its C3.4 tier, otherwise `L1.too_early` or a refusal is shown.
+
+| `template_id@version` | Status | Rung | Placement | Fixed text (slots in braces) | Registration (script §O) |
+|---|---|---|---|---|---|
+| `L0a.recorded@0.2` | approved | L0a | fact | "On {date}, {amount} left {account}." | passes |
+| `L0b.classified@0.2` | approved | L0b | fact | "Spending in categories you marked as flexible was {amount} between {start} and {end}; {in_review} of it is still awaiting your review." | passes |
+| `L0b.window_totals@0.2` | **draft** (wording not yet reviewed; does not render) | L0b | fact | "In the {win_days} days after salary arrived, spending in categories you marked as flexible was {win_total}; on other days it was {other_total}. {in_review} of it is still awaiting your review." | passes |
+| `L0b.before_after@0.2` | approved | L0b | fact | "Since you set up the standing order on {date}, your savings rate has been {after} against {before} before. This is a description, not a test of its effect." | passes |
+| `L1.after_income@0.2` | approved | L1 | card headline | see the token form below | passes |
+| `L1.possible@0.2` | approved | L1 | card headline | "A possible pattern; too early to tell." | passes |
+| `L1.too_early@0.2` | approved | L1 (withheld variant) | card headline | "Not enough history yet: {have} of {need} pay cycles needed for a pattern this size, given how much your spending varies." | passes |
+| `L2a.after_income@0.2` | approved | L2a | research context (attached to an L1 card) | see below | passes |
+| `L2b.result@0.2` | approved | L2b | card headline (top) | "In the {n_with} cycles with {condition}, {outcome} was lower by {diff} ({range}) than in the {n_without} without; order was randomised within {n_pairs} pairs." | passes |
+| `L3.stem@0.2` | approved | L3 | not tested yet | "A possible explanation is {hypothesis}; this could be checked when {data}." | passes (v0.2 "One possibility is …" refused) |
+| `L4.no_anchor@0.2` | approved | L4 | card headline (in place of the card) | "This view needs a single regular income date; your income arrives on several dates, so it is not shown." | passes (v0.2 "one regular income date" refused) |
+| `L4.not_measured@0.2` | approved | L4 | in place of the card | "The system does not measure this." | passes |
+
+Every `count` and `range` slot declares `as=` (C2.2 item 5, v0.2): for example `{have}` and `{need}` are `count` slots with `as=behav.cycles_have` and `as=behav.cycles_needed`, `fmt=int`, and `{range}` in `L2b.result` is a `range` slot with `as=behav.l2b_diff_ci`. The slots `{condition}` and `{outcome}` in `L2b.result` and `{hypothesis}` and `{data}` in `L3.stem` take registered phrase IDs from the construct specification, never model text. The full slot tables are build artefacts, versioned with the registry.
+
+**Template text, token form, for construct 6** (the inline `{{type:id|as=…|fmt=…}}` form is a notation for the slot table; C2.2 item 12).
 
 ```text
-L1.after_income:
-  Over {{count:cyc_n}} pay cycles, spending in categories you marked as flexible during the
-  {{count:win_days}} days after salary arrived averaged {{calc:pay6.ratio|as=behav.after_income_ratio|fmt=times1}}
-  the rate on other days (approximate range {{range:pay6.ci}}). This held in {{count:cyc_held}} of
-  {{count:cyc_n}} cycles. Removed before this was calculated: bills and fees
+L1.after_income@0.2:
+  Over {{count:cyc_n|as=behav.cycles_n|fmt=int}} pay cycles, spending in categories you marked as
+  flexible during the {{count:win_days|as=behav.window_days|fmt=int}} days after salary arrived averaged
+  {{calc:pay6.ratio|as=behav.after_income_ratio|fmt=times1}} the rate on other days (approximate range
+  {{range:pay6.ci|as=behav.after_income_ratio_ci|fmt=range_times1}}). This held in
+  {{count:cyc_held|as=behav.cycles_held|fmt=int}} of {{count:cyc_n|as=behav.cycles_n|fmt=int}} cycles.
+  Removed before this was calculated: bills and fees
   {{fig:pay6_x_bills|as=behav.excluded_bills|fmt=money0}}, currency conversions
   {{fig:pay6_x_fx|as=behav.excluded_conversions|fmt=money0}}, investment contributions
   {{fig:pay6_x_inv|as=behav.excluded_investment|fmt=money0}}, transfers you marked as family
   {{fig:pay6_x_fam|as=behav.excluded_family|fmt=money0}}.
-L2a.after_income:
+L2a.after_income@0.2:
   Large bank-data studies in the United States and Iceland found a similar pattern after income
   arrives. They disagree on why: bills timed with pay, attention, and available cash all play a part.
   This describes those studies, not you.
@@ -743,14 +766,14 @@ Conformance is tested in §9 item 5.
 | # | Recommendation | Class | Five-question test (1 problem · 2 who/why · 3 evidence · 4 build/validate · 5 measurable improvement) |
 |---|---|---|---|
 | 1 | Claims ladder v0.2, rung-tagged templates through C2 tokens, prohibited outputs and merged vocabulary (§4.1, §4.7, §4.10) | **Personal-MVP must-have** | 1 Unsupported psychological statements mislead decisions; Doc 8 v0.1's card showed an implied 4.0× as "38%" with no baseline · 2 Founder now; every later user · 3 The ladder is an E4/E5 design, motivated by E1 evidence of replication fragility and the non-ergodicity argument (F12, F25); it is not itself evidence-tested · 4 Template engine; C2 tests T2-01–T2-12 run on behavioural templates; 100 adversarial synthetic ledgers · 5 Zero behavioural sentences outside templates in CI; every L1 card carries interval, cycles and sized checks; founder's correction rate on behavioural cards below 10% (E5 target) |
-| 2 | Decision-linked L0b views: recurring charges, fees/levies/conversion cost, liquidity buffer by currency, currency conversions (constructs 1–4) | **Personal-MVP must-have** | 1 Money lost to unwanted charges, fees and conversion spreads (official–parallel gap 2.8–3.2% on 29–30 Oct 2026, script §L), and reserves held in the wrong currency · 2 Founder; multi-currency life makes this hard by hand · 3 F14 (E2, US); F21 (E2 duty; E3 charges); value to founder E6 until measured · 4 Arithmetic on the reconciled ledger; validated against statements · 5 After a 3-month baseline the founder sets a ₦ threshold; continue only if annualised charges cancelled plus fees and spread avoided exceed it; otherwise reduce to a quarterly report |
+| 2 | Decision-linked L0b views: recurring charges, fees/levies/conversion cost, liquidity buffer by currency, currency conversions (constructs 1–4) | **Personal-MVP must-have** | 1 Money lost to unwanted charges, fees and conversion spreads (official–parallel gap 2.8–3.2% on 29–30 Oct 2026, script §L, measured against the press-reported NFEM figure in S104, not a CBN "NFEM Rate (₦/US$)" snapshot, so indicative until that snapshot is attached; C5.1), and reserves held in the wrong currency · 2 Founder; multi-currency life makes this hard by hand · 3 F14 (E2, US); F21 (E2 duty; E3 charges); value to founder E6 until measured · 4 Arithmetic on the reconciled ledger; reconciled to statements (`auto_validated`) · 5 After a 3-month baseline the founder sets a ₦ threshold; continue only if annualised charges cancelled plus fees and spread avoided exceed it; otherwise reduce to a quarterly report |
 | 3 | Spending after income (construct 6) as a guardrail, and as a decision measure only if shortfall cost (6a) is non-zero | **Personal-MVP must-have** (guardrail and 6a). Decision use **conditional** | 1 Problem stated in money: end-of-cycle shortfall cost (overdraft and NSF fees, high-cost borrowing, contributions skipped in Y of 6 cycles); without the guardrail a naïve app reports an 8× "splurge" · 2 Founder, if paid on one cycle (confirm) · 3 F13 E1 phenomenon (US, Iceland); E6 applicability · 4 §4.5 pipeline; noise-calibrated gate · 5 6a falls to the founder's target; if 6a is zero for 6 cycles, construct 6 stays a guardrail and its decision use moves to *Later* |
 | 4 | Privacy design (§4.9): separate consents, sensitive-inference register, separate retention, local rendering, DPIA | **Personal-MVP must-have** (design); **blocking** at first external user | 1 Profiling and sensitive inferences without a lawful basis expose users and the company · 2 Every user; the founder's kin already appear in the ledger · 3 NDPA text E2 (F30); PDPL E3 · 4 Consent UI; deletion test (behavioural store emptied, tax vault untouched); audit for sensitive categories · 5 Counsel sign-off and DPIA before a second user; zero sensitive-category inferences in audit |
 | 5 | Questionnaires cut to 7 items in year one: SOEP/GPS risk item just in time plus one retest; CFPB 5-item annually, optional | **Personal-MVP must-have** (risk item); CFPB optional | 1 Portfolio benchmarks (System D/E) need stated willingness, which behaviour cannot reveal · 2 Founder · 3 S114 (E2); GPS fielding in Nigeria and the UAE [S177]; E4 for local validity · 4 Item plus retest; MDC stated · 5 Personal measurement error known before the first benchmark is shown; no change smaller than the MDC is ever reported |
 | 6 | Decisions tracked at L0b: a bank standing order the founder sets up is recorded and described before/after | **Personal-MVP** (low cost) | 1 Saving rules are adopted but rarely tracked · 2 Founder · 3 Commitment-device evidence (F20, E1 low- and middle-income countries; take-up selective) · 4 Decision record plus Doc 4 savings-rate series · 5 Savings rate and buffer against the founder's own target; no causal claim |
 | 7 | Within-person intervention protocol (§4.6) | **Later** (commercial between-person trials; founder n-of-1 only for ≥ 30% effects and ≥ 24 cycles) | Power and feasibility per §4.5 Step 8 |
 | 8 | Auto-sweep, auto-conversion and trade friction inside the product | **Do-not-build (yet)** | Doc 4 R13; no order routing. Revisit only with a licensed partner |
-| 9 | Disposition tax-lot view; turnover and costs | **Later** | Needs lots, validated prices and ≥ 30 sale days a year; ±0.15 precision needs about 58 gains and 58 losses |
+| 9 | Disposition tax-lot view; turnover and costs | **Later** | Needs lots, conclusion-eligible prices (C3.4) and ≥ 30 sale days a year; ±0.15 precision needs about 58 gains and 58 losses |
 | 10 | Budget-envelope deviation; budget-view experiment | **Later** (between-person at commercialisation, about 392 users per arm for 2 pp) | §4.6 |
 | 11 | Peer comparison, labels, health score, free-text LLM psychology, parameter estimation, app-open metrics, attention or rank metrics, sensitive inferences, behavioural credit scoring, sale of behavioural data, real-time overspend alerts, emotion inference, questionnaire risk profiles as suitability | **Do-not-build (yet)** | §4.7 |
 | 12 | Population behavioural segmentation | **Do-not-build (yet)** | Revisit with consented cohorts, local validation, DPIA and ethics review at System I |
@@ -770,7 +793,7 @@ Conformance is tested in §9 item 5.
 3. **Shortfall cost.** Measure construct 6a over the first 6 cycles. The result decides Rec 3.
 4. **Template red-team.**
    - 100 synthetic ledgers, including missing months, salary-date drift, several income streams, large one-off transfers and lumpy spending.
-   - C2 tests T2-01–T2-12 applied to behavioural templates.
+   - C2 tests T2-01–T2-19 applied to behavioural templates, including T2-13–T2-15 (`tpl` slots, rung and registration) and the script §O registration gate on every registry entry.
    - No sentence above its rung.
    - The merged lint list passes Doc 8 copy.
 5. **Doc 8 conformance.**
@@ -785,7 +808,7 @@ Conformance is tested in §9 item 5.
 8. **Privacy.**
    - Counsel review of §4.9.
    - Consent UI with four separate consents.
-   - Withdrawal deletion test: behavioural store emptied within 30 days; tax vault untouched.
+   - Withdrawal erasure drill (C8-I3, C8-I5): class B unreadable in the live store at once and in every backup within the rotation window; tax vault untouched. A tax-vault erasure drill shows the warning and export step and is never blocked.
    - DPIA before a second user.
 9. **Source clean-up.**
    - S140 and S148 magnitudes.
@@ -1055,6 +1078,7 @@ Academic sources were verified by DOI against OpenAlex (with Crossref where note
 | §5 contradictions 1–7 | V-007, V-028, V-030 | Fixed (Doc 3 side) | §4.9.6, §4.10, §6 | The Doc 8 §7 "phantom disagreement" is answered in §6 |
 | §6 IC questions | — | Fixed (four items deferred) | §4.9, §4.10 | Fixed: sensitive categories and retention; owner of the construct specification (Doc 3). Deferred to the founder: shortfall cost, controller and processors, trading frequency, monthly uploads |
 | §8 PDPL primary text and article numbers | V-028 | Deferred | §9.9 | Owner: UAE counsel |
+| Contract conformance to contracts v0.2, 2026-11-04 | CC-2, CC-11, RT-A, RT-B, RT-B retention (C8) | Fixed; version stays 0.2 | §4.0, §4.1, §4.4, §4.9.3, §4.9.6, §4.10, §4.2 gate, §8 Recs 2 and 9, §9 items 4 and 8, §3B conditions, this section; script §O | Templates are C2 `tpl` segments in a published registry (fields per C2.2 item 12; `as=` on every `count` and `range` slot; ids carry `@0.2`). `L4.no_anchor` reworded to "a single regular income date" and the `L3` stem to "A possible explanation is …"; every entry passes the registration gate (script §O, using `register_template` from `contracts_checks.py`). §4.9.6 follows C8: class B shredded on withdrawal; "write-once storage" withdrawn; the tax vault is erasable after a warning and export; the draft retention rule sets no date. Founder-only checks are "self-checked" (C3.3a). "CBN central rate" → "NFEM Rate (₦/US$)". The §L gap is labelled as measured against a press figure. Not a review finding; excluded from the counts below |
 
 **Counts.** 48 findings in total: 31 from R03 and 17 from R03b.
 - **Fixed: 45.** Four of these leave a component deferred to a named owner: R03 M9 (reviewer to be named by the founder); R03 §6 (single pay cycle, founder); R03b M5 (counsel review and DPIA, Legal); R03b §6 (four questions, founder).
@@ -1066,8 +1090,9 @@ Academic sources were verified by DOI against OpenAlex (with Crossref where note
 
 ### Contract notes
 
-- We follow C1–C5 and C2 as written. One extension, stricter than C4 and compatible with it: tags with sensitivity weight (family, religious giving, health) never auto-apply or bulk-accept. **Proposal:** C4's condition 4 ("no tax or legal weight") should also name sensitivity weight, so that Doc 4 and Doc 8 apply the same rule.
-- C3.4 does not say whether behavioural statistics are "conclusion-driving". We treat L1 and above as conclusion-driving (§4.0). **Proposal:** state this in C3.4.
+- We follow C1–C5, C8 and C2 as written in contracts v0.2. One extension remains stricter than C4 and compatible with it: obligation and currency-conversion "hedging" tags are user-confirmed only.
+- ~~**Proposal:** C4's condition 4 should also name sensitivity weight.~~ **Closed** by contracts v0.2 (CC-11): C4 condition 4 now names it, and sensitive tags never auto-apply or bulk-accept.
+- ~~**Proposal:** state in C3.4 whether behavioural statistics are conclusion-driving.~~ **Closed** by contracts v0.2 (CC-11): C3.4 "Behavioural statistics" makes L1 and above conclusion-driving and L0 descriptive.
 
 ### Still open
 
