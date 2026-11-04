@@ -174,3 +174,35 @@ Claims presented as fact without a source: "Bank-data studies find a similar aft
 8. **Doc 3 F7 and §4.2 ostrich telemetry against Doc 8 §4.9 aggregate-only instrumentation** (M5).
 9. **Doc 8 §7, "Behavioural (anticipated): more frequent nudges".** Doc 3 argues the opposite (F11, F27, R4 favour architecture over informational nudges). This disagreement does not exist and should be removed. The real disagreement is that Doc 3 wants pay-eve prompts while Doc 8 has notifications off by default; opt-in resolves it.
 10. **Doc 3 §6 asks System G to "confirm the ₦50 stamp duty".** Doc 6 F21 already has (m4).
+
+## 6. Questions the Investment Committee needs answered
+
+1. What has the founder's own data shown about end-of-cycle shortfall costs (fees, overdraft, informal borrowing, skipped contributions)? If the answer is "none", what is the behavioural module's MVP value beyond guardrails?
+2. Who is the data controller in the personal MVP: the founder, or a Portfolio OS entity? Which cloud processors (LLM, parsing) touch behavioural outputs? This decides whether NDPA s.3(1) applies.
+3. Will behavioural analysis be consented separately from ledger and tax processing? Which categories (religious, health, political, kin) are excluded by default?
+4. What is the retention period for behavioural derivations, and how are they kept apart from Doc 6's six-year tax vault?
+5. Does the founder actually trade often enough (≥ 30 sale days a year) for any brokerage metric to leave L0? If not, why keep F5–F7 constructs in the MVP catalogue?
+6. Will the founder commit to monthly uploads across all institutions for 12 months? What is the fallback when a month is missing?
+7. Which document owns the construct specification that the UI renders: Doc 3 or Doc 8?
+
+## 7. Required changes before the Investment Committee (priority order)
+
+1. **Reconcile Doc 3 and Doc 8** on the insight card and intervention (B1). Write one construct specification and one indicator mapping, and merge the banned-vocabulary lists (m3). Remove the Journey 4 two-month before/after offer.
+2. **Rewrite Q1 and Q5 of the five-question test for Recs 1–5** in currency and decision terms. Make Rec 3 conditional on observed shortfall cost (M1).
+3. **Replace the ABAB pilot** in the personal MVP with "adopt the auto-sweep as a decision; track savings rate and buffer at L0". Keep §4.6 for the commercial phase. Add reactivity, carry-over and calendar confounds to §7 (M2).
+4. **Add a privacy section to Doc 3** covering lawful basis, separate consent, the sensitive-inference register, purpose limitation, retention and erasure, local rendering and DPIA. Cite NDPA ss. 3, 24, 25, 26, 27(1)(g), 30, 34(2), 35, 37 and 65, and the PDPL definitions (pending primary-text check). Counsel review (M5).
+5. **Cut questionnaire burden** to about 6–12 core items in year one. Move SOEP to just-in-time. Use the CFPB short form annually and report its minimal detectable change. Drop the Big Three and fragility item for the founder (M3).
+6. **Reclassify payday FX as "currency conversion"** with spread and tax flags (M4).
+7. **Apply the removals in §2b and the decision map in §2a**, and hand concentration and currency exposure to System D.
+8. **Regrade per §3.** Label the §4.3 gates E5. Rename the constructs (m1) and fix the templates (m2).
+
+## 8. What the reviewer could not check
+
+- The UAE PDPL primary text: uaelegislation.gov.ae returned 403, and the u.ae PDF is Arabic only. The "family" limb rests on DLA Piper (E3). The article numbers for scope exclusions (personal-purpose processing; banking and credit data) and for automated processing are **unverified**.
+- Whether the NDPA text I read (the certified bill as passed, 5 June 2023) differs from the gazetted Act. I found no evidence that it does, but I did not compare them.
+- The NDPC GAID 2025 primary text. Doc 6's DPIA and registration-tier claims remain secondary.
+- Whether the household exemption extends to processors (E4).
+- The abstract figures for S148 (d ≈ 0.65) and S140 (3.5%→13.6%).
+- The NBS core-inflation figure: the NBS PDF was not fetched, and the Vanguard text is garbled.
+- Real noise in the founder's spending. My sensitivity case (σ = 0.9, 30% zero days) is an assumption, not data.
+- The founder's actual trading frequency, subscription spend, fee drag and income regularity. Every "actionable" verdict in §2a is conditional on these.
