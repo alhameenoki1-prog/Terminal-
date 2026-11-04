@@ -279,10 +279,13 @@ Report fidelity as a bound, not a zero: 0 failures in 200 cases gives a 95% uppe
 
 ### C2.4 Worked example (`c2()`)
 ```python
-TOKEN = re.compile(r"\{\{(fig|date|dir|quote):([a-z0-9_]+)(?:\|as=([a-z0-9_.]+))?(?:\|fmt=([a-z0-9_]+))?\}\}")
+TOKEN = re.compile(r"\{\{(fig|calc|count|range|date|dir|quote):([a-z0-9_.]+)(?:\|as=([a-z0-9_.]+))?(?:\|fmt=([a-z0-9_]+))?\}\}")
 if any(unicodedata.category(ch) == "Nd" for ch in payload): errors.append("free digit")
 if fid not in allow: errors.append("token id not returned by a tool this turn")
+if typ in AS_REQUIRED and not as_field: errors.append("missing as=")      # v0.2
 if as_field and as_field != f["field"]: errors.append("semantic mismatch")
+# v0.2 tpl segment: approved -> on allow-list -> rung <= construct rung -> listed in spec -> slot fields match
+if RUNG_ORDER.index(t["rung"]) > RUNG_ORDER.index(co["rung"]): errors.append("template rung above construct")
 ```
 ```
 A good -> ('PASS', 'Your time-weighted return over the past year was 8.1% and the largest drawdown was -23.4%, as of 31 October 2026.')
@@ -330,12 +333,17 @@ Doc 5c has 8 states mixed with freshness. Doc 5a has V0–V3 plus freshness. Doc
 | Axis | Stored or computed | Values | Owner |
 |---|---|---|---|
 | **V validation** (evidence) | Stored; append-only transition log | `candidate`, `auto_validated`, `validated`, `disputed`, `rejected` | Data quality |
-| **F freshness** (time) | **Computed at read time** from `as_of`, `published_at`, cadence, holiday calendar and `expiry_at` (thresholds in Doc 5c §4.3.2, merged with 5a per R05c M8) | `fresh`, `ageing`, `stale`, `expired`; the `republished` flag counts at least as `ageing` | Data quality |
+| **F freshness** (time) | **Computed at read time** from `as_of`, `published_at`, cadence, holiday calendar, filing calendar and `expiry_at`. Thresholds are in Doc 5c §4.3.2 (the v0.2 merged table), under the rules in C3.2a | `fresh`, `ageing`, `stale`, `expired`; the `republished` flag counts at least as `ageing` | Data quality |
 | **L lifecycle** (vintage) | Stored | `current`, `restated` (current vintage that replaced an earlier one; badge for 30 days), `superseded` (an older vintage), `withdrawn` (retracted by the source with no replacement) | Data quality |
 | **R rights** | Computed from the licence registry (`licence_scope`, `terms_version`, `expiry`) | `licence_active`, `licence_expired` (retention allowed: historical display only), `licence_revoked` (purge required; cascades to derived figures) | Legal + data |
 | **I identity** | Stored | `resolved`, `vendor_renamed` (alias changed; awaiting confirmation), `unresolved` | Data quality |
 | **C corroboration** | Attribute | `two_independent` (different `source_independence_group`), `same_upstream`, `single_source` | Data quality |
 | **M method** | Attribute (Doc 5c) | `observed`, `derived`, `estimated`, `manual_override` (+ `override_expires_at`) | Producer |
+
+**C3.2a Freshness rules for scheduled data (v0.2, CC-10).**
+1. Where a sourced calendar exists (a release calendar, MPC calendar or issuer filing deadline), it governs, and day counts are fallbacks used only while no such record exists. The calendar or deadline is itself a world fact under C3.5: it is never typed by hand.
+2. **Periodic fundamentals.** No fixed day count makes an annual statement `fresh`; v0.1 of Doc 5c's "fresh ≤ 300 days" is withdrawn. A figure is `fresh` until the next periodic filing that would update it is due, and `ageing` from that due date until the filing is published. It is `stale` once that filing is published but not ingested, or 30 days after the due date (E5). `expired` follows Doc 5c's table. A metric used as a current-period measure (for example TTM earnings, Doc 5a §4.10) takes its freshness from the next filing of **any** period type that would update it, interims included.
+3. FX follows C5.2. A policy rate follows its meeting calendar (C3.5, Doc 5c §4.3.2).
 
 Feed health (`ok` / `fetch_failed`) belongs to a **series**, not a figure. A failed fetch creates no figure. The last figure simply ages. Statement-derived amounts: reconciled → `auto_validated` (with an exception badge where applicable); quarantined → `candidate`. Aggregates carry `complete | incomplete` (Doc 4 §4.5(6)).
 
@@ -357,7 +365,19 @@ stateDiagram-v2
 
 Lifecycle: `current` → `superseded` when a new vintage arrives, and the new figure is `restated` for 30 days, then `current`. `current` → `withdrawn` on retraction. Lifecycle changes never alter V. Each transition records trigger, actor, evidence hash and time.
 
-**Single-source protocol (R05c M3).** A `single_source` series is treated as `validated` for conclusions only while its sampling rule holds. That rule is: internal consistency checks pass (for example, CPI year-on-year recomputed from index levels; market cap ÷ price compared with shares outstanding), plausibility bands pass, and a risk-based human sample of 1 in 20 figures, plus every figure that breaks a band, finds no error. One sampling error sends the series back to human review of each figure.
+**Single-source protocol (R05c M3; floor added v0.2, CC-10).** A `single_source` series is treated as `validated` for conclusions only while its sampling rule holds. That rule has four parts:
+1. internal consistency checks pass (for example, CPI year-on-year recomputed from index levels; market cap ÷ price compared with shares outstanding);
+2. plausibility bands pass;
+3. a risk-based human sample finds no error. The sample is 1 in 20 figures, with a **floor**: per series per year, at least max(⌈n/20⌉, min(n, 4)) human-checked figures, where n is the number of editions. So every edition of a quarterly, semi-annual or annual series is checked, and a monthly series is checked at least quarterly;
+4. every figure that breaks a band is human-checked.
+
+One sampling error sends the series back to human review of each figure. A semi-annual series such as a country-risk edition is therefore checked at every edition (Doc 5a §11 observation 2).
+
+**Pending corporate actions (v0.2, CC-3).** A pending corporate action is **not** a validation state. It is modelled as:
+- a corporate-action record with its own lifecycle (Doc 5c §4.3.4: announced → ex-date → record date → applied, or cancelled);
+- F = `ageing` on the affected figures (shares outstanding, unadjusted per-share series) while the lifecycle is open, and F = `stale` once the expected apply date passes without the action being applied (Doc 5c §4.3.2).
+
+Every figure carries `ca_set_version` and `adjustment_basis`. A calculation that combines per-share and per-company quantities **refuses** when its inputs carry different `ca_set_version` values. That covers, for example, a price dated on or after the ex-date combined with a pre-action share count, so the `ageing` badge cannot hide an unadjusted mix. "Override expired" is the existing transition `validated → candidate`, not a state. The validation axis V keeps its five values.
 
 ### C3.4 What the UI shows, and what may feed a calculation
 
@@ -371,7 +391,17 @@ Lifecycle: `current` → `superseded` when a new vintage arrives, and the new fi
 
 Overlays: `restated` adds "restated" with a link to the prior vintage. `superseded`/`withdrawn` appear only in history views. `licence_expired` shows the retained value with a licence badge. `licence_revoked` shows "removed (licence)". `vendor_renamed` shows a "symbol changed: confirm" chip. `single_source` is always named on the chip. `estimated` uses italics plus "est." with an accessible name (R08).
 
+**Table-level chips (v0.2, CC-9).** A table MAY show one state chip in its caption or header instead of one per cell (for example "All amounts auto-checked: reconciled to statement"), on four conditions:
+- every cell shares that state;
+- any cell whose state differs (candidate, disputed, stale, single source, estimated, restated and so on) carries its own chip;
+- each cell's accessible name includes its state whenever it differs from the caption's;
+- a value taken out of the table, whether copied, exported, shown in a tooltip or cited by the AI, carries its own chip, and exports carry a status column per row.
+
+A table that mixes states without per-cell chips breaks this contract.
+
 **Calculation tiers.** A *descriptive* calculation (net-worth total, cash-flow view) may use any `current`/`restated`, `licence_active`, `resolved` figure in V ∈ {validated, auto_validated} with F ≠ expired. The output inherits the worst badge ("includes 1 stale price"). A *conclusion-driving* calculation (valuation, risk limits, goal engine, tax, AI conclusions) additionally needs F ∈ {fresh, ageing}, and either V = validated, or V = auto_validated with `two_independent` or a passing single-source sampling rule. It also needs the licence scope to permit processing (NGX non-display, V-012). `candidate`, `disputed`, `rejected`, `superseded`, `withdrawn` and `licence_revoked` never feed either tier. A derived figure's V is the minimum of its inputs and its F the worst.
+
+**Behavioural statistics (v0.2, CC-11).** Doc 3 outputs at rung L1 or above (measured patterns, within-person randomised results) are **conclusion-driving**. L0a/L0b totals are descriptive. A behavioural statistic also needs the user's behavioural consent (V-028) and the construct's Doc 3 gates. A failed gate withholds the statistic with its reason; it is never shown with a badge instead.
 
 ### C3.5 Entry-time primary-source check (V-010)
 A **world fact** (policy rate, tax parameter, peg, threshold, calendar date) or any manually entered value cannot leave `candidate` until all of the following hold:
@@ -396,8 +426,16 @@ typed next meeting 2026-03-25 in calendar? False -> expiry_at derived from calen
    ('disputed', 'fresh', 'current', 'licence_active', 'two_independent') -> show both values side by side; no calc
    ('validated', 'fresh', 'superseded', 'licence_active', 'two_independent') -> history only; not displayable as current; no calc
    ('validated', 'fresh', 'current', 'licence_expired', 'single_source') -> display retained value with licence badge; no new calc or derived figure
+CA-0907 bonus 1 for 10 state=announced: price dated 2026-11-06 -> F(shares)=ageing (open CA lifecycle); per-share calc allowed; shares outstanding badge 'ageing: corporate action pending'
+CA-0907 bonus 1 for 10 state=announced: price dated 2026-11-10 -> F(shares)=ageing (open CA lifecycle); REFUSE per-share calc: ca_set_version cas-3 (shares) vs cas-4 (price on/after ex-date 2026-11-09)
+single-source sampling per series per year (editions -> human checks):
+   daily FX or price, 250 editions: v0.1 1-in-20 expects 12.5; v0.2 -> 13
+   monthly CPI, 12: v0.1 1-in-20 expects 0.6; v0.2 -> 4
+   quarterly, 4: v0.1 1-in-20 expects 0.2; v0.2 -> 4
+   semi-annual country-risk edition, 2: v0.1 1-in-20 expects 0.1; v0.2 -> 2
+   annual, 1: v0.1 1-in-20 expects 0.05; v0.2 -> 1
 ```
-Doc 5c's expiry-only control would have shown 27.50% as fresh; C3.5 blocks it on entry.
+Doc 5c's expiry-only control would have shown 27.50% as fresh; C3.5 blocks it on entry. The corporate-action and sampling lines are new in v0.2 (CC-3, CC-10); the action and its dates are synthetic.
 
 ### C3.7 Documents that must change; mapping of old vocabularies
 
@@ -424,10 +462,11 @@ Doc 5c's expiry-only control would have shown 27.50% as fresh; C3.5 blocks it on
 - **Doc 5a §4.10:** adopt the mapping.
 - **Doc 7 §4.2 P5:** adopt the axes and the history of statuses.
 - **Doc 8 Component A, §4.5.8, Journey 5:** adopt C3.4. Remove the market-cap range built from disputed inputs. Correct the "stale on Tuesday" example: two business days old is `ageing`. Change the conflict colour so it differs from ageing amber.
+- v0.2 follow-ups (CC-3, CC-9, CC-10, CC-11) are listed in "Errata resolution (v0.2)".
 
 ### C3.8 Open questions
 1. **Lawyer:** must derived figures be purged when NGX or vendor licences end (R05c Q5)?
-2. **Founder:** will they act as validator for samples, given an estimated workload of about 250 samples a year at 1 in 20?
+2. **Founder:** will they act as validator for samples, given an estimated workload of about 250 samples a year at 1 in 20, plus the v0.2 floor for low-cadence series (Doc 5c to recompute)?
 3. Ageing thresholds remain E5 until a trial calibrates them.
 
 ---
@@ -443,13 +482,13 @@ Doc 5c's expiry-only control would have shown 27.50% as fresh; C3.5 blocks it on
 - **Auto-apply rule.** An inference is applied without review (still reversible and badged) only if **all** of these hold:
   1. p ≥ 0.90;
   2. the producer is not `model`;
-  3. the producing rule's Wilson 95% lower bound on precision is ≥ 0.90 over ≥ 30 confirmed applications (a younger rule is *provisional*, and all its outputs go to review);
-  4. the fact has no tax or legal weight: it is not the first classification of a credit as income, a gift, a loan, a residency fact or a disposal (Doc 4 ask-versus-infer);
+  3. the Wilson 95% lower bound on precision of the producing rule's **stratum** is ≥ 0.90 (amended v0.2, CC-8). The bound alone sets the minimum: an error-free record reaches 0.90 only at **35** confirmed applications (30/30 gives 0.8865), and any error raises the count. v0.1's separate "≥ 30" condition is deleted as redundant. A stratum below the bound is *provisional*, and all its outputs go to review. **Stratum** = (producer, rule or pattern ID, inference type, currency stratum: same-currency or cross-currency). For `counterparty_memory`, confirmations are **pooled across counterparties** within the stratum. Scoring per counterparty would leave almost every monthly payee provisional for years (Doc 8 §11 note 1: about 74 decisions in a steady month, against about 20 pooled). Pooling carries a guard: a correction on one counterparty suspends auto-apply for that counterparty until its next 3 applications are confirmed in review (E5), and the correction counts against the pool;
+  4. the fact has no tax, legal or **sensitivity** weight. It is not the first classification of a credit as income, a gift, a loan, a residency fact or a disposal (Doc 4 ask-versus-infer). It also carries no tag from the sensitive-inference register: family, religious giving, health, or any other category the register lists (V-028; Doc 3 §4.0, Doc 7 §4.7.5; v0.2, CC-11). With behavioural consent off, no sensitive inference is produced at all;
   5. for transfer matches, the C1.5 residual test passes, and for cross-currency matches a shared reference or provider ID exists.
 
   Everything else goes to the review queue.
-- **Queue order.** Tax-weighted items first, then by materiality × (1 − p), where materiality is the NGN-equivalent amount.
-- **Bulk accept.** Allowed only for very-high items that share one reason and carry no tax weight.
+- **Queue order.** Tax-weighted items first, then by materiality × (1 − p), where materiality is the NGN-equivalent amount. Sensitivity weight changes routing (always review), not priority.
+- **Bulk accept.** Allowed only for very-high items that share one reason and carry no tax or sensitivity weight.
 - **Fixed rules.**
   - Unknown credits are never defaulted to transfers. They count toward a visible "unexplained inflows" total that Tax sees (R04 M5).
   - Rules whose trailing-100 precision falls below 0.90 are demoted (Doc 4 §4.3.6).
@@ -468,16 +507,23 @@ Fuel POS 27,300: band very_high, producer deterministic_rule, tax-weighted False
 Credit 1,780,000 from IMTO: band high, producer deterministic_rule, tax-weighted True -> review queue; priority 71200.00 [tax first]
 Aani transfer 250 AED: band medium, producer model, tax-weighted False -> review queue; priority 4482.50
 Airtime 5,000: band high, producer model, tax-weighted False -> review queue; priority 350.00
+rule precision 30/30: Wilson 95% lower bound 0.8865 -> provisional: outputs go to review
+rule precision 34/34: Wilson 95% lower bound 0.8985 -> provisional: outputs go to review
+rule precision 35/35: Wilson 95% lower bound 0.9011 -> may auto-apply
+smallest error-free track record with lower bound >= 0.90: 35 confirmations
+Family transfer 150,000: band very_high, producer counterparty_memory, tax-weighted False, sensitivity family -> review queue; never bulk-accepted; priority 1500.00
 ```
+The last five lines are new in v0.2 (CC-8, CC-11).
 
 **Documents that must change.**
 - **Doc 4:** §4.2 "Confidence and review states" points here, adding the Wilson condition and the tax-weight exclusion. §4.3.1 confidences (0.95/0.80) become provisional rule outputs.
 - **Doc 8:** Component A and U9 adopt four bands. Remove "accept all High". Measure the M1 success metric as calibration and correction rate, not acceptance.
 - **Doc 7:** classification tables store `producer` and `confidence` bitemporally (C1.3).
+- v0.2 follow-ups (CC-8, CC-11) are listed in "Errata resolution (v0.2)".
 
 **Open questions.**
 1. **Founder:** what materiality threshold should apply?
-2. At the founder's volume, cross-currency strata will take years to reach 30 confirmations, so they stay in review. Is that acceptable?
+2. At the founder's volume, cross-currency strata will take years to reach 35 error-free confirmations, so they stay in review. Is that acceptable? (Pooling across counterparties does not merge the currency strata.)
 
 ---
 
