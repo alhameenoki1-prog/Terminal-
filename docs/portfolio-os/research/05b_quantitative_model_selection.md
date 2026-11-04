@@ -1,7 +1,7 @@
 ```
 Document: 5b — Quantitative Finance Model-Selection Report
 Department: Quantitative Finance and Financial Engineering  ·  Lead role(s): quantitative portfolio researcher, financial mathematician, statistician, financial econometrician, quantitative risk analyst, optimisation specialist, financial data scientist, financial-engineering specialist
-Version: 0.2  ·  Date: 2026-11-04  ·  Status: revised after independent review (v0.1 2026-11-02/04; review R05b; Contracts C2, C3, C5, C6 adopted)
+Version: 0.2  ·  Date: 2026-11-04  ·  Status: revised after independent review
 Reviewers required: Data Architecture & Market Data (provenance, NGX/DFM/ADX feeds); Product & UX (plain-language outputs); Behavioural Finance (how probabilities are shown); Engineering (Web Worker / test harness); Compliance & Legal (statements the product may make); Tax (after-tax return inputs)
 ```
 
@@ -12,19 +12,19 @@ Reviewers required: Data Architecture & Market Data (provenance, NGX/DFM/ADX fee
 ## 1. Executive summary
 
 **Conclusions.**
-1. For one individual with a handful of positions across NGN, AED and USD, the quantitative problem is *measurement under bad data*, not optimisation. Exposure, descriptive risk and a correct performance ledger deliver most of the decision value with little estimation risk.
-2. Mean–variance optimisation is not justified in the Personal MVP. It needs expected returns that short histories with structural breaks cannot supply [S2, S5, S9, S10]. In our synthetic example, rolling minimum-variance weights move with standard deviations of 25–30 percentage points (exact solver, §4.9). Ledoit–Wolf shrinkage is kept only as a risk input.
-3. The Goal Reality Engine follows Contract C6: a demeaned joint bootstrap, with drift taken from a labelled assumption set and its uncertainty built in. The headline is a count of futures, not a band. Synthetic example: "about 40 of 100 futures reach $150,000; the middle 80% end between $84,900 and $216,400; reaching it in 9 of 10 futures needs $76,800 more today or about $1,200 a month". The v0.1 "11%–94%" band is withdrawn: it was set by the horizon-to-history ratio, not by the data.
-4. Calibration at the goal horizon cannot be established for one user within the MVP. The engine is calibrated on 1-month-ahead forecasts instead.
-5. The prototypes are demonstration code with 27 defects (§4.8).
+1. For one individual with a few positions across NGN, AED and USD, the quantitative problem is *measurement under bad data*, not optimisation. Exposure, descriptive risk and a correct performance ledger deliver most of the value with little estimation risk.
+2. Mean–variance optimisation is not justified in the Personal MVP: short histories with structural breaks cannot supply the expected returns it needs [S2, S5, S9, S10]. Synthetic rolling minimum-variance weights move with standard deviations of 25–30 points (§4.9). Ledoit–Wolf shrinkage is kept only as a risk input.
+3. The Goal Reality Engine follows Contract C6: a demeaned joint bootstrap with drift from a labelled assumption set. The headline is a count. Synthetic example: "about 40 of 100 futures reach $150,000; the middle 80% end between $84,900 and $216,400; 9 of 10 futures reach it with $76,800 more today or about $1,200 a month". The v0.1 "11%–94%" band is withdrawn: the horizon-to-history ratio set it, not the data.
+4. Goal-horizon calibration cannot be established for one user within the MVP; 1-month-ahead forecasts are calibrated instead.
+5. The prototypes have 27 defects (§4.8).
 
-**Biggest uncertainty.** Whether *any* optimiser belongs in the product (§7, Disagreement 1). Proposed resolution: none in Phase 1; Phase 2 only behind an out-of-sample stability gate. A close second is the drift assumptions: which capital-market-assumption (CMA) source is used, and whether its licence permits use in the product (C6 open questions).
+**Biggest uncertainty.** Whether *any* optimiser belongs in the product (§7). Proposed resolution: none in Phase 1; Phase 2 only behind a stability gate. A close second: which capital-market-assumption source supplies drift, and under what licence.
 
-**Headline recommendations.**
-- *Must-have:* exposure decomposition; risk descriptives with intervals; drawdowns; a stress library with a defined reverse stress test; the time- and money-weighted return coding contract (§4.5); the C6 goal engine; 1-month calibration logging.
-- *Later:* Black–Litterman view tool; risk-budgeting weights; estimated GARCH.
-- *Do not build (yet):* unconstrained mean–variance, CVaR optimisation, dynamic conditional correlation (DCC), hierarchical risk parity (HRP), resampling.
-- *Never:* Kelly sizing, sizing advice, auto-rebalancing, order placement, leverage, a single probability-of-success gauge.
+**Recommendations.**
+- *Must-have:* exposure decomposition; risk descriptives with intervals; drawdowns; stress library with a defined reverse stress test; the return coding contract (§4.5); the C6 goal engine; 1-month calibration logging.
+- *Later:* Black–Litterman views, risk-budgeting weights, estimated GARCH.
+- *Not yet:* unconstrained mean–variance, CVaR optimisation, DCC, HRP, resampling.
+- *Never:* Kelly, sizing advice, auto-rebalancing, orders, leverage, a single probability gauge.
 
 ## 2. Scope and method
 
@@ -220,7 +220,9 @@ Table 4.2a summarises each family on the assignment's criteria. "Suitability (i)
 
 Each scenario record states its **window type** (event-day close-to-close, peak-to-trough on daily closes, or annual average), its price type (for example, S&P 500 *price* index from FRED, not total return) and its source. The shock applied is always the event or peak-to-trough figure; annual averages are context, never the shock (R05b M7).
 
-**Hypothetical scenarios (parametrised; user can edit the magnitudes):** NGN −30%/−50% overnight; AED peg break (AED has been pegged to USD; a peg-break scenario is a low-probability, high-impact hypothetical — E6); oil −50%; US equity −40% with NGN −20% (joint); NGX liquidity freeze (positions marked at a 15% discount and 30-day exit). **Reverse stress test (R05b M7; an optimisation output, labelled as one).**
+**Hypothetical scenarios (parametrised; user can edit the magnitudes):** NGN −30%/−50% overnight; AED peg break (AED has been pegged to USD; a peg-break scenario is a low-probability, high-impact hypothetical — E6); oil −50%; US equity −40% with NGN −20% (joint); NGX liquidity freeze (positions marked at a 15% discount and 30-day exit).
+
+**Reverse stress test (R05b M7; an optimisation output, labelled as one).**
 - *Factors x:* 1-month log moves in each holding's local price and in each FX rate against the base currency.
 - *Covariance Σ:* 1-month covariance estimated on the full sample **including** break days. This is the stressed covariance, and it is stated as such on the output.
 - *Value function:* V(x) = Σᵢ vᵢ·exp(xᵢ − x_FX(i)), where vᵢ is the base-currency value of holding i today.
@@ -233,10 +235,10 @@ Two outputs:
 d is a distance, not a probability, so the no-probability rule below still applies. The first principal component is no longer the definition; it may be shown only as a labelled simplification. Grundke [S94] (bank bottom-up methods) and the Basel principles [S65, not fetched] are background only.
 
 *Synthetic example (§4.9 section 5b; floor = a 25% loss over one month on USD 100,000 equal-weighted):*
-- naira per dollar +60.0% with everything else flat (d = 9.23); +64.9% with the other factors at their conditional means (d = 9.79);
+- naira per dollar +60.0% with everything else flat (d = 9.23); +64.9% with the other factors at their conditional means (d = 9.79). For a *given* FX move, the conditional-mean setting is the more plausible one. Here it needs a larger move, because the stressed covariance links a weaker naira to a small rise in USD equity, which offsets part of the loss. Both lines are shown;
 - the most plausible joint scenario is NGN equity −15.8%, USD equity −14.0%, FGN bond −1.2% and naira per dollar +31.6% (d = 7.07).
 
-v0.1's sentence "a 28% naira fall with flat equities" is withdrawn: it was not a first-principal-component move, and no computation produced it.
+v0.1's sentence "a 28% naira fall with flat equities" is withdrawn: it was not a first-principal-component move, and no script reproduces it.
 
 Each stress result is shown as a *loss given the scenario*, never with a probability attached, unless the scenario comes from the historical library — in which case the frequency statement is limited to "this happened n times in the last m years".
 
@@ -350,6 +352,8 @@ stale prob  obs vol true vol  OLS beta Dimson k=1 Dimson k=3 weekly beta zero-da
        0.3    0.304    0.303     0.674      0.932      0.982       0.902          0.29
        0.5    0.308    0.303     0.510      0.744      0.937       0.844          0.49
        0.7    0.313    0.303     0.322      0.580      0.818       0.664          0.69
+OLS beta is biased toward zero as staleness rises; Dimson lags and weekly aggregation recover most of the bias at the cost of precision. Observed daily vol is NOT understated here, because this generator recovers every missed move on the next trading day; in real thin markets incomplete catch-up also biases daily vol down (Doc 5b §4.6).
+theory 1 - p^(k+1) at p=0.5, k=3: 0.9375
 ```
 
 (In this generator the missed moves are recovered in full on the next trading day, so total variance is preserved and observed volatility is not understated; in real thin markets stale quotes are *not* fully caught up within the sample window, and daily volatility is also biased down [S142, S145]. The beta bias is the robust result.)
@@ -360,7 +364,7 @@ stale prob  obs vol true vol  OLS beta Dimson k=1 Dimson k=3 weekly beta zero-da
 
 **Why v0.1's band was withdrawn.** Under an i.i.d. approximation, P(success | μ̂) = Φ((Hμ̂ − g)/(σ√H)), and μ̂ ~ N(μ, σ²/T). The 10th–90th percentile band of that probability is therefore Φ(c ± 1.2816·√(H/T)).
 - With the horizon equal to the history (H = T), any goal near the median gives a band of about 10%–90%, whatever the data say. At H/T = 4 it runs from 0.5% to 99.5% (`doc05b_revision_checks.py` [4]).
-- On the v0.1 example the analytic band is 14%–93%, against the 11%–94% that v0.1 reported.
+- On the example's daily-rebalanced portfolio the analytic band is 14%–93%. With v0.1's mean-of-logs series it is 10.5%–90.5% (R05b), against the 11%–94% that v0.1 reported from 40 outer replicates.
 - The predictive probability, which integrates over the drift uncertainty, is the single number a person can act on: Φ(c/√(1 + H/T)).
 
 **Principles.**
@@ -627,39 +631,55 @@ sha256 of the output above: 8c0725b91d89a86fbd4c5fc63ea7c6373223401f0b65b485b504
 
 ### 4.10 Model-selection decision matrix and phasing (item G)
 
-Scores 1 (poor) – 5 (strong). Weights: validity 0.25, data requirements 0.20, stability 0.20, lay interpretability 0.15, compute 0.05, personal-MVP suitability 0.15. Scores are the department's expert judgement (E4) informed by the findings cited.
+Scores run from 1 (poor) to 5 (strong). They are the department's expert judgement (**E4**), informed by the findings cited, and are unchanged from v0.1.
+- **v0.1 arithmetic was wrong in 13 of 19 rows** (R05b M1). The totals below are recomputed by `doc05b_revision_checks.py` [1].
+- **The "MVP suitability" criterion is dropped as the basis for phasing.** It restated the conclusion. Its scores and the old six-criterion total (S6) are kept for traceability only.
+- The primary total **S5** uses validity 0.25, data requirements 0.20, stability 0.20, lay interpretability 0.15 and compute 0.05, renormalised by 0.85.
 
-| Model / module | Validity | Data req. | Stability | Interpretability | Compute | MVP suitability | Weighted | Phase |
-|---|---|---|---|---|---|---|---|---|
-| Exposure decomposition (asset × currency × issuer) | 5 | 5 | 5 | 5 | 5 | 5 | 5.00 | **1** |
-| Descriptive risk (vol, downside, drawdown, HHI, DR, risk contributions) with CIs | 5 | 4 | 4 | 4 | 5 | 5 | 4.45 | **1** |
-| Historical/hypothetical stress + reverse stress | 4 | 3 | 5 | 5 | 5 | 5 | 4.40 | **1** |
-| TWR + MWR performance ledger, currency decomposition | 5 | 4 | 5 | 4 | 5 | 5 | 4.65 | **1** |
-| Ledoit–Wolf covariance (+EWMA second estimate), break isolation | 5 | 3 | 4 | 2 | 5 | 4 | 3.95 | **1** (internal) |
-| Block-bootstrap goal engine with uncertainty bands + scenario overlays | 4 | 3 | 3 | 4 | 4 | 5 | 3.85 | **1** |
-| Calibration logging (PIT/coverage) | 5 | 2 | 5 | 3 | 5 | 4 | 4.00 | **1** |
-| Sharpe/Sortino/Calmar with Lo SE; deflated SR for research | 4 | 3 | 3 | 3 | 5 | 3 | 3.45 | 1 (display rules) |
-| Risk-budgeting / risk-parity *display* | 4 | 3 | 4 | 4 | 5 | 3 | 3.75 | 2 |
-| Constrained minimum-variance "alternative view" | 3 | 3 | 2 | 2 | 5 | 2 | 2.65 | 2 (gated) |
-| Black–Litterman view-expression tool | 3 | 2 | 2 | 3 | 5 | 2 | 2.60 | 2 (gated) |
-| CVaR optimisation | 4 | 1 | 2 | 3 | 4 | 1 | 2.45 | Not yet |
-| Student-t GARCH simulation (estimated) | 4 | 2 | 2 | 2 | 3 | 2 | 2.55 | 2 research |
-| Regime-switching simulation | 3 | 1 | 2 | 2 | 3 | 1 | 2.00 | Not yet |
-| DCC-GARCH | 2 | 1 | 1 | 1 | 2 | 1 | 1.35 | Not yet |
-| Mean–variance (unconstrained) | 2 | 1 | 1 | 1 | 5 | 1 | 1.40 | Not yet |
-| Resampled efficiency / robust MV | 2 | 1 | 3 | 1 | 3 | 1 | 1.75 | Not yet |
-| Hierarchical risk parity | 3 | 2 | 3 | 1 | 4 | 1 | 2.30 | Not yet |
-| Kelly / fractional Kelly | 2 | 1 | 1 | 2 | 5 | 1 | 1.60 | Do not build |
+**Phase rule** (stated in advance and applied mechanically):
+1. **Do not build** if the output is a sizing, leverage, order or "edge" instruction. This is an objective mismatch, and score does not matter. Kelly scores 1.71, above DCC's 1.35, and is still banned.
+2. **Phase 1** if S5 ≥ 3.25, the module outputs no portfolio weights, and it needs no *estimated* expected return. A labelled C6 assumption is not an estimate.
+3. **Phase 2** if S5 ≥ 2.50 and the data-requirements score is ≥ 2. Weight outputs also sit behind the stability gate (§7, Disagreement 1).
+4. **Not yet** otherwise.
+
+| Model / module | Validity | Data req. | Stability | Interpretability | Compute | (MVP suit.) | S6 (v0.1 stated) | **S5** | Phase (rule) |
+|---|---|---|---|---|---|---|---|---|---|
+| Exposure decomposition (asset × currency × issuer) | 5 | 5 | 5 | 5 | 5 | (5) | 5.00 (5.00) | **5.00** | **1** |
+| Descriptive risk (vol, downside, drawdown, HHI, DR, risk contributions) with CIs | 5 | 4 | 4 | 4 | 5 | (5) | 4.45 (4.45) | **4.35** | **1** |
+| Historical/hypothetical stress + reverse stress | 4 | 3 | 5 | 5 | 5 | (5) | 4.35 (4.40) | **4.24** | **1** |
+| TWR + MWR performance ledger, currency decomposition | 5 | 4 | 5 | 4 | 5 | (5) | 4.65 (4.65) | **4.59** | **1** |
+| Ledoit–Wolf covariance (+EWMA second estimate), break rule | 5 | 3 | 4 | 2 | 5 | (4) | 3.80 (3.95) | **3.76** | **1** (internal) |
+| Goal engine per C6 (joint demeaned bootstrap + assumption overlay + jumps) | 4 | 3 | 3 | 4 | 4 | (5) | 3.75 (3.85) | **3.53** | **1** |
+| Calibration logging (1-month PIT/coverage) | 5 | 2 | 5 | 3 | 5 | (4) | 3.95 (4.00) | **3.94** | **1** |
+| Sharpe/Sortino/Calmar with Lo SE; deflated SR for research | 4 | 3 | 3 | 3 | 5 | (3) | 3.35 (3.45) | **3.41** | **1** (display rules) |
+| Risk-budgeting / risk-parity weights (risk contributions themselves are in row 2) | 4 | 3 | 4 | 4 | 5 | (3) | 3.70 (3.75) | **3.82** | 2 (weights; gated) |
+| Constrained minimum-variance "alternative view" | 3 | 3 | 2 | 2 | 5 | (2) | 2.60 (2.65) | **2.71** | 2 (gated) |
+| Black–Litterman view-expression tool | 3 | 2 | 2 | 3 | 5 | (2) | 2.55 (2.60) | **2.65** | 2 (gated) |
+| Student-t GARCH simulation (estimated) | 4 | 2 | 2 | 2 | 3 | (2) | 2.55 (2.55) | **2.65** | 2 (research) |
+| CVaR optimisation | 4 | 1 | 2 | 3 | 4 | (1) | 2.40 (2.45) | **2.65** | Not yet (data score 1) |
+| Hierarchical risk parity | 3 | 2 | 3 | 1 | 4 | (1) | 2.25 (2.30) | **2.47** | Not yet |
+| Regime-switching simulation | 3 | 1 | 2 | 2 | 3 | (1) | 1.95 (2.00) | **2.12** | Not yet |
+| Resampled efficiency / robust MV | 2 | 1 | 3 | 1 | 3 | (1) | 1.75 (1.75) | **1.88** | Not yet |
+| Mean–variance (unconstrained) | 2 | 1 | 1 | 1 | 5 | (1) | 1.45 (1.40) | **1.53** | Not yet |
+| DCC-GARCH | 2 | 1 | 1 | 1 | 2 | (1) | 1.30 (1.35) | **1.35** | Not yet |
+| Kelly / fractional Kelly | 2 | 1 | 1 | 2 | 5 | (1) | 1.60 (1.60) | **1.71** | Do not build (objective) |
+
+The rule reproduces every v0.1 phase, and it now explains them. The "Sharpe display rules" (3.41) sit in Phase 1 below the Phase 2 risk-budgeting weights (3.82) because they replace figures the prototypes already show wrongly (D7, D22) and produce no weights; risk-budgeting *weights* are an optimiser output. Without the circular criterion, the goal engine (3.53) scores below risk budgeting (3.82). It stays in Phase 1 because it outputs no weights and requests no estimated return. The matrix ranks; the gates decide.
 
 ### 4.11 Statements the product may and may not make
+
+In the product, every figure, date and count below is a **C2 token** resolved from the validated store. The model writes the connecting text only. The sentences show the rendered result. Display rules for goals are those of **C6**.
 
 | May say (with inputs, as-of date and base currency attached) | May not say |
 |---|---|
 | "Your portfolio's yearly swing over the last 3 years was about 18% in USD (range 15–22% allowing for estimation error)." | "Your expected return is 11.3%." |
-| "67% of your money and 53% of your risk is exposed to the naira." | "You should move 20% into US equities." |
-| "In the 2023 naira unification, a portfolio like this would have lost about 31% in USD terms." | "There is a 2% chance of losing more than 31%." (unless from a labelled, calibrated distribution) |
-| "To reach $150,000 in 5 years you need about 8.4% a year; mixes that have delivered this over rolling 5-year windows did so in n of m windows and carried drawdowns of up to x%." | "This goal is 54% likely." (point probability without a band) |
-| "The chance of reaching the goal is somewhere between roughly 10% and 90%; the range is wide because five years of data cannot pin down average returns." | "Our model forecasts…" |
+| "67% of your money and 86% of your risk is exposed to the naira (65% on ordinary days, excluding the devaluation)." (risk contributions of NGN equity + FGN bond, §4.9 section 5; v0.1 wrote "53%", which was NGN equity alone; found in revision) | "You should move 20% into US equities." |
+| "In the June 2023 naira unification, the official I&E rate fell 29% on the first day and about 39% by 23 June [source, dates]; naira assets lost about that share of their dollar value." (from the scenario record, with window and price type) | "In 2023 a portfolio like this would have lost 31%." (v0.1's synthetic figure presented as history; R05b M5) |
+| "About 40 of 100 simulated futures reach your goal; in the middle 80% you end between $84,900 and $216,400; reaching it in 9 of 10 futures needs $76,800 more today." (C6) | "This goal is 54% likely" or any bare probability; the median alone; "somewhere between 10% and 90%"; a difference between options smaller than 2 SE + 5 points (C6) |
+| "This uses assumption set ASM-SYN-01 (editable); it is not a forecast." | "Our model forecasts…" |
+| "Five years of data cannot pin down the average return: it is uncertain by about ±12 points a year (95%)." | "±6 points" (a 1-SE range presented to a lay reader; R05b m3) |
+| "Of 4 example mixes fixed in advance, this one reached the target in n of m non-overlapping 5-year windows." | "The best mix for your goal is…" |
+| "The least extreme combination of moves that takes you below your floor is …" (labelled as an optimisation result) | "There is a 2% chance of losing more than 31%." (unless from a labelled, calibrated distribution) |
 | "This Sharpe ratio is not statistically different from zero with the data available." | "Strong edge — scale position size." |
 | "Assumptions used: … (editable)." | Any figure without source, as-of date, unit and currency |
 
@@ -677,33 +697,76 @@ Scores 1 (poor) – 5 (strong). Weights: validity 0.25, data requirements 0.20, 
 | Parametric (variance–covariance) VaR | Normal tails understate losses on NGN assets; historical/scenario VaR and ES retained (F12). |
 | Security-level Brinson attribution | Statistically meaningless and noisy for < 20 holdings; asset-class × currency level retained (F24). |
 | A single "risk score" (1–10) | Hides base currency, horizon and uncertainty; conflicts with the brief's accuracy standard. The decomposed table is the product. |
-| Using LLM prose to restate numbers | Lesson 4 in the brief; all figures must come from the calculation layer with provenance. |
+| Using LLM prose to restate numbers | Lesson 4 in the brief; all figures come from the calculation layer as C2 tokens. |
+| Historical-mean-centred bootstrap with a second-order "estimation band" as the headline (v0.1) | Hidden point forecast (the past mean); the band is set by H/T, not by data (§4.7, R05b B2/B3). Replaced by C6 |
+| Univariate bootstrap of the portfolio series (v0.1) | Loses FX co-movement when weights change (R05b M8). Joint date-vectors |
+| Leaving break days in the bootstrap sample *and* adding scenario overlays (v0.1) | About 63% of 1,260-day paths contained the break day (1 − (1 − 1/1260)^1260), so devaluations were double-counted. One rule (§4.6) |
+| User-chosen valuation rate, including parallel (v0.1 Disagreement 3) | Conflicts with C5.1; the parallel rate is a labelled sensitivity line only (§7) |
+| Projected-gradient fallback solver (v0.1 script) | Not a Euclidean projection onto the simplex, and so wrong (R05b B4). Exact active-set enumeration, no fallback |
+| Ledoit–Wolf intensity as a break detector (v0.1 F2) | Reaches the cap with no break (§4.9) |
 
 ## 6. Cross-department dependencies
 
 **We need from others.**
-- *Data architecture / market data:* daily closes with venue, timestamp, currency, zero-volume and limit-day flags for NGX, DFM, ADX and US holdings; total-return indices with documented methodology; official FX series (CBN/FMDQ) and a way to store the user's transacted rates; NGX ASI history for 2008–09 and an S&P 500 2007–09 series from a licensed source; confirmation of the current NGX rulebook (price limits, tiered price-movement thresholds, trading hours, settlement cycle — 2026 press reports cite T+1 from 1 June 2026 and changed hours; unverified) [S156]; licence status of every benchmark.
-- *Personal-finance ledger (System A):* reconciled positions and dated external cash flows; identification of inter-account transfers so they are not counted as flows.
-- *Tax:* after-tax return inputs (withholding on NGX dividends, capital-gains treatment) so that the goal engine can run pre- and post-tax.
+- *Data architecture / market data (Doc 5c):* daily closes with venue, timestamp, currency, `as_of_date` and `last_traded_on` (kept distinct, §4.1), zero-volume and limit-day flags for NGX, DFM, ADX and US holdings; the registered break list as C3.5 world facts; C3-eligible short-rate series for NGN and USD (Karnosky–Singer split, §4.5, Phase 2); total-return indices with documented methodology; official FX series (CBN/FMDQ) and a way to store the user's transacted rates; NGX ASI history for 2008–09 and an S&P 500 2007–09 series from a licensed source (the GFC scenario has no equity shock until these exist); confirmation of the current NGX rulebook (price limits, tiered price-movement thresholds, trading hours, settlement cycle — 2026 press reports cite T+1 from 1 June 2026 and changed hours; unverified) [S156]; licence status of every benchmark.
+- *Personal-finance ledger (System A, Doc 4; Contract C1):* reconciled positions and dated postings, classified so that §4.5 P2 can decide which are external flows for a given scope; in-transit legs per C1 D8.
+- *Doc 5a:* the admissible-universe filter (Doc 5a Example 3) as an interface: instrument id, goal currency, admissible yes/no, reason code. The goal engine displays it (§4.7 G-1, G-11).
+- *Doc 8:* adopt the C6 display of §4.7 for Journey 6 and the Overview; the "60 of 100" with no range and the point parameters (7%, 11%) are replaced.
+- *Founder (C6 open questions):* which CMA source, and whether its licence allows use in the product; the neutral default ("zero real return" or CMA central); the NGN depreciation assumption.
+- *Tax (Doc 6):* after-tax return inputs (withholding on NGX dividends, capital-gains treatment) so that the goal engine can run pre- and post-tax; confirmation that personal tax paid out of an investment scope is an external outflow (§4.5 P2).
 - *Behavioural finance:* how to display probability ranges without inducing over- or under-reaction; evidence on whether showing drawdown tables changes behaviour.
 - *Product/UX:* plain-language templates for every metric in §4.3; a mandatory "assumptions" panel.
 - *Engineering:* a Web Worker/CI-testable calculation layer; seedable RNG; golden-test harness.
-- *Compliance/legal:* review of §4.11; confirmation that scenario and range outputs are not "investment advice" under Nigerian SEC and UAE SCA/DFSA rules (unknown — must be checked by counsel).
+- *Compliance/legal:* review of §4.11; confirmation that scenario and range outputs are not "investment advice" under Nigerian SEC and UAE rules (the UAE Capital Market Authority replaced the SCA on 1 January 2026 per Doc 6; DFSA for the DIFC). Unknown; must be checked by counsel.
+- *Performance reviewer:* a CIPM- or GIPS-literate reviewer to confirm the §4.5 contract.
 - *Founder:* base currency; cash-rate benchmark; whether any NGN hedging instrument is accessible to them.
 
-**Others need from us.** The metric definitions and provenance schema (§4.1, §4.3); the scenario library with sources (§4.4); the validation protocol (§9); the list of permitted statements (§4.11); the data-quality floors per model (§4.6) that the data team must enforce upstream.
+**Others need from us.** The metric definitions and provenance schema (§4.1, §4.3); the scenario library with sources and window types (§4.4); the performance coding contract and golden ledger (§4.5); the C6 engine implementation and its output (§4.7) for Doc 8; the validation protocol (§9); the list of permitted statements (§4.11); the data-quality floors per model (§4.6) that the data team must enforce upstream. For Doc 5c: Lesmond (1999) [S90] is verified here, though Doc 5c lists it as unverified.
 
 ## 7. Risks, open uncertainties and disagreements
 
-**Disagreement 1 — any optimiser in the MVP?** *Optimisation specialist:* a constrained minimum-variance or risk-budgeting view, labelled "one alternative, not a recommendation", helps the user see the trade-off between naira carry and dollar stability; withholding it is paternalistic. *Statistician:* weights with 25–30-point standard deviations (§4.9) are noise dressed as advice; a lay user will act on them; the product's credibility rests on not doing this. *Quantitative portfolio researcher (tie-breaker proposal):* no optimiser in Phase 1; in Phase 2, enable the "alternative views" module only when the user's own data pass a stability gate — weights from two halves of the history within 10 points of each other and a bootstrap weight SD below 10 points — and show it with the band, never a point. Unresolved; founder to decide after seeing Phase 1 data.
+**Disagreement 1: any optimiser in the MVP?**
+- *Optimisation specialist:* a constrained minimum-variance or risk-budgeting view, labelled "one alternative, not a recommendation", helps the user see the trade-off between naira carry and dollar stability. Withholding it is paternalistic.
+- *Statistician:* weights with 25–30-point standard deviations (§4.9, exact solver) are noise dressed as advice. A lay user will act on them, and the product's credibility rests on not doing this.
+- *Quantitative portfolio researcher (tie-breaker proposal):* no optimiser in Phase 1. In Phase 2, enable the "alternative views" module only when the user's own data pass a stability gate. The gate: weights from the two halves of the history within 10 points of each other, and a bootstrap weight SD below 10 points. Show the module with the band, never a point.
+- *R05b's question,* "will the gate ever pass?", is answered honestly: on the synthetic data it would not (SD 25–30 points). If it does not pass on the founder's real data either, the optimisation feature in System D is **deferred indefinitely**, with the reason shown (brief §5.9).
+- Unresolved; the founder decides after seeing Phase 1 data.
 
-**Disagreement 2 — bootstrap versus parametric simulation.** *Financial econometrician:* the bootstrap cannot produce a devaluation that is not in the sample, so a parametric or regime model with a crisis state is more honest for NGN. *Statistician:* a regime model's crisis parameters are themselves assumptions; make them explicit as scenario overlays on the bootstrap instead of hiding them in a transition matrix. Resolution adopted: bootstrap + explicit, user-visible scenario overlays (§4.7); revisit if calibration tests fail.
+**Disagreement 2: bootstrap versus parametric simulation.** *Financial econometrician:* the bootstrap cannot produce a devaluation that is not in the sample. *Statistician:* a regime model's crisis parameters are themselves assumptions. **Resolved by C6:** a demeaned joint bootstrap, with the break days as explicit, compensated, user-editable jumps (§4.7). The econometrician's point survives as the jump-rate input and as the Phase 2 research engine (Rec 12). Revisit if 1-month calibration fails.
 
-**Disagreement 3 — which FX rate is "true".** Official, NAFEM/interbank and parallel rates have diverged by large margins in Nigeria. *Financial data scientist:* use the official series for history and the user's own transacted rate for their flows. *Risk analyst:* risk should be measured at the rate at which the user could actually convert, which may be the parallel rate. Resolution: store both, label both, let the user choose the valuation rate, and show the gap.
+**Disagreement 3: which FX rate is "true"? Resolved by Contract C5.1, preserved as a minority view.** Valuation and presentation use the CBN NFEM central rate. The user's transacted rates apply only to the economics of their own exchanges (C1.5). The parallel rate is a labelled sensitivity line (confidence D), never a valuation or total. *Risk analyst (minority, preserved):* risk is better measured at the rate at which the user could actually convert. That is why the sensitivity line is shown next to every NGN figure whenever the gap exceeds 5% (E5). v0.1's "let the user choose the valuation rate" is withdrawn.
 
-**Open uncertainties.** (a) Real NGX zero-return-day fractions and their effect sizes are unmeasured; our thin-trading numbers are synthetic. (b) Whether retail access to naira hedges exists. (c) Current NGX microstructure rules (changed in 2026; sources conflict). (d) GIPS text not re-read; the TWR/MWR provisions are stated from the standard's known structure. (e) The 97.5% ES level in the BIS standard was not re-read in this session. (f) Regulatory classification of range-based goal outputs. (g) Whether the founder's holdings include instruments (private funds, fixed deposits, real estate) whose valuations are appraisal-smoothed; if so, unsmoothing (F18) applies to them too.
+**Disagreement 4: what is the goal headline? (R05b B3; preserved in C6.)**
+- *Our statistician (v0.1):* a two-level display, a probability and its estimation band, is more honest about how little the data say.
+- *R05b and Doc 8:* a lay user cannot act on "somewhere between 10% and 90%", and the band mostly reports H/T.
+- **C6 decides:** the predictive count is the headline. The band is optional, only with ≥ 500 outer replicates or computed analytically, with its SE. Our statistician accepts that the band reports H/T. The dissent is narrowed to one request: that `width_reason` (H/T and drift sd) always be one tap away. C6 provides it.
 
-**Risks.** False precision is the dominant product risk; the mitigations are bands, rounding, sensitivity lines and calibration logging. The second risk is silent data corruption (stale prices, mixed FX sources) producing fictitious returns; the mitigation is provenance on every figure and the floors in §4.6. The third is scope creep toward sophisticated models because they are available; the mitigation is the founder's rule, applied through the gate in Disagreement 1.
+**Disagreement 5: power of the calibration test (minor).** R05b's 19% power at n = 24 is for an equal-tailed exact test. The minimum-likelihood test (scipy's default) gives 34%. Both are too low to act on, so the protocol does not depend on the choice (§4.7).
+
+**Answers to R05b's questions for the IC.**
+- (1) *What does the founder see instead of the band?* The C6 count, the q10–q90 range, the adjustment in money and months, and the drift sensitivity (§4.7).
+- (2) *Base currency and FX of record?* Two views, USD and NGN, by default; the C5.1 CBN central rate of record. The goal currency is set per goal.
+- (3) *What is calibrated, at what horizon, with what power?* 1-month-ahead distributions, with exact tests. Power figures are in F26. If calibration cannot be established for years, the status stays `uncalibrated`, and the display says so.
+- (4) *Will the stability gate pass?* Probably not; see Disagreement 1.
+- (5) *Who supplies the 2007–09 series?* The data team, under licence (§6). Until then, the GFC scenario has no equity shock.
+- (6) *Can the golden ledger be reconciled by hand?* Yes for the 12 synthetic cases (§4.5). For the founder's own holdings, it depends on their number. The founder should confirm the list (Doc 4 C1.11 Q2).
+
+**Open uncertainties.**
+- (a) Real NGX zero-return-day fractions and their effect sizes are unmeasured; our thin-trading numbers are synthetic.
+- (b) Whether retail access to naira hedges exists.
+- (c) Current NGX microstructure rules (changed in 2026; sources conflict).
+- (d) The adaptation of GIPS to a personal ledger (§4.5) awaits a qualified reviewer.
+- (e) The 97.5% ES level in the BIS standard was not re-read.
+- (f) The regulatory classification of goal outputs.
+- (g) Appraisal-smoothed holdings (private funds, fixed deposits, real estate) need unsmoothing (F18).
+- (h) The CMA source and its licence (C6 Q1); no figures from any published CMA are used here.
+- (i) The constant-correlation Ledoit–Wolf implementation has no reference check.
+- (j) Goal-horizon calibration is not achievable within the MVP (F26).
+
+**Risks.**
+- False precision is the dominant product risk. Mitigations: the count format, rounding, sensitivity lines, leave-one-out badges and calibration logging.
+- Silent data corruption (stale prices, mixed FX sources) producing fictitious returns. Mitigations: provenance on every figure (C3) and the floors in §4.6.
+- Scope creep toward sophisticated models because they are available. Mitigation: the founder's rule, applied through the §4.10 phase rule and the gate in Disagreement 1.
 
 ## 8. Recommendations, ranked
 
@@ -712,45 +775,60 @@ Scores 1 (poor) – 5 (strong). Weights: validity 0.25, data requirements 0.20, 
 | 1 | Exposure decomposition by asset, issuer, sector, country and currency (denomination and economic), with provenance on every row | Personal-MVP must-have |
 | 2 | TWR and MWR performance ledger with currency decomposition and the TWR–MWR gap explained | Personal-MVP must-have |
 | 3 | Descriptive risk analytics with confidence intervals and base-currency switch (vol, downside, drawdown table, HHI, DR, risk contributions, stress-conditional correlation) | Personal-MVP must-have |
-| 4 | Scenario library (2008, 2014–16 oil/2016 float, 2020, 2022, 2023 unification) + hypothetical and reverse stress tests, each with sources | Personal-MVP must-have |
-| 5 | Ledoit–Wolf covariance with EWMA cross-check and break isolation, used only as an input to 3 and 6 | Personal-MVP must-have (internal) |
-| 6 | Goal Reality Engine: stationary-block-bootstrap ranges with estimation-uncertainty band, drift sensitivity, scenario overlays, sequence-risk view, and the statement contract of §4.11 | Personal-MVP must-have |
-| 7 | Calibration logging and PIT/coverage tests from the first forecast | Personal-MVP must-have |
+| 4 | Scenario library (2008, 2014–16 oil/2016 float, 2020, 2022, 2023 unification), each with sources, window type and price type; hypothetical scenarios; the reverse stress test of §4.4 (single-factor breakevens plus the Mahalanobis-minimal joint scenario, labelled as an optimisation) | Personal-MVP must-have |
+| 5 | Ledoit–Wolf covariance with EWMA cross-check and the §4.6 break rule, used only as an input to 3 and 4 | Personal-MVP must-have (internal) |
+| 6 | Goal Reality Engine per **C6** (§4.7): joint demeaned stationary bootstrap, labelled assumption overlay with drift uncertainty, compensated jump overlay, predictive count with quantiles, adjustment and drift sensitivity; pre-registered illustrative mixes; the statement contract of §4.11 | Personal-MVP must-have |
+| 7 | Calibration logging of 1-month-ahead forecasts from the first month; PIT, Berkowitz and exact binomial coverage tests; goal-horizon calibration stated as not achievable in the MVP | Personal-MVP must-have |
 | 8 | Sharpe/Sortino/Calmar display rules (Lo SE; "not distinguishable from zero" wording) | Personal-MVP must-have |
 | 9 | Rebuild simulation engine from tests upward (seedable RNG, golden values, Web Worker); retire `MonteCarloPanel.tsx` and `PerformancePanel.tsx` as they stand | Personal-MVP must-have (engineering) |
-| 10 | Risk-budgeting display (risk contributions and the volatility-balanced weights as one labelled alternative) | Later |
+| 10 | Risk-budgeting weights (the volatility-balanced weights as one labelled alternative, behind the stability gate); risk contributions themselves are already in Rec 3 | Later |
 | 11 | Constrained minimum-variance and Black–Litterman "alternative views" behind the stability gate | Later |
 | 12 | Estimated Student-t GARCH and regime-switching research engines, offered only if they pass calibration tests against the bootstrap | Later |
 | 13 | Asset-class × currency Brinson attribution once licensed benchmarks exist | Later |
 | 14 | CVaR optimisation, DCC-GARCH, HRP, resampled/robust mean–variance, point return forecasts | Do-not-build (yet) |
-| 15 | Kelly sizing; any "edge score" or sizing advice | Do-not-build |
+| 15 | Kelly sizing; any "edge score" or sizing advice; auto-rebalancing or order placement; leverage or margin; any single "probability of success" gauge. Banned because of objective mismatch, not because of the score (§4.10 rule 1) | Do-not-build |
 
 **Five-question test on the top items.**
 
-*Recommendation 1–3 (exposure, performance, descriptive risk).* (1) Problem: the founder cannot currently see what they own in one currency, what it has actually earned after cash flows, or where the risk sits. (2) Who: the founder now; every multi-currency retail user later. (3) Evidence: measurement standards (GIPS/Dietz, Brinson/Karnosky–Singer decomposition) and the concentration/diversification literature [S69–S71, S78, S79, S95–S97] — E1/E3; the numbers require no forecasting. (4) Build/validate: deterministic calculations with analytic unit tests and golden ledgers (§9); the main risk is data quality, handled by floors and badges. (5) Improvement metric: fraction of positions with complete provenance; reconciliation error between ledger value and sum of priced positions < 0.1%; user-reported decisions changed after seeing currency exposure (behavioural team to measure).
+*Recommendation 1–3 (exposure, performance, descriptive risk).* (1) Problem: the founder cannot currently see what they own in one currency, what it has actually earned after cash flows, or where the risk sits. (2) Who: the founder now; every multi-currency retail user later. (3) Evidence: measurement standards (GIPS 2020 text, Dietz, Brinson/Karnosky–Singer decomposition) and the concentration/diversification literature [S69–S70, S78, S79, S95–S97] — E1/E3; the numbers require no forecasting. (4) Build/validate: deterministic calculations with analytic unit tests and the §4.5 golden ledger (§9); the main risk is data quality, handled by floors and badges. (5) Improvement metric: fraction of positions with complete provenance; reconciliation error between ledger value and sum of priced positions < 0.1%; user-reported decisions changed after seeing currency exposure (behavioural team to measure).
 
 *Recommendation 4 (stress library).* (1) Problem: the dominant risk for a naira-based investor is a regime event that volatility statistics do not capture. (2) Who: anyone with NGN assets and USD goals. (3) Evidence: the devaluation and oil series themselves [S84–S88]; the crisis-correlation literature [S73–S77] — E2. (4) Build/validate: deterministic shock application; test by re-applying each scenario to a portfolio that existed at the time and comparing to realised P&L (data team to supply). (5) Improvement: scenario loss vs realised loss error in future events; user comprehension tests.
 
 *Recommendation 5 (Ledoit–Wolf).* (1) Problem: sample covariances on short windows are noisy, and portfolio risk needs a covariance. (2) Who: the risk module. (3) Evidence: [S15–S18], scikit-learn reference implementation [S157], our experiment — E1. (4) Build/validate: golden test against `sklearn.covariance.LedoitWolf`; break-day exclusion test (§4.9). (5) Improvement: out-of-sample portfolio-variance forecast error (QLIKE) vs sample and EWMA, evaluated monthly.
 
-*Recommendation 6–7 (goal engine + calibration).* (1) Problem: goals like "$100k targeting x%" are currently judged by intuition or by false-precision calculators. (2) Who: the founder (System E), later retail users. (3) Evidence: bootstrap theory [S121–S124], parameter-uncertainty results [S128–S133], weak predictability [S110–S113], calibration methods [S136–S141] — E1. (4) Build/validate: unit tests on bootstrap moments; coverage tests on synthetic data with known truth; then live PIT logging. (5) Improvement: coverage of the 50%/90% bands within ±10 points after 24 monthly outcomes; the engine is withdrawn from display if it fails twice in succession.
+*Recommendation 6–7 (goal engine + calibration).* (1) Problem: goals like "$100k targeting x%" are currently judged by intuition or by false-precision calculators. (2) Who: the founder (System E), later retail users. (3) Evidence: bootstrap theory [S121–S124b], parameter-uncertainty results [S128–S133], weak predictability [S110–S113], calibration methods [S136–S141] — E1. The assumption overlay itself is E4 or E5 until a CMA source is chosen. (4) Build/validate: unit tests on bootstrap moments; demeaning and compensation tests (simulated mean log wealth equals the analytic value within 3 Monte Carlo SE; 0.313 against 0.314 in §4.9); the Politis–White golden test; coverage tests on synthetic data with known truth; then live 1-month PIT logging. (5) Improvement: 1-month coverage of the 50%/90% bands consistent with nominal under exact Clopper–Pearson intervals, once ≥ 60 pooled outcomes exist. Withdrawal rule as in §4.7. Whether showing the count changes the founder's decisions is measured by the behavioural team.
 
-*Recommendation 9 (rebuild engine).* (1) Problem: current code produces wrong numbers (§4.8). (2) Who: everyone downstream. (3) Evidence: direct replication of defects — E2. (4) Build/validate: §9. (5) Improvement: 100% of displayed statistics covered by analytic or golden tests; reproducibility of any result from (inputs, seed, version).
+*Recommendation 9 (rebuild engine).* (1) Problem: current code produces wrong numbers (§4.8). (2) Who: everyone downstream. (3) Evidence: direct replication of defects — E5 plus replication. (4) Build/validate: §9. (5) Improvement: 100% of displayed statistics covered by analytic or golden tests; reproducibility of any result from (inputs, seed, version).
 
 ## 9. Required validation before implementation
 
-1. **Analytic unit tests** (must pass before any UI): GBM moments; scaled-t variance; GARCH unconditional variance and persistence; Merton compensator; OU stationary variance; barrier-hit probability vs closed form; max drawdown on hand-built paths; HHI/DR/risk contributions on 2-asset cases with closed-form answers; TWR/MWR on hand-computed ledgers (including a case with a mid-period flow where TWR and MWR differ in sign); multicurrency decomposition identity R_B = R_L + R_FX + R_L·R_FX to 1e-12; Lo SE formula against a Monte Carlo of iid Sharpe ratios.
-2. **Golden datasets:** frozen synthetic ledger and price panel (the §4.9 generator, versioned) with stored outputs; Ledoit–Wolf cross-checked against scikit-learn to 1e-8; bootstrap engine checked for reproducibility by seed and for mean/variance preservation.
-3. **Out-of-sample tests:** rolling-origin evaluation of covariance estimators (sample, EWMA, LW) by realised portfolio variance and QLIKE; rolling evaluation of any "alternative view" weights by turnover and realised volatility against 1/N — a module that does not beat 1/N on realised risk out of sample is not shown.
-4. **Calibration tests:** PIT histogram and Berkowitz test on synthetic data with known DGP (must pass), on misspecified DGP (must fail), then live.
-5. **Sensitivity analysis:** every displayed figure gets a sensitivity table over window length (60/250/500 d), estimator, base currency, FX source and inclusion/exclusion of break days; figures whose sign or decile changes across these settings are shown with a "fragile" badge.
-6. **Data-quality gates:** the floors in §4.3/§4.6 enforced in code; a metric below its floor is suppressed or badged, never silently computed.
-7. **Thin-trading tests:** Dimson vs OLS beta on real NGX names once data exist; vol at daily vs weekly frequency; results documented before any beta is displayed.
-8. **Human review:** a regulated financial adviser and counsel review §4.11 before anything leaves personal use; a statistician signs off the calibration protocol.
+1. **Analytic unit tests** (must pass before any UI):
+   - GBM moments; scaled-t variance; GARCH unconditional variance and persistence; Merton compensator; OU stationary variance;
+   - barrier-hit probability against the closed form; maximum drawdown on hand-built paths, **including an all-loss path** (D21);
+   - HHI, diversification ratio and risk contributions on 2-asset cases with closed-form answers;
+   - the multicurrency identity R_B = R_L + R_X + R_L·R_X to 1e−12;
+   - the Lo SE formula against a Monte Carlo of i.i.d. Sharpe ratios;
+   - Dimson recovery 1 − p^(k+1) (0.9375 at p = 0.5, k = 3; R05b m6);
+   - the t5 closed-form distribution function against simulation (§4.9 7b).
+2. **Performance golden ledger.** The 12 cases of `doc05b_performance_golden.py` (§4.5) are reproduced exactly by the production engine: rationals equal, MWR to 1e−10, the same "not meaningful" and "not uniquely defined" verdicts. The cases are confirmed by a CIPM- or GIPS-literate reviewer before coding.
+3. **Golden datasets and reproducibility.**
+   - The frozen §4.9 generator, versioned, with its stored output and its SHA-256 (`8c0725b9…3b6ba4` with numpy 2.5.3 / pandas 3.0.5).
+   - Dependencies pinned in `requirements.txt` with no optional code paths; CI runs every script under `python3 -I` and compares hashes.
+   - Ledoit–Wolf (identity target) cross-checked against scikit-learn to 1e−8.
+   - The exact minimum-variance solver checked against KKT on random positive-definite matrices.
+   - The Politis–White block length checked against the arch reference values.
+   - **Golden values for random outputs are distribution-level tolerances** (within 3 Monte Carlo SE) across the Python reference and the TypeScript product. They are not bit-exact, because the pseudo-random generators differ. Deterministic outputs are compared at 1e−9.
+4. **Out-of-sample tests:** rolling-origin evaluation of covariance estimators (sample, EWMA, LW) by realised portfolio variance and QLIKE; rolling evaluation of any "alternative view" weights by turnover and realised volatility against 1/N. A module that does not beat 1/N on realised risk out of sample is not shown.
+5. **Calibration tests:** PIT histogram, Berkowitz and exact binomial coverage on synthetic data with a known DGP (must pass) and on a misspecified DGP (must fail), at the 1-month horizon; then live (§4.7).
+6. **Sensitivity analysis:** every displayed figure gets a sensitivity table over window length (60/250/500 d), estimator, base currency, FX source, inclusion or exclusion of break days, **leave-one-out influence**, and (goal engine) block length, jump rate and correlated versus independent drift draws. Figures whose sign or decile changes across these settings carry a "fragile" badge.
+7. **Data-quality gates:** the floors in §4.3/§4.6 are enforced in code. A metric below its floor is suppressed or badged, never silently computed. Floor coverage is simulated as in §4.3.
+8. **Thin-trading tests:** Dimson against OLS beta on real NGX names once data exist; volatility at daily against weekly frequency. Results are documented before any beta is displayed.
+9. **Prototype regression tests:** D1–D27, including D24 (a zero entry must stay zero) and D25 (|ρ| > 1 rejected with an error), so the rebuild cannot reintroduce them.
+10. **Human review:** a regulated financial adviser and counsel review §4.11 before anything leaves personal use; a statistician signs off the calibration protocol; a CIPM- or GIPS-literate reviewer signs off §4.5.
 
 ## 10. Sources
 
-Verification key: **[verified]** = DOI resolved on OpenAlex/Crossref with matching title, first author and year (print year given; "online year n" noted where OpenAlex records an earlier online date); **[unverified]** = could not be checked in this session. Access dates: academic checks 2026-11-02 and 2026-11-04; web pages as stated.
+Verification key: **[verified]** = DOI resolved on OpenAlex/Crossref with matching title, first author and year (print year given; "online year n" noted where OpenAlex records an earlier online date); **[unverified]** = could not be checked in this session. Access dates: academic checks 2026-11-02 and 2026-11-04; web pages as stated. *v0.2:* the reference-lookup tool timed out on 2026-11-04, so new or corrected entries were checked against Crossref (`api.crossref.org/works/<doi>`) or the publisher's page, as noted.
 
 **Portfolio construction and estimation error**
 - S1. Markowitz, H. (1952). Portfolio Selection. *Journal of Finance* 7(1), 77–91. doi:10.2307/2975974 [verified]
@@ -799,7 +877,7 @@ Verification key: **[verified]** = DOI resolved on OpenAlex/Crossref with matchi
 - S40. Lee, W. (2011). Risk-Based Asset Allocation: A New Answer to an Old Question? *JPM* 37(4), 11–28. doi:10.3905/jpm.2011.37.4.011 [verified]
 - S41. Roncalli, T. (2013). *Introduction to Risk Parity and Budgeting*. Chapman & Hall/CRC. doi:10.1201/b15151; SSRN 2272973 [verified via Crossref]
 - S42. López de Prado, M. (2016). Building Diversified Portfolios that Outperform Out of Sample. *JPM* 42(4), 59–69. doi:10.3905/jpm.2016.42.4.059 [verified]
-- S43. Raffinot, T. (2017). Hierarchical Clustering-Based Asset Allocation. *JPM* 44(2), 89–99. doi:10.3905/jpm.2018.44.2.089 [verified; online 2016]
+- S43. Raffinot, T. (2017). Hierarchical Clustering-Based Asset Allocation. *JPM* 44(2), 89–99. doi:10.3905/jpm.2018.44.2.089 [verified; Crossref 2026-11-04: published online 2017-12-22, issue dated 2017-12-31 (Winter 2018 issue of vol. 44); v0.1's "online 2016" was wrong (R05b m1)]
 - S44. Jaeger, M., Krügel, S., Marinelli, D., Papenbrock, J. & Schwendner, P. (2021). Interpretable Machine Learning for Diversified Portfolio Construction. *Journal of Financial Data Science* 3(3), 31–51. doi:10.3905/jfds.2021.1.066 [verified]
 - S45. Michaud, R. O. & Michaud, R. (2008). *Efficient Asset Management*, 2nd ed. Oxford University Press. doi:10.1093/oso/9780195331912.001.0001 [verified]
 - S46. Scherer, B. (2002). Portfolio Resampling: Review and Critique. *FAJ* 58(6), 98–109. doi:10.2469/faj.v58.n6.2489 [verified]
@@ -823,13 +901,13 @@ Verification key: **[verified]** = DOI resolved on OpenAlex/Crossref with matchi
 - S62. Acerbi, C. & Tasche, D. (2002). On the coherence of expected shortfall. *JBF* 26(7), 1487–1503. doi:10.1016/S0378-4266(02)00283-2 [verified]
 - S63. Beder, T. S. (1995). VAR: Seductive but Dangerous. *FAJ* 51(5), 12–24. doi:10.2469/faj.v51.n5.1932 [verified]
 - S64. Basel Committee on Banking Supervision (2019). *Minimum capital requirements for market risk*, 14 Jan 2019 (corrected 25 Feb 2019). https://www.bis.org/bcbs/publ/d457.htm (accessed 2026-11-04; page confirms ES-based internal models approach) [primary page; standard text not re-read]
-- S65. Basel Committee on Banking Supervision (2009). *Principles for sound stress testing practices and supervision*. https://www.bis.org/publ/bcbs155.htm [unverified — not fetched]
+- S65. Basel Committee on Banking Supervision (2009). *Principles for sound stress testing practices and supervision*. https://www.bis.org/publ/bcbs155.htm [unverified — not fetched; background only, nothing in §4.4 depends on it]
 - S66. Magdon-Ismail, M., Atiya, A. F., Pratap, A. & Abu-Mostafa, Y. S. (2004). On the maximum drawdown of a Brownian motion. *Journal of Applied Probability* 41(1), 147–161. doi:10.1239/jap/1077134674 [verified]
 - S67. Chekhlov, A., Uryasev, S. & Zabarankin, M. (2005). Drawdown Measure in Portfolio Optimization. *IJTAF* 8(1), 13–58. doi:10.1142/S0219024905002767 [verified]
 - S68. Goldberg, L. R. & Mahmoud, O. (2017). Drawdown: from practice to theory and back again. *Mathematics and Financial Economics* 11, 275–297. doi:10.1007/s11579-016-0181-9 [verified; online 2016]
 - S69. Woerheide, W. & Persson, D. (1993). An Index of Portfolio Diversification. *Financial Services Review* 2(2), 73–85. doi:10.1016/1057-0810(92)90003-U [verified; online 1992]. (HHI itself: Hirschman 1964, *AER* — lookup failed; [unverified])
 - S70. Choueifaty, Y. & Coignard, Y. (2008). Toward Maximum Diversification. *JPM* 35(1), 40–51. doi:10.3905/JPM.2008.35.1.40 [verified]
-- S71. Meucci, A. (2009). Managing Diversification. *Risk* 22(5), 74–79. [unverified — not indexed]
+- S71. Meucci, A. (2009). Managing Diversification. *Risk* 22(5), 74–79. [unverified: not found in Crossref by title on 2026-11-04; the SSRN DOI 10.2139/ssrn.1358533 returned 404 to R05b. The effective-number-of-bets definition used here is pinned in §4.3 and graded E5]
 - S72. (withdrawn — DOI did not resolve to the intended paper)
 - S73. Longin, F. & Solnik, B. (2001). Extreme Correlation of International Equity Markets. *Journal of Finance* 56(2), 649–676. doi:10.1111/0022-1082.00340 [verified]
 - S74. Ang, A. & Chen, J. (2002). Asymmetric correlations of equity portfolios. *JFE* 63(3), 443–494. doi:10.1016/S0304-405X(02)00068-5 [verified]
@@ -843,10 +921,10 @@ Verification key: **[verified]** = DOI resolved on OpenAlex/Crossref with matchi
 - S82. Campbell, J. Y., Serfaty-de Medeiros, K. & Viceira, L. M. (2010). Global Currency Hedging. *Journal of Finance* 65(1), 87–121. doi:10.1111/j.1540-6261.2009.01524.x [verified]
 - S83. Siegel, J. J. (1972). Risk, Interest Rates and the Forward Exchange. *QJE* 86(2), 303–309. doi:10.2307/1880565 [verified via Crossref]
 - S84. World Bank, Official exchange rate (LCU per US$, period average), Nigeria, indicator PA.NUS.FCRF. https://api.worldbank.org/v2/country/NGA/indicator/PA.NUS.FCRF?format=json (fetched 2026-11-02) [primary data]
-- S85. June 2023 naira unification: Nairametrics, "Exchange rate: Naira depreciates by 13.9% in one week", 24 Jun 2023, https://nairametrics.com/2023/06/24/exchange-rate-naira-depreciates-by-13-9-in-one-week ; Political Economist (Reuters report), "Nigeria allows naira to drop more than 36% on official market", https://www.politicaleconomistng.com/?p=146446 (both accessed 2026-11-04) [secondary]
+- S85. June 2023 naira unification: (a) Nairametrics, "Exchange rate: Naira depreciates by 13.9% in one week", 24 Jun 2023, https://nairametrics.com/2023/06/24/exchange-rate-naira-depreciates-by-13-9-in-one-week (re-fetched 2026-11-04: I&E close ₦770.17 on 23 Jun against ₦663.04 on 16 Jun; intraday high ₦815; no pre-unification rate given); (b) Nairametrics, "I&E window records $788 million turnover one week after currency unification", 21 Jun 2023, https://nairametrics.com/2023/06/21/ie-window-records-788-million-turnover-one-week-after-currency-unification/ (fetched 2026-11-04: the rate fell "29% to N664/$1 on the first day"; the calendar date of the first day is not stated; 14 Jun 2023 is inferred from the CBN announcement of that date); (c) Political Economist (Reuters report), "Nigeria allows naira to drop more than 36% on official market", https://www.politicaleconomistng.com/?p=146446 (HTTP 502 and a timeout on 2026-11-04; not relied on) [secondary]
 - S86. June 2016 float: Africanews, "Naira devalues against dollar after flexible forex policy takes off", 20 Jun 2016, https://africanews.com/2016/06/20/naira-devalues-against-dollar-after-flexible-forex-policy-takes-off ; Nairametrics, 20 Jun 2016, https://nairametrics.com/2016/06/20/results-are-in-nigerias-new-official-exchange-rate-after-currency-float/ (accessed 2026-11-04) [secondary]
 - S87. FRED series DCOILBRENTEU (Crude Oil Prices: Brent — Europe; source US EIA). https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILBRENTEU (fetched 2026-11-02) [primary data]
-- S88. FRED series SP500 (S&P Dow Jones Indices). https://fred.stlouisfed.org/graph/fredgraph.csv?id=SP500 (fetched 2026-11-02; 10-year window) [primary data]
+- S88. FRED series SP500 (S&P Dow Jones Indices). https://fred.stlouisfed.org/graph/fredgraph.csv?id=SP500 (fetched 2026-11-02; 10-year window; a **price** index, not total return) [primary data]
 
 **Liquidity and reverse stress**
 - S89. Amihud, Y. (2002). Illiquidity and stock returns. *Journal of Financial Markets* 5(1), 31–56. doi:10.1016/S1386-4181(01)00024-6 [verified]
@@ -857,15 +935,15 @@ Verification key: **[verified]** = DOI resolved on OpenAlex/Crossref with matchi
 - S94. Grundke, P. (2011). Reverse stress tests with bottom-up approaches. *Journal of Risk Model Validation* 5(1), 71–90. doi:10.21314/JRMV.2011.068 [verified]
 
 **Performance measurement**
-- S95. Dietz, P. O. (1966). *Pension Funds: Measuring Investment Performance*. Free Press. [unverified — book]
-- S96. CFA Institute (2019). *2020 Global Investment Performance Standards (GIPS) for Firms*. https://www.gipsstandards.org/wp-content/uploads/2021/03/2020_gips_standards_firms.pdf (fetched 2026-11-04; text extraction failed) [unverified text]
+- S95. Dietz, P. O. (1966). *Pension Funds: Measuring Investment Performance*. Free Press. [indirectly confirmed: Crossref holds 1967 reviews of the book in *Journal of Finance* 22(1), doi:10.2307/2977326, and *Journal of Risk and Insurance* 34(3), per R05b; book itself not seen]
+- S96. CFA Institute (2019). *2020 Global Investment Performance Standards (GIPS) for Firms*. https://www.gipsstandards.org/wp-content/uploads/2021/03/2020_gips_standards_firms.pdf (fetched 2026-11-04; 146 pages; text extracted with `pdftotext` and read for 1.A.35, 2.A.12, 2.A.13, 2.A.23–2.A.24, 2.A.28–2.A.29, 5.A.1 and the glossary entries "external cash flow" and "large cash flow"; effective date 1 January 2020) [primary standard; text read]
 - S97. Dichev, I. D. (2007). What Are Stock Investors' Actual Historical Returns? *AER* 97(1), 386–401. doi:10.1257/aer.97.1.386 [verified]
 - S98. Lo, A. W. (2002). The Statistics of Sharpe Ratios. *FAJ* 58(4), 36–52. doi:10.2469/faj.v58.n4.2453 [verified]
 - S99. Jobson, J. D. & Korkie, B. M. (1981). Performance Hypothesis Testing with the Sharpe and Treynor Measures. *Journal of Finance* 36(4), 889–908. doi:10.1111/j.1540-6261.1981.tb04891.x [verified]
 - S100. Ledoit, O. & Wolf, M. (2008). Robust performance hypothesis testing with the Sharpe ratio. *Journal of Empirical Finance* 15(5), 850–859. doi:10.1016/j.jempfin.2008.03.002 [verified]
 - S101. Opdyke, J. D. (2007). Comparing Sharpe ratios: So where are the p-values? *Journal of Asset Management* 8(5), 308–336. doi:10.1057/palgrave.jam.2250084 [verified]
 - S102. Sortino, F. A. & van der Meer, R. (1991). Downside risk. *JPM* 17(4), 27–31. doi:10.3905/jpm.1991.409343 [verified]
-- S103. Young, T. W. (1991). Calmar ratio: a smoother tool. *Futures* 20(1), 40. [unverified — trade magazine]
+- S103. Young, T. W. (1991). Calmar ratio: a smoother tool. *Futures* 20(1), 40. [unverified — trade magazine; the Calmar definition the product uses is fixed in §4.5, not taken from this source]
 - S104. Bailey, D. H. & López de Prado, M. (2014). The Deflated Sharpe Ratio. *JPM* 40(5), 94–107. doi:10.3905/jpm.2014.40.5.094 [verified]
 - S105. Bailey, D. H., Borwein, J. M., López de Prado, M. & Zhu, Q. J. (2014). Pseudo-Mathematics and Financial Charlatanism. *Notices of the AMS* 61(5), 458–471. doi:10.1090/noti1105 [verified]
 - S106. Bailey, D. H., Borwein, J. M., López de Prado, M. & Zhu, Q. J. (2017). The probability of backtest overfitting. *Journal of Computational Finance* 20(4), 39–69. doi:10.21314/JCF.2016.322 [verified; online 2016]
@@ -889,6 +967,7 @@ Verification key: **[verified]** = DOI resolved on OpenAlex/Crossref with matchi
 - S122. Künsch, H. R. (1989). The Jackknife and the Bootstrap for General Stationary Observations. *Annals of Statistics* 17(3), 1217–1241. doi:10.1214/aos/1176347265 [verified]
 - S123. Politis, D. N. & Romano, J. P. (1994). The Stationary Bootstrap. *JASA* 89(428), 1303–1313. doi:10.1080/01621459.1994.10476870 [verified]
 - S124. Politis, D. N. & White, H. (2004). Automatic Block-Length Selection for the Dependent Bootstrap. *Econometric Reviews* 23(1), 53–70. doi:10.1081/ETC-120028836 [verified]
+- S124b. Patton, A., Politis, D. N. & White, H. (2009). Correction to "Automatic Block-Length Selection for the Dependent Bootstrap" by D. Politis and H. White. *Econometric Reviews* 28(4), 372–375. doi:10.1080/07474930802459016 [verified, Crossref 2026-11-04: title, three authors, volume, issue and pages agree; published 2009-01-30]
 - S125. Cont, R. (2001). Empirical properties of asset returns: stylized facts and statistical issues. *Quantitative Finance* 1(2), 223–236. doi:10.1080/713665670 [verified]
 - S126. Merton, R. C. (1976). Option pricing when underlying stock returns are discontinuous. *JFE* 3(1–2), 125–144. doi:10.1016/0304-405X(76)90022-2 [verified]
 - S127. Vasicek, O. (1977). An equilibrium characterization of the term structure. *JFE* 5(2), 177–188. doi:10.1016/0304-405X(77)90016-2 [verified]
@@ -925,11 +1004,87 @@ Verification key: **[verified]** = DOI resolved on OpenAlex/Crossref with matchi
 - S156. NGX market structure and 2026 rule changes: NGX, "Trading market structure", https://ngxgroup.com/exchange/trade/equities/trading-market-structure (page fetch failed 2026-11-04; search summary cites 10:00 continuous open, 14:20 pre-close, ±10% limit); Nairametrics, "NGX introduces new thresholds for share price changes", 18 Jun 2026, https://nairametrics.com/2026/06/18/ngx-introduces-new-thresholds-for-share-price-changes/ ; Leadership, "Nigerian Exchange postpones revised pricing rules hours before August 17 take-off", https://leadership.ng/nigerian-exchange-postpones-revised-pricing-rules-hours-before-august-17-take-off/ ; The Sun, "NGX returns to tiered price discovery system after SEC approval", https://thesun.ng/ngx-returns-to-tiered-price-discovery-system-after-sec-approval/ ; T+1 settlement from 1 June 2026 and changed trading hours reported in the same search (accessed 2026-11-04). **Conflicting; rulebook confirmation required.** [secondary]
 - S157. scikit-learn developers, `sklearn.covariance.LedoitWolf` documentation. https://scikit-learn.org/stable/modules/generated/sklearn.covariance.LedoitWolf.html (accessed 2026-11-04) [primary documentation]
 - S158. Clarke, R., de Silva, H. & Thorley, S. (2006). Minimum-Variance Portfolios in the U.S. Equity Market. *JPM* 33(1), 10–24. doi:10.3905/jpm.2006.661366 [verified]; and (2011) Minimum-Variance Portfolio Composition. *JPM* 37(2), 31–45. doi:10.3905/jpm.2011.37.2.031 [verified]
+- S160. Breuer, T., Jandačka, M., Rheinberger, K. & Summer, M. (2009). How to Find Plausible, Severe, and Useful Stress Scenarios. *International Journal of Central Banking* 5(3), September 2009. https://www.ijcb.org/journal/v5n3/how-find-plausible-severe-and-useful-stress-scenarios (publisher page and abstract fetched 2026-11-04; IJCB has no DOI, so it was not in Crossref; pages not listed on the page) [verified on publisher page; full text not re-read]
+- S161. Kevin Sheppard et al., `arch` 8.0.0, `arch.bootstrap.optimal_block_length` (implements [S124] with [S124b]). Installed in the scratchpad only for a one-off cross-check on 2026-11-04; not a dependency [software]
+- S162. Portfolio OS `CANONICAL_CONTRACTS.md` (C1–C7), 2026-11-04; C2, C3, C5 and C6 are binding on this document [internal]
 - S159. NGX All-Share Index annual returns: ThisDay, "NGX ASI Closes 2024 With Impressive Annual Growth of 37.65%", 1 Jan 2025, https://www.thisdaylive.com/2025/01/01/ngx-asi-closes-2024-with-impressive-annual-growth-of-37-65/ ; Prime Business Africa, "NGX Records 37.65% Growth, Ends 2024 On High Note" (2023: +45.90% to 74,773.77; 2024: +37.65% to 102,926.40, naira terms). No source found for USD-terms returns (accessed 2026-11-04). [secondary]
 
-*Scripts (this repository):* `docs/portfolio-os/research/scripts/worked_example_5b.py`, `prototype_checks.py`, `thin_trading_demo.py` — run on 2026-11-04 with numpy 2.5.3, pandas 3.0.5, scipy 1.18.1; outputs quoted verbatim in §4.
+*Scripts (this repository):* `docs/portfolio-os/research/scripts/worked_example_5b.py`, `doc05b_revision_checks.py`, `doc05b_performance_golden.py`, `prototype_checks.py`, `thin_trading_demo.py`. All were run on 2026-11-04 under `python3 -I` with numpy 2.5.3 and pandas 3.0.5 (`requirements.txt`); none imports scipy. Outputs are quoted verbatim in §4 and Appendix A.
 
-## Appendix A. Verbatim output of `scripts/prototype_checks.py` (2026-11-04)
+## 11. Revision history and response to review
+
+**v0.1** (2026-11-02, completed 2026-11-04): first draft. **v0.2** (2026-11-04): revised after review R05b (verdict: accept with required changes) and revision-log rows V-015, V-016 and V-017. Contracts C2, C3, C5 and C6 adopted. All changed numbers were recomputed under `python3 -I` by `worked_example_5b.py`, `doc05b_revision_checks.py`, `doc05b_performance_golden.py`, `prototype_checks.py` and `thin_trading_demo.py`.
+
+| Finding (R05b numbering) | Revision log | Action | Where | Note |
+|---|---|---|---|---|
+| B1 correlation 0.22→0.78 is one day | V-016 | Fixed | F15, §4.3, §4.9 (1b), reading 1 | Without the break day: 0.281. Leave-one-out influence −0.502. FX vol constant (0.062/0.058). New leave-one-out badge rule (E5) |
+| B2 bootstrap centred on the historical mean | V-017 | Fixed | §4.7, §4.9 (4), Rec 6 | C6 adopted: demeaned joint bootstrap; drift from labelled assumption set ASM-SYN-01 (synthetic placeholders, not any published CMA) |
+| B3 band set by H/T; Doc 8 cannot display it | V-017 | Fixed | §4.7, §4.11, §7 Disagreement 4 | Predictive count headline (41 → "about 40 of 100", MC SE 0.5), quantiles, adjustment, drift sensitivity, width reason. The analytic band Φ(c ± 1.2816√(H/T)) is shown in `doc05b_revision_checks.py` [4]. The statistician's two-level view is preserved as a narrowed dissent |
+| B4 environment-dependent outputs; wrong fallback solver | V-015 | Fixed | Script, `requirements.txt`, §2, §4.9, §9.3 | scipy removed; exact active-set solver with KKT check; fails loudly if numpy or pandas is missing; output SHA-256 identical with and without `-I`. Weights equal the SLSQP values R05b confirmed (0/0.537/0.463; 0.134/0.479/0.388) |
+| M1 matrix arithmetic wrong; circular criterion | V-016 | Fixed | §4.10 | 13 of 19 totals confirmed wrong and recomputed. MVP criterion dropped (S5). Explicit phase rule reproduces every phase and explains the Sharpe vs risk-budgeting order |
+| M2 in-sample mix search; reverse stress is an optimisation | — | Fixed | §4.7 (illustrative mixes), §4.4, §4.11 | Four pre-registered mixes; non-overlapping window count; trial-count rule; reverse stress labelled |
+| M3 calibration infeasible for one user | V-017 | Fixed | F26, §4.7, Rec 7, §9.5 | 1-month-ahead calibration with exact Clopper–Pearson; power 19%/34% at n = 24; 83 months for 80% power; ±10-point and "two failures" rules dropped; goal-horizon calibration stated as not achievable in the MVP |
+| M4 "99%" was a 98% interval | V-016 | Fixed | F22, §4.9 (7b) | 99%: 97.9% exact (closed-form t5 CDF); 98%: 97.0% |
+| M5 synthetic 31% presented as the real 2023 loss | V-016 | Fixed, with a correction to the reviewer's figure | F16, §4.4, §4.11, S85 | Re-fetched sources give −29% on the first day and about −39% by 23 June. The reviewer's 36% rests on a pre-unification rate (~477) that neither re-fetched article states; we do not use it |
+| M6 TWR/MWR spec not codeable; GIPS unread | — | Fixed; partly Deferred | §4.5, F24, S96, §9.2, §9.10 | GIPS 2020 text read and cited by provision. P1–P10 contract plus 12 golden cases. *Deferred:* sign-off by a CIPM/GIPS-literate reviewer before coding (owner: founder to appoint); Karnosky–Singer implementation to Phase 2 (needs C3 short-rate series from Doc 5c) |
+| M7 reverse stress undefined; 2008 figures unsourced; mixed windows | — | Fixed; partly Deferred | §4.4, F27, S160 | Mahalanobis-minimal joint scenario (Newton/KKT) plus single-factor breakevens (Breuer et al. conditional expectation); window type per scenario. *Deferred:* S&P 500 and NGX 2007–09 series (owner: Data, Doc 5c); the "−57%" withdrawn meanwhile |
+| M8 bootstrap under-specified | V-017 | Fixed | §4.7 G-2–G-9, §4.6, F21, S124b | Joint date-vectors; one break rule (remove, compensated jump overlay); Politis–White with the PPW 2009 correction, golden-tested against `arch`; stationarity check |
+| M9 LW intensity not a break detector; wrong sample | — | Fixed | F2, §4.2, §4.3, §4.9 (2, 5) | Break-free 250-day windows: identity 0.08–0.16, constant-correlation 0.27–1.00. Which Σ feeds which figure is now stated |
+| M10 / §2a: D8 comment mismatch, D15 every p, D21 all-loss (N5), N1–N4 | — | Fixed | §4.8 (D8, D15, D21, D24–D27), Appendix A [10]–[11], §9.9 | Source lines re-checked on 2026-11-04 |
+| m1 Raffinot online year | — | Fixed | S43 | Crossref: online 2017-12-22 |
+| m2 thin-trading script text contradicts output | — | Fixed | `thin_trading_demo.py`, §4.6 | Numbers unchanged |
+| m3 ±6 points is 1 SE | — | Fixed | §4.11 | ±12 points (95%) on the rebalanced portfolio |
+| m4 NAFEM vs NFEM | — | Fixed | §4.1, §4.6, §7 | NFEM, per C5.1 |
+| m5 mean of log returns ≠ rebalanced portfolio | — | Fixed | Script, §4.9 | −0.218 vs −0.237 on the break day; EW drawdown −24.6% (v0.1 −26.2%) |
+| m6 Dimson unit test | — | Fixed | §9.1, `thin_trading_demo.py` | 0.9375 |
+| Evidence-grade audit: F15 | — | Fixed | F15 | Literature E1; synthetic claim replaced |
+| — F25 "E2" | — | Fixed | F25, Rec 9 | E5 plus replication |
+| — F22 demo label | — | Fixed | F22 | — |
+| — F2 sample | — | Fixed | F2 | 250-day ranges |
+| — floors ungraded | — | Fixed | §4.3, §4.6 | E5 with a coverage-simulation test plan |
+| — calibration rule ungraded | — | Fixed | F26, §4.7 | E5 with power calculation |
+| — matrix | — | Fixed | §4.10 | E4, recomputed |
+| — F24 built on unread text | — | Fixed | F24, §4.5 | Text read; coding still blocked until reviewer sign-off |
+| — F11 Vanguard E4 | — | Fixed (no change needed) | F11 | S60 still unreachable |
+| Citations: S71 Meucci not found | — | Fixed | F14, §4.3, S71 | Definition pinned in the spec (E5); effective number of bets is a secondary diagnostic |
+| — S135 Bengen not found | — | Deferred | S135 | Remains [unverified]; nothing depends on it. Owner: Quant, at the next index check |
+| — S95 Dietz | — | Fixed | S95 | Indirectly confirmed via 1967 reviews |
+| — S103 Calmar source | — | Fixed | §4.5, S103 | Definition pinned in the spec |
+| — S88 price index | — | Fixed | F17, §4.4, S88 | — |
+| — S124 correction missing | — | Fixed | S124b | Verified on Crossref |
+| — S60 Vanguard unavailable | — | Deferred | S60 | Re-fetch when available; owner: Quant |
+| Cross-doc 1: Doc 8 Journey 6 | V-017 | Fixed here; Deferred to Doc 8 | §4.7 presentation, §6 | Doc 8 owns its Journey 6 and Overview changes (C6 "Documents that must change") |
+| Cross-doc 2: FX valuation rate | — | Fixed per C5.1; reviewer's proposal partly Rejected | §4.1, §4.6, §7 Disagreement 3 | The reviewer proposed a user-chosen alternative *valuation* view. C5.1 allows the parallel rate only as a sensitivity line, and the contract governs |
+| Cross-doc 3: stale vs zero-volume closes | — | Fixed | §4.1 | `last_traded_on` vs `as_of_date` in the input contract |
+| Cross-doc 4: Doc 5a admissible universe | — | Fixed (interface); Deferred (filter) | §4.1, §4.7 G-1/G-11, §6 | Owner of the filter: Doc 5a |
+| Cross-doc 5: NAFEM; Lesmond status | — | Fixed | §6 | Note to Doc 5c |
+| IC questions 1–6 | V-017 | Fixed | §7 | Answered |
+| §7 item 7: distribution-level golden tolerances | — | Fixed | §4.8 (8), §9.3 | — |
+| Never-build additions; ban by objective, not score | — | Fixed | Rec 15, §4.10 rule 1 | Auto-rebalancing, orders, leverage/margin, single probability gauge |
+| (found in revision) "53% of your risk is exposed to the naira" | — | Fixed | §4.11 | That was NGN equity alone. Naira risk (equity + bond) is 86% on all days, 65% on ordinary days |
+
+**Counts** (44 rows above, excluding the item found in revision; M10 groups D8, D15, D21/N5 and N1–N4, and the IC row groups six questions):
+- **37 fixed.** This includes M5, where our figure corrects the reviewer's, and F11, where no change was needed.
+- **4 fixed with a part deferred:** M6, M7, cross-doc 1 and cross-doc 4, each with a named owner.
+- **2 deferred:** S135 and S60.
+- **1 fixed per contract, with the reviewer's proposal partly rejected:** cross-doc 2.
+
+One further error, found during revision, was also fixed.
+
+**On the contracts.** We found nothing in C2, C3, C5 or C6 that we believe is wrong, and we follow them. Two **clarification requests** for the C6 owner, not departures:
+1. C6 does not say whether an assumption set's drift *includes* devaluation jumps. We assume it does, and compensate the jump overlay so that jumps add tail but not mean (§4.7 G-7). If the contract intends the opposite, G-7's `compensated` flag flips, and the CMA-case count would fall.
+2. C6's "σ/√T for a drift estimated from history" suggests that a history-estimated drift is an allowed option. Doc 5b offers it only as an explicit user choice, never as a default, because F19 holds that the historical mean is not a forecast.
+
+**What remains open.**
+- Sign-off of §4.5 by a CIPM- or GIPS-literate reviewer; until then, no coding of the performance engine.
+- The CMA source and its licence, the neutral default, and the NGN depreciation assumption (founder; C6 open questions). ASM-SYN-01 is a synthetic placeholder only.
+- Licensed S&P 500 and NGX 2007–09 series for the GFC scenario (Data).
+- Doc 8's re-specification of Journey 6 to the C6 output; Doc 5a's admissible-universe filter.
+- No reference implementation for the constant-correlation Ledoit–Wolf intensity.
+- Real NGX data for the thin-trading, floor and stationarity tests.
+- Whether the optimiser stability gate can ever pass on the founder's data (§7, Disagreement 1).
+
+## Appendix A. Verbatim output of `scripts/prototype_checks.py` (2026-11-04; checks [10] and [11] added in v0.2, earlier lines unchanged)
 
 ```
 numpy 2.5.3
@@ -962,4 +1117,6 @@ numpy 2.5.3
 
 [8] PerformancePanel: P&L sequence [50, -100, 30] on a 10,000 account -> reported max drawdown 200%; true equity drawdown 1.00%
 [9] 20 trade returns mean 1% sd 5% (holding period unknown): panel 'Sharpe' = 2.34; Lo(2002) iid SE of the un-annualised ratio with n=20 ≈ 0.22 per sqrt(period)
+[10] PerformancePanel: all-loss P&L [-100, -200] on a 10,000 account -> reported max drawdown 0%; true equity drawdown 3.00%
+[11] quantile index floor(N*p) vs ceil(N*p)-1 at N=10,000: p=0.01: 100 vs 99, p=0.05: 500 vs 499, p=0.25: 2500 vs 2499, p=0.5: 5000 vs 4999, p=0.95: 9500 vs 9499
 ```
