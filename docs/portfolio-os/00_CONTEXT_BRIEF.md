@@ -154,6 +154,7 @@ expand acronyms on first use; no marketing language.
 - Tools: `WebSearch` and `WebFetch` (or the web-fetch agent) for current sources; the reference-lookup tools for academic
   citations (if they appear only as deferred tools, load them with ToolSearch `select:` first); Python 3 for calculations.
 - **Do not read or use the founder's private Google Drive documents or email.** They are out of scope for research.
+- **The founder's pronouns are not known.** Refer to "the founder" or use they/them. Never infer gender from a name or role.
 - **Do not write application code into `src/`.** This is the research and design phase. Illustrative pseudocode or small
   calculation scripts in your document are fine.
 - If a question cannot be answered with available tools, say so explicitly rather than guessing.
