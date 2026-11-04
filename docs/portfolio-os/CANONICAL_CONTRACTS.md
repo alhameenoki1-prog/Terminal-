@@ -1,7 +1,7 @@
 ```
-Document: Canonical Contracts (C1–C7)
+Document: Canonical Contracts (C1–C8; C8 added in v0.2)
 Department: Architecture and Accounting  ·  Lead role(s): principal architect; chief accounting officer; data-quality lead (all simulated, none licensed)
-Version: 0.2  ·  Date: 2026-11-04 (v0.1 2026-11-04)  ·  Status: revised to resolve errata CC-1–CC-12
+Version: 0.2  ·  Date: 2026-11-04  ·  Status: revised to resolve errata CC-1–CC-12
 Reviewers required: owners of Docs 4, 5a, 5b, 5c, 6, 7 and 8; a licensed Nigerian tax practitioner (C1 cost basis, C7); a chartered accountant (C1, C5)
 ```
 
@@ -18,7 +18,7 @@ Reviewers found that the department documents define the ledger, figure integrit
 - **C6 Goals.** The bootstrap is demeaned. Drift comes from a labelled capital-market-assumption overlay. The headline is a predictive count ("about 30 of 100"), shown with quantiles, the adjustment needed and drift sensitivity.
 - **C7 Tax rules.** Statuses run draft → sourced → reviewed-internal → practitioner-confirmed, with superseded and retired as end states. Draft rules never compute. Any output below practitioner-confirmed carries a watermark. Gains are assessed in the year after disposal (NTA s.26(3)).
 
-**v0.2 changes (errata CC-1 to CC-12; full table in "Errata resolution (v0.2)").** No contract is loosened. `superseded_at` is derived in a view, so soft state is strictly insert-only (C1). Doc 3's behavioural sentences enter the AI output as registered template segments whose slots the model cannot write (C2). Pending corporate actions, filing-calendar freshness, a sampling floor for low-cadence series and a once-per-table "auto-checked" chip are specified (C3). Auto-apply needs 35 error-free confirmations in a defined stratum, and sensitive tags always go to review (C4). Trades enter the FX decomposition as internal, with commissions as an investing-cost flow (C5). Drift includes devaluation jumps, and history-estimated drift is never a default (C6). The reference rate is re-keyed to the field CBN actually publishes, "NFEM Rate" (VWAP), with fallbacks, and a check by the founder is labelled "self-checked", never "validated" (C3, C5; red-team panel A). Monitors get their own rule class, which never uses a draft rule's parameters. The investment-income basis period, an unsourced assumption, becomes a draft limb, so Example 1's YOA 2026 figures are refused. The C7 example is rebuilt to show those refusals (C7).
+**v0.2 changes (errata CC-1 to CC-12; full table in "Errata resolution (v0.2)").** No contract is loosened. `superseded_at` is derived in a view, so soft state is strictly insert-only (C1). Doc 3's behavioural sentences enter the AI output as registered template segments whose slots the model cannot write (C2). Pending corporate actions, filing-calendar freshness, a sampling floor for low-cadence series and a once-per-table "auto-checked" chip are specified (C3). Auto-apply needs 35 error-free confirmations in a defined stratum, and sensitive tags always go to review (C4). Trades enter the FX decomposition as internal, with commissions as an investing-cost flow (C5). Drift includes devaluation jumps, and history-estimated drift is never a default (C6). The reference rate is re-keyed to the field CBN actually publishes, "NFEM Rate" (VWAP), with fallbacks, and a check by the founder is labelled "self-checked", never "validated" (C3, C5; red-team panel A). C2's text rules are hardened (NFKC, numeral and format characters, multilingual lexicons, claim words) and tokens are bound to period and scope (red-team panel B). Monitors get their own rule class, which never uses a draft rule's parameters. The investment-income basis period, an unsourced assumption, becomes a draft limb, so Example 1's YOA 2026 figures are refused. The C7 example is rebuilt to show those refusals (C7). A new C8 sets one retention and erasure model: the user can always erase, by per-class crypto-shredding that reaches backups; compliance-mode object lock is forbidden; the draft retention rule gates nothing.
 
 **Biggest uncertainty.** The tax treatment of foreign-currency holdings: whether each foreign-currency spend is a disposal under NTA s.34(1)(b), which cost method applies, and which "official market rate" applies. These shape C1's lot engine and need a licensed practitioner.
 
@@ -215,20 +215,27 @@ Settle V-004. Doc 7's gate lets the model write digits and accepts any trace val
 
 ### C2.2 Specification
 1. **Output schema.** The model returns `{segments:[{t:"text",v}|{t:"tok",v}|{t:"tpl",v,bind}], assumption_ids[], limitation_ids[], refused, refusal_code}`. Only the renderer produces the visible string. A `tpl` segment (v0.2, CC-2) names a registered template `v` = `<template_id>@<version>` and binds it to a stored construct output `bind` (item 12).
-2. **Text segments MUST NOT contain:**
-   - any Unicode decimal digit (category Nd, which covers Arabic-Indic digits);
-   - fraction glyphs;
-   - English number, multiplier or fraction words (one…ninety, hundred…trillion, half, third, quarter, double, triple, dozen);
-   - month or weekday names.
+2. **Text segments MUST NOT contain** (hardened in v0.2 after red-team panel B; checks run in this order, and the first failure rejects):
+   - (a) **format, control, private-use or unassigned characters** (categories Cf, Cc except newline and tab, Co, Cs, Cn), checked on the raw text. Zero-width spaces and soft hyphens are rejected, not stripped;
+   - (b) **any numeral character**: Unicode categories Nd, Nl and No on the raw text. This covers Arabic-Indic digits, Roman-numeral, circled and superscript forms, and fraction glyphs;
+   - (c) after **NFKC normalisation**, any character outside the connecting-text allow-list: ASCII letters, space, newline and `. , ; : ! ? ' " ( ) - / & %` plus typographic quotes, dashes and the ellipsis. This rejects homoglyphs (a Cyrillic "о" in "one") and any non-Latin script until a UI language is added (C2.6 Q2);
+   - (d) a Roman numeral written in ASCII capitals (two letters or more, e.g. "XII");
+   - (e) after case-folding, any word in the **number and date lexicon**:
+     - English cardinals, ordinals, plurals ("millions"), multipliers ("twice", "once", "double"), fractions, "zero", "nil" and the suffixes "k", "m", "bn";
+     - number words in Yoruba, Hausa, transliterated Arabic, French and Spanish, as ASCII folds;
+     - month and weekday names **and their abbreviations** ("May" and "Sat" included: the model writes "might" and avoids the verb, and the false positives are measured under T2-12);
+     - named dates ("Eid", "Ramadan", "Christmas");
+   - (f) in **model-written** text only (not template fixed text, which Doc 3 reviews at registration), any **quantifier, comparative, direction or relative-time word**: "all", "none", "every", "more", "higher", "than", "rose", "fell", "last", "next", "today", "month", "year" and the like. Counts, orderings, directions and periods may come only from `count`, `cmp`, `dir` and `period` tokens.
 
-   List numbering is markup, not text. This rule also covers dates, years, counts and instrument names that contain years.
-3. **Token grammar.** `{{type:id|as=field|fmt=format}}` where `type` ∈:
+   List numbering is markup, not text. This rule also covers dates, years, counts and instrument names that contain years. The lexicons are versioned registry data (owner: Doc 7, with Doc 3 and Doc 8 for wording); the reference implementation is `lint_numerals`/`lint_text` in the script. A deny-list can leak, so Doc 7 adds a **connecting-text vocabulary allow-list** (a frequency-ranked English word list minus both lexicons). Production rejects any word outside it, and the generated corpus test T2-17 must show 100% rejection, with n and an upper bound.
+3. **Token grammar.** `{{type:id|as=field|per=period|scope=entity|fmt=format}}` (options in any order, each at most once) where `type` ∈:
 
 | Type | Resolves to | Source |
 |---|---|---|
 | `fig` | a stored figure (value + evidence strip) | figure store, pinned by id and vintage |
 | `calc` | an output of a named registry formula | `calc_id.output` |
 | `date`, `period` | an as-of date or period label | figure metadata, controller clock (`today`) |
+| `cmp` | "higher than / lower than / the same as" between two figures (v0.2) | sign of a registered `compare(a, b)` calc whose inputs share field, unit and scope |
 | `count` | a count | a `count` formula in the calc registry |
 | `range` | a pair of interval bounds with its method label: C6 quantiles, or a Doc 3 interval such as the cycle-bootstrap range | engine output |
 | `dir` | "rose / fell / was unchanged", "gain / loss" | sign of the referenced figure |
@@ -238,16 +245,16 @@ Settle V-004. Doc 7's gate lets the model write digits and accepts any trace val
 | `name` | display name of an account, category or counterparty (v0.2) | registry, resolved locally at render. Never a figure, a `calc` input or an allow-list figure; the cloud model sees only the handle (V-028) |
 
 4. **Allow-list.** A token ID resolves only if a tool returned it in the current turn. An ID that is not on the list causes rejection.
-5. **Semantic check.** `as=` is mandatory for `fig`, `calc`, `count`, `range` and `date` (v0.2 adds the last three, CC-2: a count, interval or date can be misattributed as easily as an amount). It must equal the figure's `field`, and the format's unit and currency must match the figure's. This stops misattribution such as presenting the TWRR as the drawdown. Signs and direction words come only from the renderer (`dir`, signed formats).
+5. **Semantic check.** `as=` is mandatory for `fig`, `calc`, `count`, `range` and `date` (v0.2 adds the last three, CC-2: a count, interval or date can be misattributed as easily as an amount). It must equal the figure's `field`, and the format's unit and currency must match the figure's. **Binding (v0.2, RT-B):** a figure that covers a period requires `per=` equal to its period ID, and a figure that belongs to an account, portfolio or entity requires `scope=` equal to its scope ID. Within one sentence, every `period` token must equal the period of every period-bearing figure, and every `name` token must equal the scope of the figures it names. Together with rule 2(f), this stops a quarterly total from being presented as "last month", or one account's balance as another's. `calc` inputs are bound by role (`ratio(numerator=…, denominator=…)`), not only by type. This stops misattribution such as presenting the TWRR as the drawdown. Signs and direction words come only from the renderer (`dir`, signed formats).
 6. **Calc registry, not free arithmetic.** `calc.derive` becomes a registry of named, typed formulas such as `ratio(money[c], money[c]) → fraction` or `convert(money[c1], rate_set, c2, date_rule)`. Each refuses unit or currency mismatch and records its input IDs.
 7. **Quoted documents.** Narrations, PDF text, notes and retrieved chunks are tainted (R07 M2). The privileged model gets them only as `quote` handles, with digits masked (`◊`) if it needs the wording. A quote is shown verbatim, styled "as printed on <document>, p.<n>". It can never be a figure, a `calc` input or an allow-list member. `documents.search` returns handles, never figure IDs.
 8. **User-typed numbers.** Before the model is called, the controller parses the user's message deterministically into `user` figures ("if I save {{user:u1}} a month"), and the model sees masked text. The figures are labelled "you entered".
 9. **Render-time status.** The renderer applies C3: badges, side-by-side values for `disputed`, "expired" with no value. A figure whose status has changed since generation shows its current badge. Its value stays pinned to the vintage cited.
-10. **Backstop.** In the final string, every digit must fall inside a span the renderer emitted (a span map). This keeps Doc 7's gate as a second layer with zero tolerance.
+10. **Backstop.** In the final string, every numeral character (Nd, Nl, No after NFKC) and every lexicon word must fall inside a span the renderer emitted (a span map). This keeps Doc 7's gate as a second layer with zero tolerance.
 11. **Failure path.** On rejection, one regeneration with the violations listed. On a second failure, the refusal template "I do not have a validated figure for {{ref:…}}" is shown, a review item is raised, and the trace is logged (prompt hash, figure IDs supplied and cited, verdict). Determinism does not rely on temperature, which may be unavailable when thinking is on (R05c B3). The temperature rule in Doc 5c is deleted.
 12. **Behavioural templates (v0.2, CC-2; resolves C2.6 Q3).** A behavioural sentence reaches the user **only** as a `tpl` segment. Doc 3 owns the template registry. It is versioned and insert-only, and each entry holds: `template_id`, `version`, `status` (`draft`/`approved`/`retired`), `rung`, `placement` (card headline, research context, not-tested-yet), fixed text with named slots, and a slot table (slot → token type, `as=` field, `fmt`).
     - **The model writes no slot.** It chooses a template and a construct-output ID. The registry supplies each slot's type, `as=` and format, and the renderer fills it from the construct output. The model cannot insert text inside a template. Its own adjacent `text` segments stay under item 2 and Doc 7's behavioural lint: they may not compose a behavioural sentence.
-    - **Registration gate.** A template's fixed text, with slots removed, must pass item 2 (no digits, number words, month or weekday names) and the Doc 3/Doc 8 forbidden-form lint before it can be `approved`. Every slot must declare `as=` and `fmt`. A template that fails is refused registration, not waived.
+    - **Registration gate.** A template's fixed text, with slots removed, must pass item 2(a)–(e) (characters, numerals, number and date words in every listed language) and the Doc 3/Doc 8 forbidden-form lint. Rule 2(f) does not apply to fixed text, which Doc 3 reviews before it can be `approved`. Every slot must declare `as=` and `fmt`. A template that fails is refused registration, not waived.
     - **Render checks**, each a rejection under item 11:
       - (a) the template version is `approved`;
       - (b) the construct output was returned by a tool this turn (item 4);
@@ -274,21 +281,29 @@ Settle V-004. Doc 7's gate lets the model write digits and accepts any trace val
 - **T2-14** (v0.2) A template above the construct's current rung, or one not listed in its specification, is rejected.
 - **T2-15** (v0.2) A template whose fixed text contains a digit, number word or date word is refused registration.
 - **T2-16** (v0.2) A `count`, `range` or `date` token without `as=` is rejected.
+- **T2-17** (v0.2, RT-B) A generated corpus of integers from 0 to 10¹² is rejected in full, with n and a 95% upper bound reported. The corpus covers cardinals, ordinals, plurals, abbreviations, Roman, circled and superscript forms, in English, Yoruba, Hausa, Arabic, French and Spanish, mutated with zero-width characters and homoglyphs. Red-team panel B's 20-string harness (`research/scripts/rtb_c2_bypass_harness.py`) must report 0 PASS.
+- **T2-18** (v0.2, RT-B) Period and scope mismatches (C2.2(5) binding) are rejected.
+- **T2-19** (v0.2, RT-B) Metamorphic test: two same-field figures with different periods or scopes are swapped, and the misattribution rate is reported with a Wilson bound. An independent extractor lists every quantity asserted in the rendered output, and each must map to a renderer span.
 
 Report fidelity as a bound, not a zero: 0 failures in 200 cases gives a 95% upper bound ≈ 1.5% (R07 M9).
 
 ### C2.4 Worked example (`c2()`)
 ```python
-TOKEN = re.compile(r"\{\{(fig|calc|count|range|date|dir|quote):([a-z0-9_.]+)(?:\|as=([a-z0-9_.]+))?(?:\|fmt=([a-z0-9_]+))?\}\}")
-if any(unicodedata.category(ch) == "Nd" for ch in payload): errors.append("free digit")
-if fid not in allow: errors.append("token id not returned by a tool this turn")
-if typ in AS_REQUIRED and not as_field: errors.append("missing as=")      # v0.2
-if as_field and as_field != f["field"]: errors.append("semantic mismatch")
+# v0.2 lexical order (lint_numerals, then lint_text for model text); first failure rejects
+if cat in ("Cf", "Co", "Cs", "Cn") or (cat == "Cc" and ch not in "\n\t"): reject("format/control character")
+if unicodedata.category(ch) in ("Nd", "Nl", "No"): reject("free digit / numeral character")
+norm = unicodedata.normalize("NFKC", payload); any(ch not in ALLOWED_CHARS for ch in norm) -> reject
+ROMAN.search(norm); words(norm) & NUM_WORDS (EN + yo/ha/ar/fr/es folds + months, weekdays, abbreviations)
+words(norm) & CLAIM_WORDS -> reject (model text only: quantifier, comparative, direction, relative time)
+# tokens: allow-list -> as= present and equal -> per= equals figure period -> scope= equals figure scope
+if typ == "fig" and f["period"] and kv.get("per") != f["period"]: errors.append("period binding")
+# per sentence: every period token equals the period of every period-bearing figure
 # v0.2 tpl segment: approved -> on allow-list -> rung <= construct rung -> listed in spec -> slot fields match
 if RUNG_ORDER.index(t["rung"]) > RUNG_ORDER.index(co["rung"]): errors.append("template rung above construct")
+# not in the reference implementation: name-token scope check, cmp tokens, calc role binding (Doc 7 builds them)
 ```
 ```
-A good -> ('PASS', 'Your time-weighted return over the past year was 8.1% and the largest drawdown was -23.4%, as of 31 October 2026.')
+A good -> ('PASS', 'Your time-weighted return over the period 1 November 2025 to 31 October 2026 was 8.1% and the largest drawdown was -23.4%, as of 31 October 2026.')
 B free digits -> ('REJECT', ["free digit in text: 'You should expect 12% next year.'"])
 C number words -> ('REJECT', ["number/date word in text: 'twelve'"])
 D mislabelled -> ('REJECT', ['semantic mismatch: fig_7a1 is perf.twrr_1y, model claimed risk.max_drawdown'])
@@ -298,12 +313,27 @@ G template -> ('PASS', 'Over 6 pay cycles, spending in categories you marked as 
 H rung above construct -> ('REJECT', ["template rung L2b above construct's current rung L1"])
 I construct not returned -> ('REJECT', ['construct output not returned by a tool this turn: co_pay6'])
 J missing as= on date -> ('REJECT', ['missing as= on date token date_7a'])
+K period token vs figure -> ('REJECT', ["period token ['per_oct'] does not match figure period ['per_q3'] in the same sentence"])
+L wrong per= binding -> ('REJECT', ['period binding: fig_7a4 covers per_q3, token says per=per_oct'])
+M wrong scope= binding -> ('REJECT', ['scope binding: fig_7a4 belongs to acct_a1, token says scope=acct_b2'])
+N homoglyph -> ('REJECT', ['character outside the text allow-list: U+043E CYRILLIC SMALL LETTER O'])
+O quantifier -> ('REJECT', ["quantity/direction/time word in model text: 'All'"])
 template registration: L4.no_anchor (Doc 3 v0.2 wording) -> ('REFUSE REGISTRATION', ["number/date word in text: 'one'"])
 template registration: L4.no_anchor (proposed) -> REGISTER
 template registration: L3 stem (Doc 3 v0.2 wording) -> ('REFUSE REGISTRATION', ["number/date word in text: 'One'"])
 template registration: L3 stem (proposed) -> REGISTER
 ```
-Case D would pass Doc 7's gate; case B is Doc 7's own §4.12(c) example. Display precision (−23.45% → −23.4%, half-even) is a format property, not the model's choice. In v0.2 case A's date token carries `as=asof`, and its output is unchanged.
+Case D would pass Doc 7's gate; case B is Doc 7's own §4.12(c) example. Display precision (−23.45% → −23.4%, half-even) is a format property, not the model's choice. In v0.2, case A is rewritten for the hardened rules. v0.1's "over the past year" now fails rule 2(f), so the period comes from a `period` token. The figure tokens carry `per=` and `scope=`, and the date token carries `as=asof`. Case F's token carries `scope=`, and its output is unchanged. Cases K–O are new (RT-B).
+
+**Red-team panel B harness, run on the v0.2 script** (`python3 -I docs/portfolio-os/research/scripts/rtb_c2_bypass_harness.py docs/portfolio-os/research/scripts/contracts_checks.py`, 2026-11-04). v0.1 passed 18 of 20 strings. v0.2 rejects all 20, each for its own lexical cause; where the harness's token lacks `scope=`, the scope error is also listed. Selected lines, verbatim:
+```
+zero-width space in 'twelve'     -> REJECT  ['format/control character in text: U+200B ZERO WIDTH SPACE']
+Cyrillic o in 'one'              -> REJECT  ['character outside the text allow-list: U+043E CYRILLIC SMALL LETTER O']
+ASCII Roman 'XII'                -> REJECT  ["Roman numeral in text: 'XII'"]
+Yoruba 'mejila'                  -> REJECT  ["number/date word in text: 'mejila'"]
+fraction glyph U+215E            -> REJECT  ['numeral character in text: U+215E VULGAR FRACTION SEVEN EIGHTHS']
+```
+**Residual risk, stated:** these are lexical and binding controls. They do not prove that every quantitative claim is true: a superlative such as "largest" is still checked only through `as=`. T2-19 bounds the semantic error rate; it does not remove it.
 
 Cases G–J and the registration lines are new in v0.2 (CC-2). G renders a shortened form of Doc 3's `L1.after_income`, using synthetic placeholder values (not Doc 3's figures), entirely from registry slots. Two of Doc 3's v0.2 templates fail registration on the word "one". The proposed rewordings ("a single regular income date"; "A possible explanation is …") pass and keep the meaning.
 
@@ -317,8 +347,8 @@ Cases G–J and the registration lines are new in v0.2 (CC-2). G renders a short
 - **v0.2 (CC-2):** Doc 3 §4.10 publishes the registry fields of item 12 and adds `as=` to every `count` and `range` slot. Doc 3 §4.1 and §4.4 reword `L4.no_anchor` and the `L3.*` stem. Doc 7 §4.6 "Qualitative claims" points to item 12 instead of the open change request. Doc 8 Component B renders `tpl` segments.
 
 ### C2.6 Open questions
-1. How often does the number-word rule reject legitimate prose (e.g. "no one")? To be measured (T2-12).
-2. Will the UI offer Yoruba, Hausa or Arabic? The word lists would then need translation.
+1. How often do the v0.2 rules reject legitimate prose ("no one", "you may", "first", "year of assessment")? To be measured (T2-12); a high rate is fixed by rewording the system prompt and adding tokens, not by relaxing the lexicon.
+2. Will the UI offer Yoruba, Hausa or Arabic? Their number words are already in the deny lexicon (as ASCII folds). A UI in those languages would also need its own character allow-list and vocabulary list.
 3. ~~Template enforcement for qualitative behavioural claims (R07 M7) is Doc 3's contract, not this one.~~ Resolved in v0.2 by C2.2 item 12. Doc 3 owns the template registry and its wording; this contract owns the segment form, the registration gate and the render checks.
 
 ---
@@ -342,7 +372,7 @@ Doc 5c has 8 states mixed with freshness. Doc 5a has V0–V3 plus freshness. Doc
 
 **C3.2a Freshness rules for scheduled data (v0.2, CC-10).**
 1. Where a sourced calendar exists (a release calendar, MPC calendar or issuer filing deadline), it governs, and day counts are fallbacks used only while no such record exists. The calendar or deadline is itself a world fact under C3.5: it is never typed by hand.
-2. **Periodic fundamentals.** No fixed day count makes an annual statement `fresh`; v0.1 of Doc 5c's "fresh ≤ 300 days" is withdrawn. A figure is `fresh` until the next periodic filing that would update it is due, and `ageing` from that due date until the filing is published. It is `stale` once that filing is published but not ingested, or 30 days after the due date (E5). `expired` follows Doc 5c's table. A metric used as a current-period measure (for example TTM earnings, Doc 5a §4.10) takes its freshness from the next filing of **any** period type that would update it, interims included.
+2. **Periodic fundamentals.** No fixed day count makes an annual statement `fresh`; Doc 5c v0.1's "fresh ≤ 300 days" is withdrawn. A figure is `fresh` until the next periodic filing that would update it is due, and `ageing` from that due date until the filing is published. It is `stale` once that filing is published but not ingested, or 30 days after the due date (E5). `expired` follows Doc 5c's table. A metric used as a current-period measure (for example TTM earnings, Doc 5a §4.10) takes its freshness from the next filing of **any** period type that would update it, interims included.
 3. FX follows C5.2. A policy rate follows its meeting calendar (C3.5, Doc 5c §4.3.2).
 
 Feed health (`ok` / `fetch_failed`) belongs to a **series**, not a figure. A failed fetch creates no figure. The last figure simply ages. Statement-derived amounts: reconciled → `auto_validated` (with an exception badge where applicable); quarantined → `candidate`. Aggregates carry `complete | incomplete` (Doc 4 §4.5(6)).
@@ -799,6 +829,50 @@ The sandbox values still reproduce R06's arithmetic: ₦66,000 under A, nil unde
 
 ---
 
+## C8. Retention and erasure (Docs 3, 6, 7, 8; V-028; red-team panel B B1; new in v0.2)
+
+**Purpose.** Docs 3, 6, 7 and 8 give four incompatible answers on whether tax records can be erased:
+- Doc 6 §4.1A: erasable, never blocked;
+- Doc 7 §4.7.4: not erasable while the clock runs, with object-locked backups;
+- Doc 3 §4.9.6: write-once storage;
+- Doc 8 §4.5.13: "WORM-style".
+
+A compliance-mode object lock cannot be lifted by anyone before it expires, so Doc 7's design would make Doc 6's promise impossible from the first backup. The retention clock rule `NG-RECORDS-RETENTION-2026` is `draft`, yet Doc 6 applies it "regardless", which breaks C7. This contract adopts **Doc 6's position** and specifies the mechanism.
+
+**Classes.** Every stored object, including every backup object, carries exactly one class (`C8-I1`).
+
+| Class | Contents | Retention | Erasure |
+|---|---|---|---|
+| **T tax vault** | Statements, documents, extractions, journal and postings, lots, calculation logs with rule versions, and the questionnaire answers and classifications that decide a tax figure | Kept until the user erases it. The statutory minimum (NTAA s.31(5) as read by Doc 6: "not less than six years after the year of assessment") is a **taxpayer's duty**, shown as a warning, never enforced by the system | Always possible. The system warns and offers a one-step export first, and never blocks |
+| **B behavioural** | Doc 3 constructs, tags, pre-registrations, intervention logs, and questionnaire answers not used for tax | Until behavioural consent is withdrawn; otherwise 24 months (E5, Doc 3) | Automatic on withdrawal. Only the withdrawal event is kept (consent ID, time; no content) |
+| **A AI traces** | C2.2(11) traces | 12 months (E5, Doc 7) | On request, or at expiry |
+| **S integrity log** | Erasure, consent and access events: hashes, times, actors, no content | As long as the classes it describes, plus the erasure events themselves | Content-free by design |
+| **W world facts** | Rates, rule texts, evidence snapshots, registries (not personal data) | Indefinite | Licence-governed purge only (C3 axis R) |
+
+**Mechanism.**
+1. **Crypto-shredding per class.** Each class's data is encrypted under its own data key, held in a key store. Erasure destroys that key in the live key store and in every key-store copy. Rows are never updated or deleted, so C1-I4 holds, and the ciphertext becomes unreadable and may be garbage-collected. Each erasure writes an `erasure` event to class S.
+2. **Backups.** Each class is backed up to its own age recipient, so destroying a class identity erases that class in every backup generation. Class identities are never escrowed one by one. The escrow (paper, hardware token) holds only the identity that opens the key store. The key store is backed up in rotation and is **never** under object lock, so a shredded class key survives in no copy beyond the rotation window (≤ 30 days, E5). The erasure screen states that window.
+3. **Object lock.** Compliance-mode lock is **forbidden** on any object holding personal data or key material (`C8-I4`). Governance mode MAY protect class ciphertext against ransomware, provided the user holds the bypass credential in escrow. The host's backup key is write-only.
+4. **Draft rule.** While `NG-RECORDS-RETENTION-2026` is below `sourced`, it **gates nothing** (C7): no retention date is computed or displayed, nothing is deleted automatically and nothing is blocked. The pre-erasure warning uses the monitor presence pattern: "Tax law may require you to keep these records for several years; the period is not yet sourced here. Export first?" Once the rule is `sourced` or above, the warning names the per-record date with the run's watermark. It still never blocks, and deletion after the date remains the user's choice, offered as a reminder.
+5. **Commercial phase.** Whether a company may keep a user's vault after an erasure request is for counsel (Doc 6 §4.1A, §9). Until counsel answers, this contract binds the personal system only.
+
+**Invariants.**
+- **C8-I1** Every stored object and backup object has exactly one class.
+- **C8-I2** No rule below `sourced` sets, displays or enforces a retention date.
+- **C8-I3** Erasure drill: after a class is shredded, restoring every backup generation and every key-store copy older than the rotation window yields no readable record of that class.
+- **C8-I4** Configuration test: no compliance-mode lock on any bucket or object holding personal data or keys.
+- **C8-I5** Withdrawing behavioural consent makes class B unreadable in the live store at once and in backups within the rotation window.
+
+**Documents that must change.**
+- **Doc 6** §4.1A: point to C8, keep "never blocks", and replace the per-record clock from rule 34 with the presence warning until rule 34 is `sourced`. Rule 34 row: delete "applies regardless".
+- **Doc 7** §4.7.4: withdraw "not erasable while the clock runs" and "crypto-shredding is never applied to the tax vault". MVB 8: no compliance lock; per-class recipients; escrow of the key-store identity only. §4.7.3: the key service is needed before the first real backup.
+- **Doc 3** §4.9.6: withdraw "write-once storage"; delete-everything follows C8.
+- **Doc 8** §4.5.13: withdraw "WORM-style"; the erasure flow shows the C8 warning, the export step and the backup window.
+
+**Open questions.** (1) Counsel: the commercial-phase basis (above). (2) UAE FTA record-keeping period (not re-verified; Doc 6). (3) Founder: the rotation window and the escrow locations.
+
+---
+
 ## Sources
 1. P. Selinger, "Tutorial on multiple currency accounting", Dalhousie University, 2005 (updated). https://www.mathstat.dal.ca/~selinger/accounting/tutorial.html. Accessed 2026-11-04. Fetched and read; E3 practitioner source; not an academic paper.
 2. Nigeria Tax Act 2025 and Nigeria Tax Administration Act 2025 (gazette), as read by reviewer R06 (s.26(1), s.26(3), s.34(1)(b), s.201; NTAA s.13(2)(b)). Not re-read here. E2 via reviewer.
@@ -810,12 +884,13 @@ The sandbox values still reproduce R06's arithmetic: ₦66,000 under A, nil unde
 8. Portfolio OS Docs 3, 4, 5a, 5b, 5c, 6, 7, 8 (v0.2), §11 "Revision history and response to review", and `reviews/REVISION_LOG.md` errata CC-1 to CC-12 (2026-11-04).
 9. Central Bank of Nigeria, "Exchange Rates" (NFEM table), https://www.cbn.gov.ng/rates/ExchRateByCurrency.html. Fetched with WebFetch on 2026-11-04. Column headers and footnote read; no data rows rendered. E2 for the column definition. https://www.cbn.gov.ng/rates/ExchRate.html returned HTTP 404 the same day.
 10. Red-team panel A, `reviews/RT_A_science_and_models.md` (2026-11-04), points B1 (self-review labelled as independent) and the CBN rate field, as relayed by the coordinator.
+11. Red-team panel B, `reviews/RT_B_security_privacy_regulation.md` (2026-11-04), B1 (retention) and B2 (C2 bypass), and its harness `research/scripts/rtb_c2_bypass_harness.py`, run on 2026-11-04 against the v0.1 and v0.2 scripts (18 and 0 of 20 PASS).
 
 ---
 
 ## Errata resolution (v0.2)
 
-Decisions on errata CC-1 to CC-12 (REVISION_LOG, "Contract errata raised during revision") and on two red-team points the coordinator added. "Consequence" lists the document sections that now need a follow-up edit by their owners. This contract does not edit them. No decision loosens a contract: none admits a base-currency plug, a model-written digit, an unsourced constant or a computation on a draft tax rule.
+Decisions on errata CC-1 to CC-12 (REVISION_LOG, "Contract errata raised during revision") and on four red-team points the coordinator added (panels A and B). "Consequence" lists the document sections that now need a follow-up edit by their owners. This contract does not edit them. No decision loosens a contract: none admits a base-currency plug, a model-written digit, an unsourced constant or a computation on a draft tax rule.
 
 | Erratum | Decision | Contract section changed | Consequence for the documents |
 |---|---|---|---|
@@ -834,4 +909,7 @@ Decisions on errata CC-1 to CC-12 (REVISION_LOG, "Contract errata raised during 
 | **RT-A rate field** (red-team panel A, via coordinator) | **Amended.** Fetched https://www.cbn.gov.ng/rates/ExchRateByCurrency.html on 2026-11-04: the columns are NFEM Rate (VWAP, "the official exchange rate for the day"), Highest, Lowest, Closing and Simple Average, with **no** buy, central or sell column. Reference = "NFEM Rate (₦/US$)", `price_type = nfem_vwap`, from a primary snapshot only; label "CBN official rate (NFEM)". Fallbacks: a missing date follows C5.2 (never Closing or Simple Average); a missing or renamed column sends the mapping to `disputed`, and no new rate is recorded | C1 D7; C1.5 label; C1.6 flag (iii); C1.9 text; C5.1 (row and "Reference field"); C5.4 text; C5.5; script comments | **Doc 4** §1 C4, §4.2 item 3, §4.5(2), §4.6 rate table, §6 and §9 item 6 ("central" → NFEM Rate; replace the press figures from S29 with a CBN snapshot or label them synthetic). **Doc 5a** §4.5 table row and §11 observation 3. **Doc 5b** §4.1, §7 Disagreement 3, IC answer 2. **Doc 5c** §4.3.1 `price_type` enum (add `nfem_vwap`, `simple_average`), §4.3.3 table, Rec 8. **Doc 6** rule 28 dispute (re-state over published fields) and §4.8 Ex. 1 gain table (the buy/central/sell rows are not CBN fields). **Doc 8** §4.1, Journey 1 and transfer card, §4.7 copy ("CBN central" → "CBN official rate (NFEM)"). **Doc 3** §L: the gap is measured against the NFEM Rate |
 | **RT-A independence** (red-team panel A, via coordinator) | **Amended** (C3); **Deferred** (C7 naming; owner: this contract with Doc 6, next revision). Every validation or review event records `independence` (self / simulated_agent / second_person / licensed). The founder's own checks are `self` and labelled "self-checked"; "validated", "verified" and "reviewed" are reserved for a second person or a licensed one. Eligibility is unchanged, and totals inherit the weakest label | C3.3 diagram; C3.3a; C3.4 table (validated row); C3.6 (5 lines) | **Doc 5c** §4.3.10 (the founder is `self`, not independent of the "ingesting process"). **Doc 8** Component A, copy and exports (chip wording; never "verified" for self-checks). **Doc 4** and **Doc 3** (C4 precision measured against the owner's own decisions; say so). **Doc 6** §4.2: the 17 `reviewed_internal` records were re-read by a simulated agent, so record `independence = simulated_agent`. Whether to rename the status is deferred |
 
-**Deferred items and owners.** (1) Calibration of the C1.5 bands: Doc 4 with the data-quality lead, once 30 receipt-backed exchanges per pair exist. (2) Practitioner confirmation of s.22(1) for trade, the investment-income basis (`NG-BASIS-INVESTMENT-2026`) and the CBN field for gains: licensed Nigerian tax practitioner. (3) Renaming or splitting C7's `reviewed_internal` for simulated re-reads: this contract with Doc 6, next revision. (4) Re-computing the validation workload with the sampling floor: Doc 5c.
+| **RT-B C2 bypass** (red-team panel B, via coordinator) | **Amended.** Lexical rules hardened in order: format/control characters; Nd/Nl/No numerals; NFKC plus a character allow-list (homoglyphs); ASCII Roman numerals; a number and date lexicon in English, Yoruba, Hausa, Arabic, French and Spanish, with ordinals, plurals, multipliers, month and weekday abbreviations and named dates; and in model text, quantifier, comparative, direction and relative-time words. `as=` is enforced; `per=` and `scope=` bind figures to period and entity, with a per-sentence period check; new `cmp` token. A connecting-text vocabulary allow-list is required in production. The harness now reports 0 of 20 PASS (v0.1: 18) | C2.2 items 2, 3, 5, 10; C2.3 T2-17 to T2-19; C2.4 (snippet, case A rewritten, cases K–O, harness lines); C2.6 Q1–Q2; script `lint_numerals`, `lint_text`, `parse_token`, `validate_and_render` | **Doc 7** §4.6: adopt the lexicons and the vocabulary allow-list as registry data, add T2-17 to T2-19 and the harness to CI, add `period`/`scope` to the figure store, and build `cmp`, `name` scope checks and `calc` role binding. Restate F19 and Table 4.1 claims as "no free numerals and bound tokens", not "no false quantitative claims". **Doc 5c** §4.3.1: add `period_id` and `scope_id` to figure fields; §4.3.12 the same restatement. **Doc 8** Component B and §4.7 copy rules: no "last month", "may" or "first"; periods come from tokens. **Doc 3** §4.10: template text passes the numeral rules (it already does after the CC-2 rewording) |
+| **RT-B retention** (red-team panel B, via coordinator) | **Amended: new contract C8.** Doc 6's position is adopted: the user can always erase. Classes T, B, A, S, W. Per-class crypto-shredding that reaches backups through per-class recipients; escrow holds only the key-store identity; compliance-mode lock forbidden; the draft retention rule gates nothing; commercial-phase basis deferred to counsel | C8 (new); metadata | **Doc 6** §4.1A and rule 34 row. **Doc 7** §4.7.3, §4.7.4, MVB 8. **Doc 3** §4.9.6. **Doc 8** §4.5.13. V-028 "design closed" should be reopened by the coordinator until these edits land |
+
+**Deferred items and owners.** (1) Calibration of the C1.5 bands: Doc 4 with the data-quality lead, once 30 receipt-backed exchanges per pair exist. (2) Practitioner confirmation of s.22(1) for trade, the investment-income basis (`NG-BASIS-INVESTMENT-2026`) and the CBN field for gains: licensed Nigerian tax practitioner. (3) Renaming or splitting C7's `reviewed_internal` for simulated re-reads: this contract with Doc 6, next revision. (4) Re-computing the validation workload with the sampling floor: Doc 5c. (5) The connecting-text vocabulary allow-list and the generated corpus test (T2-17): Doc 7, before the Stage 0b AI layer. (6) The commercial-phase retention basis (C8): Nigerian data-protection counsel.
